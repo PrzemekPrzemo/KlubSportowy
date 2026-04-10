@@ -1,0 +1,12 @@
+/vendor/
+/config/database.local.php
+/config/app.local.php
+/storage/logs/*
+/storage/uploads/*
+/storage/backups/*
+!/storage/logs/.gitkeep
+!/storage/uploads/.gitkeep
+!/storage/backups/.gitkeep
+.DS_Store
+Thumbs.db
+*.log

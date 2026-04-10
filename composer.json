@@ -1,0 +1,17 @@
+{
+    "name": "przemekprzemo/klubsportowy",
+    "description": "Multi-sport, multi-club management portal (PHP 8 + MySQL 8 + Bootstrap 5)",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
