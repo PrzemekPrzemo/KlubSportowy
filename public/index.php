@@ -157,6 +157,17 @@ $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::cla
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
+// Zarządzanie klubem (ustawienia / branding / SMTP / użytkownicy)
+$router->get('/club/settings',            [\App\Controllers\ClubManagementController::class, 'settings']);
+$router->post('/club/settings/save',      [\App\Controllers\ClubManagementController::class, 'saveSettings']);
+$router->get('/club/customization',       [\App\Controllers\ClubManagementController::class, 'customization']);
+$router->post('/club/customization/save', [\App\Controllers\ClubManagementController::class, 'saveCustomization']);
+$router->get('/club/smtp',                [\App\Controllers\ClubManagementController::class, 'smtp']);
+$router->post('/club/smtp/save',          [\App\Controllers\ClubManagementController::class, 'saveSmtp']);
+$router->get('/club/users',               [\App\Controllers\ClubManagementController::class, 'users']);
+$router->post('/club/users/add',          [\App\Controllers\ClubManagementController::class, 'addUser']);
+$router->post('/club/users/:userId/revoke', [\App\Controllers\ClubManagementController::class, 'revokeUser']);
+
 // Portal zawodnika (self-service)
 $router->get('/portal/login',            [\App\Controllers\MemberPortalController::class, 'showLogin']);
 $router->post('/portal/login',           [\App\Controllers\MemberPortalController::class, 'login']);

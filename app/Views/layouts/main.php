@@ -49,9 +49,15 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
 
 <nav class="sidebar">
     <div class="brand">
+        <?php if (!empty($clubBranding['logo_path'])): ?>
+            <img src="<?= url($clubBranding['logo_path']) ?>" alt="logo" style="max-width:180px; max-height:60px; margin-bottom:.5rem;">
+        <?php endif; ?>
         <h5 class="mb-0"><i class="bi bi-trophy"></i> <?= View::e($appName ?? 'KlubSportowy') ?></h5>
         <?php if (!empty($currentClub)): ?>
             <small class="d-block mt-1 text-muted"><?= View::e($currentClub['name']) ?></small>
+        <?php endif; ?>
+        <?php if (!empty($clubBranding['motto'])): ?>
+            <small class="d-block text-warning"><em><?= View::e($clubBranding['motto']) ?></em></small>
         <?php endif; ?>
         <?php if (!empty($activeSportKey)): ?>
             <small class="d-block text-info">sport: <?= View::e($activeSportKey) ?></small>
@@ -100,6 +106,15 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
                 </button>
             </form>
         <?php endforeach; ?>
+    <?php endif; ?>
+
+    <?php if ($allowed === null || in_array('club', $allowed, true)): ?>
+        <div class="section-label">Ustawienia klubu</div>
+        <a href="<?= url('club/settings') ?>"><i class="bi bi-gear"></i> Dane klubu</a>
+        <a href="<?= url('club/customization') ?>"><i class="bi bi-palette"></i> Branding</a>
+        <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> SMTP / SMS</a>
+        <a href="<?= url('club/users') ?>"><i class="bi bi-people-fill"></i> Użytkownicy</a>
+        <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> Szablony e-mail</a>
     <?php endif; ?>
 
     <?php if (!empty($isSuperAdmin)): ?>
