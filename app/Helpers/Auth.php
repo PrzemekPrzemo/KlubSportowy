@@ -105,4 +105,54 @@ class Auth
     {
         Session::destroy();
     }
+
+    // ── Impersonation (super admin → user klubu) ──────────────────────────
+    public static function impersonateClubUser(array $targetUser, int $clubId, string $roleInClub): void
+    {
+        Session::set('impersonation_original', [
+            'user_id'        => Session::get('user_id'),
+            'username'       => Session::get('username'),
+            'full_name'      => Session::get('full_name'),
+            'email'          => Session::get('email'),
+            'role'           => Session::get('role'),
+            'club_id'        => Session::get('club_id'),
+            'is_super_admin' => Session::get('is_super_admin'),
+        ]);
+
+        Session::set('user_id',        (int)$targetUser['id']);
+        Session::set('username',       $targetUser['username']);
+        Session::set('full_name',      $targetUser['full_name']);
+        Session::set('email',          $targetUser['email'] ?? '');
+        Session::set('role',           $roleInClub);
+        Session::set('club_id',        $clubId);
+        Session::set('is_super_admin', false);
+        Session::set('impersonating',  'club_user');
+        ClubContext::set($clubId);
+    }
+
+    public static function stopImpersonation(): void
+    {
+        $original = Session::get('impersonation_original');
+        if (!$original) return;
+
+        Session::remove('impersonating');
+        Session::remove('impersonation_original');
+        foreach ($original as $k => $v) {
+            if ($v !== null) {
+                Session::set($k, $v);
+            } else {
+                Session::remove($k);
+            }
+        }
+        if (!empty($original['club_id'])) {
+            ClubContext::set((int)$original['club_id']);
+        } else {
+            ClubContext::clear();
+        }
+    }
+
+    public static function isImpersonating(): bool
+    {
+        return Session::get('impersonating') !== null;
+    }
 }

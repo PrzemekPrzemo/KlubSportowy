@@ -33,9 +33,10 @@ abstract class BaseController
         $appCfg                = require ROOT_PATH . '/config/app.php';
         $data['appName']       = $appCfg['app_name'] ?? 'KlubSportowy';
 
-        $data['clubBranding']  = ClubCustomizationModel::getForCurrentClub();
-        $data['isSuperAdmin']  = Auth::isSuperAdmin();
-        $data['currentClubId'] = ClubContext::current();
+        $data['clubBranding']    = ClubCustomizationModel::getForCurrentClub();
+        $data['isSuperAdmin']    = Auth::isSuperAdmin();
+        $data['isImpersonating'] = Auth::isImpersonating();
+        $data['currentClubId']   = ClubContext::current();
         $data['activeSportKey']     = SportContext::currentSportKey();
         $data['activeClubSportId']  = SportContext::currentClubSport();
         $data['sportNav']           = SportModuleLoader::navForActiveSport();

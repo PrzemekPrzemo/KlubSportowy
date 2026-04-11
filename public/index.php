@@ -131,6 +131,12 @@ $router->post('/admin/clubs/:id/edit',      [\App\Controllers\AdminController::c
 $router->post('/admin/switch-club/:id',     [\App\Controllers\AdminController::class, 'switchClub']);
 $router->get('/admin/sports',               [\App\Controllers\AdminController::class, 'sportsCatalog']);
 $router->get('/admin/plans',                [\App\Controllers\AdminController::class, 'plans']);
+$router->get('/admin/activity',             [\App\Controllers\AdminController::class, 'activityLog']);
+$router->get('/admin/clubs/:id/users',      [\App\Controllers\AdminController::class, 'clubUsers']);
+$router->post('/admin/clubs/:id/users/:userId/impersonate', [\App\Controllers\AdminController::class, 'impersonate']);
+
+// Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
+$router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
 // Sekcje sportowe w kontekście klubu
 $router->get('/sports',                [\App\Controllers\SportsController::class, 'index']);

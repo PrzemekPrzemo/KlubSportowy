@@ -32,6 +32,9 @@
                                 <i class="bi bi-box-arrow-in-right"></i>
                             </button>
                         </form>
+                        <a href="<?= url('admin/clubs/' . (int)$c['id'] . '/users') ?>" class="btn btn-sm btn-outline-info" title="Użytkownicy">
+                            <i class="bi bi-people"></i>
+                        </a>
                         <a href="<?= url('admin/clubs/' . (int)$c['id'] . '/edit') ?>" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-pencil"></i>
                         </a>

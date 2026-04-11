@@ -153,4 +153,55 @@ class AdminController extends BaseController
             'plans' => $plans,
         ]);
     }
+
+    public function activityLog(): void
+    {
+        $recent = (new \App\Models\ActivityLogModel())->recent(100);
+        $this->render('admin/activity_log', [
+            'title'  => 'Log aktywności',
+            'recent' => $recent,
+        ]);
+    }
+
+    public function clubUsers(string $id): void
+    {
+        $clubId = (int)$id;
+        $club   = (new ClubModel())->findById($clubId);
+        if (!$club) {
+            Session::flash('error', 'Nie znaleziono klubu.');
+            $this->redirect('admin/clubs');
+        }
+        $users = (new \App\Models\UserClubModel())->getForClub($clubId);
+        $this->render('admin/club_users', [
+            'title' => 'Użytkownicy klubu: ' . $club['name'],
+            'club'  => $club,
+            'users' => $users,
+        ]);
+    }
+
+    public function impersonate(string $id, string $userId): void
+    {
+        Csrf::verify();
+        $clubId     = (int)$id;
+        $targetId   = (int)$userId;
+        $userClub   = new \App\Models\UserClubModel();
+        $roles      = $userClub->rolesForUserInClub($targetId, $clubId);
+        if (empty($roles)) {
+            Session::flash('error', 'Użytkownik nie ma roli w tym klubie.');
+            $this->redirect('admin/clubs/' . $clubId . '/users');
+        }
+        $db   = \App\Helpers\Database::pdo();
+        $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$targetId]);
+        $target = $stmt->fetch();
+        if (!$target) {
+            Session::flash('error', 'Użytkownik nie istnieje.');
+            $this->redirect('admin/clubs/' . $clubId . '/users');
+        }
+        \App\Helpers\Auth::impersonateClubUser($target, $clubId, $roles[0]);
+        (new \App\Models\ActivityLogModel())->log('impersonate_start', 'user', $targetId, 'club=' . $clubId);
+        Session::flash('success', 'Impersonujesz: ' . $target['full_name']);
+        $this->redirect('dashboard');
+    }
+
 }
