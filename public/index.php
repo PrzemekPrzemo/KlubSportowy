@@ -156,6 +156,14 @@ $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::cla
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
+// Badania lekarskie
+$router->get('/medical',              [\App\Controllers\MedicalExamsController::class, 'index']);
+$router->get('/medical/create',       [\App\Controllers\MedicalExamsController::class, 'create']);
+$router->post('/medical/store',       [\App\Controllers\MedicalExamsController::class, 'store']);
+$router->get('/medical/:id/edit',     [\App\Controllers\MedicalExamsController::class, 'edit']);
+$router->post('/medical/:id/update',  [\App\Controllers\MedicalExamsController::class, 'update']);
+$router->post('/medical/:id/delete',  [\App\Controllers\MedicalExamsController::class, 'delete']);
+
 // Kalendarz
 $router->get('/calendar',              [\App\Controllers\CalendarController::class, 'index']);
 $router->get('/calendar/create',       [\App\Controllers\CalendarController::class, 'create']);

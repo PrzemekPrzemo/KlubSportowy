@@ -67,6 +67,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     <a href="<?= url('trainings') ?>"><i class="bi bi-stopwatch"></i> Treningi</a>
     <a href="<?= url('fees') ?>"><i class="bi bi-cash-coin"></i> Finanse</a>
     <a href="<?= url('fees/rates') ?>"><i class="bi bi-tag"></i> Stawki opłat</a>
+    <a href="<?= url('medical') ?>"><i class="bi bi-heart-pulse"></i> Badania lekarskie</a>
 
     <?php if (!empty($sportNav)): ?>
         <div class="section-label">Sekcja: <?= View::e($activeSportKey) ?></div>

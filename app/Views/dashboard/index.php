@@ -31,6 +31,13 @@
     </div>
 </div>
 
+<?php if (!empty($expiringMedical)): ?>
+<div class="alert alert-warning">
+    <strong><i class="bi bi-heart-pulse"></i> <?= count($expiringMedical) ?> badań lekarskich wymaga uwagi</strong>
+    <a href="<?= url('medical') ?>" class="float-end">Zobacz wszystkie &rarr;</a>
+</div>
+<?php endif; ?>
+
 <div class="row g-3">
     <div class="col-lg-8">
         <div class="card p-3">
