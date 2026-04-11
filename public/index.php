@@ -156,6 +156,18 @@ $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::cla
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
+// Treningi
+$router->get('/trainings',                        [\App\Controllers\TrainingsController::class, 'index']);
+$router->get('/trainings/create',                 [\App\Controllers\TrainingsController::class, 'create']);
+$router->post('/trainings/store',                 [\App\Controllers\TrainingsController::class, 'store']);
+$router->get('/trainings/:id',                    [\App\Controllers\TrainingsController::class, 'show']);
+$router->get('/trainings/:id/edit',               [\App\Controllers\TrainingsController::class, 'edit']);
+$router->post('/trainings/:id/update',            [\App\Controllers\TrainingsController::class, 'update']);
+$router->post('/trainings/:id/delete',            [\App\Controllers\TrainingsController::class, 'delete']);
+$router->post('/trainings/:id/attendee/add',      [\App\Controllers\TrainingsController::class, 'addAttendee']);
+$router->post('/trainings/:id/attendee/:attendeeId/remove', [\App\Controllers\TrainingsController::class, 'removeAttendee']);
+$router->post('/trainings/:id/attendance',        [\App\Controllers\TrainingsController::class, 'markAttendance']);
+
 // Wydarzenia
 $router->get('/events',               [\App\Controllers\EventsController::class, 'index']);
 $router->get('/events/create',        [\App\Controllers\EventsController::class, 'create']);

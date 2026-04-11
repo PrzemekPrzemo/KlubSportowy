@@ -63,6 +63,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     <a href="<?= url('members') ?>"><i class="bi bi-people"></i> Zawodnicy</a>
     <a href="<?= url('sports') ?>"><i class="bi bi-trophy"></i> Sekcje sportowe</a>
     <a href="<?= url('events') ?>"><i class="bi bi-calendar-event"></i> Wydarzenia</a>
+    <a href="<?= url('trainings') ?>"><i class="bi bi-stopwatch"></i> Treningi</a>
     <a href="<?= url('fees') ?>"><i class="bi bi-cash-coin"></i> Finanse</a>
     <a href="<?= url('fees/rates') ?>"><i class="bi bi-tag"></i> Stawki opłat</a>
 
