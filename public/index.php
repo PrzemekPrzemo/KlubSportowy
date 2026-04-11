@@ -157,6 +157,13 @@ $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::cla
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
+// 2FA (TOTP)
+$router->get('/2fa/setup',     [\App\Controllers\TwoFactorController::class, 'setup']);
+$router->post('/2fa/confirm',  [\App\Controllers\TwoFactorController::class, 'confirm']);
+$router->post('/2fa/disable',  [\App\Controllers\TwoFactorController::class, 'disable']);
+$router->get('/2fa/verify',    [\App\Controllers\TwoFactorController::class, 'verify']);
+$router->post('/2fa/verify',   [\App\Controllers\TwoFactorController::class, 'verifyCode']);
+
 // Zarządzanie klubem (ustawienia / branding / SMTP / użytkownicy)
 $router->get('/club/settings',            [\App\Controllers\ClubManagementController::class, 'settings']);
 $router->post('/club/settings/save',      [\App\Controllers\ClubManagementController::class, 'saveSettings']);

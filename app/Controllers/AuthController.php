@@ -44,6 +44,12 @@ class AuthController extends BaseController
             $this->redirect('auth/login');
         }
 
+        // 2FA check — jeśli włączone, przekieruj na verify przed właściwym login
+        if (!empty($user['totp_enabled'])) {
+            Session::set('totp_pending_user', $user);
+            $this->redirect('2fa/verify');
+        }
+
         Auth::login($user);
         $userModel->touchLastLogin((int)$user['id']);
 
