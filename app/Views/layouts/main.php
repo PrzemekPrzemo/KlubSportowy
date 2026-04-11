@@ -59,16 +59,25 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     </div>
 
     <div class="section-label">Klub</div>
-    <a href="<?= url('dashboard') ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
-    <a href="<?= url('members') ?>"><i class="bi bi-people"></i> Zawodnicy</a>
-    <a href="<?= url('sports') ?>"><i class="bi bi-trophy"></i> Sekcje sportowe</a>
-    <a href="<?= url('calendar') ?>"><i class="bi bi-calendar3"></i> Kalendarz</a>
-    <a href="<?= url('events') ?>"><i class="bi bi-calendar-event"></i> Wydarzenia</a>
-    <a href="<?= url('trainings') ?>"><i class="bi bi-stopwatch"></i> Treningi</a>
-    <a href="<?= url('fees') ?>"><i class="bi bi-cash-coin"></i> Finanse</a>
-    <a href="<?= url('fees/rates') ?>"><i class="bi bi-tag"></i> Stawki opłat</a>
-    <a href="<?= url('medical') ?>"><i class="bi bi-heart-pulse"></i> Badania lekarskie</a>
-    <a href="<?= url('announcements') ?>"><i class="bi bi-megaphone"></i> Ogłoszenia</a>
+    <?php
+    $navItems = [
+        'dashboard'     => ['url' => 'dashboard',     'icon' => 'bi-speedometer2',   'label' => 'Dashboard',       'mod' => null],
+        'members'       => ['url' => 'members',       'icon' => 'bi-people',         'label' => 'Zawodnicy',       'mod' => 'members'],
+        'sports'        => ['url' => 'sports',        'icon' => 'bi-trophy',         'label' => 'Sekcje sportowe', 'mod' => 'sports'],
+        'calendar'      => ['url' => 'calendar',      'icon' => 'bi-calendar3',      'label' => 'Kalendarz',       'mod' => 'calendar'],
+        'events'        => ['url' => 'events',        'icon' => 'bi-calendar-event', 'label' => 'Wydarzenia',      'mod' => 'events'],
+        'trainings'     => ['url' => 'trainings',     'icon' => 'bi-stopwatch',      'label' => 'Treningi',        'mod' => 'trainings'],
+        'fees'          => ['url' => 'fees',          'icon' => 'bi-cash-coin',      'label' => 'Finanse',         'mod' => 'fees'],
+        'fees_rates'    => ['url' => 'fees/rates',    'icon' => 'bi-tag',            'label' => 'Stawki opłat',    'mod' => 'fees'],
+        'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',    'label' => 'Badania lekarskie','mod' => 'medical'],
+        'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',      'label' => 'Ogłoszenia',      'mod' => 'announcements'],
+    ];
+    $allowed = $navModules ?? null; // null = pełny dostęp
+    foreach ($navItems as $item):
+        if ($item['mod'] === null || $allowed === null || in_array($item['mod'], $allowed, true)):
+    ?>
+        <a href="<?= url($item['url']) ?>"><i class="bi <?= View::e($item['icon']) ?>"></i> <?= View::e($item['label']) ?></a>
+    <?php endif; endforeach; ?>
 
     <?php if (!empty($sportNav)): ?>
         <div class="section-label">Sekcja: <?= View::e($activeSportKey) ?></div>

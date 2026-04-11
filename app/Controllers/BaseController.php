@@ -9,6 +9,7 @@ use App\Helpers\SportContext;
 use App\Helpers\SportModuleLoader;
 use App\Helpers\View;
 use App\Models\ClubCustomizationModel;
+use App\Models\RolePermissionModel;
 use App\Models\SubscriptionModel;
 
 abstract class BaseController
@@ -45,6 +46,19 @@ abstract class BaseController
         } else {
             $data['currentClub'] = null;
             $data['clubSports']  = [];
+        }
+
+        // Filtr nawigacji wg uprawnień roli (null = super admin / brak filtra)
+        $role = Auth::role() ?? '';
+        if ($role !== '' && !Auth::isSuperAdmin()) {
+            try {
+                $data['navModules'] = (new RolePermissionModel())
+                    ->modulesForRole($role, $data['currentClubId'] ?: null);
+            } catch (\Throwable) {
+                $data['navModules'] = null;
+            }
+        } else {
+            $data['navModules'] = null;
         }
 
         $this->view->render($template, $data);
