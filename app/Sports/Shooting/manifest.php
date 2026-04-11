@@ -2,31 +2,39 @@
 // ============================================================
 // Moduł sportu: STRZELECTWO (PZSS)
 // ============================================================
-// Aby włączyć ten moduł dla konkretnego klubu, administrator klubu
-// aktywuje sport "shooting" w sekcji Sporty (/sports). Routy i nawigacja
-// rejestrowane są globalnie przez SportModuleLoader, ale widoczne tylko
-// kiedy klub ma tę sekcję aktywną (SportContext).
-//
-// Ten manifest stanowi wzorzec dla dodawania kolejnych modułów sportowych.
-// Kolejne fazy: implementacja kontrolerów broni, amunicji, licencji PZSS,
-// sędziów — wzorowane na odpowiednich modułach ShootingClubMng.
+// Rejestrowany przez SportModuleLoader — trasy i pozycje sidebara
+// pojawiają się automatycznie gdy klub ma aktywną sekcję shooting.
 
 return [
     'key'        => 'shooting',
     'name'       => 'Strzelectwo',
     'federation' => 'PZSS',
     'features'   => [
-        'weapons',        // broń klubowa i prywatna
-        'ammo',           // ewidencja amunicji
-        'pzss_license',   // licencje PZSS (patent, zawodnicza, trenerska)
-        'judges',         // sędziowie i ich klasyfikacje
-        'scorecards',     // metryczki strzałów (shot-by-shot)
+        'weapons',
+        'ammo',
+        'pzss_license',
+        'judges',
+        'scorecards',
     ],
     'routes' => [
-        // Kolejne fazy: rejestracja tras własnych kontrolerów, np.:
-        // ['GET',  '/shooting/weapons',           [\App\Sports\Shooting\Controllers\WeaponsController::class, 'index']],
-        // ['GET',  '/shooting/weapons/create',    [\App\Sports\Shooting\Controllers\WeaponsController::class, 'create']],
-        // ['POST', '/shooting/weapons/store',     [\App\Sports\Shooting\Controllers\WeaponsController::class, 'store']],
+        // Broń klubowa
+        ['GET',  '/shooting/weapons',              [\App\Sports\Shooting\Controllers\WeaponsController::class, 'index']],
+        ['GET',  '/shooting/weapons/create',       [\App\Sports\Shooting\Controllers\WeaponsController::class, 'create']],
+        ['POST', '/shooting/weapons/store',        [\App\Sports\Shooting\Controllers\WeaponsController::class, 'store']],
+        ['GET',  '/shooting/weapons/:id',          [\App\Sports\Shooting\Controllers\WeaponsController::class, 'show']],
+        ['GET',  '/shooting/weapons/:id/edit',     [\App\Sports\Shooting\Controllers\WeaponsController::class, 'edit']],
+        ['POST', '/shooting/weapons/:id/update',   [\App\Sports\Shooting\Controllers\WeaponsController::class, 'update']],
+        ['POST', '/shooting/weapons/:id/delete',   [\App\Sports\Shooting\Controllers\WeaponsController::class, 'delete']],
+        ['POST', '/shooting/weapons/:id/assign',   [\App\Sports\Shooting\Controllers\WeaponsController::class, 'assign']],
+        ['POST', '/shooting/weapons/:id/return',   [\App\Sports\Shooting\Controllers\WeaponsController::class, 'returnWeapon']],
+
+        // Amunicja
+        ['GET',  '/shooting/ammo',                 [\App\Sports\Shooting\Controllers\AmmoController::class, 'index']],
+        ['GET',  '/shooting/ammo/create',          [\App\Sports\Shooting\Controllers\AmmoController::class, 'create']],
+        ['POST', '/shooting/ammo/store',           [\App\Sports\Shooting\Controllers\AmmoController::class, 'store']],
+        ['GET',  '/shooting/ammo/:id',             [\App\Sports\Shooting\Controllers\AmmoController::class, 'show']],
+        ['POST', '/shooting/ammo/:id/adjust',      [\App\Sports\Shooting\Controllers\AmmoController::class, 'adjust']],
+        ['POST', '/shooting/ammo/:id/delete',      [\App\Sports\Shooting\Controllers\AmmoController::class, 'delete']],
     ],
     'nav' => [
         ['label' => 'Broń klubowa',  'icon' => 'bi-bullseye',  'url' => 'shooting/weapons'],
