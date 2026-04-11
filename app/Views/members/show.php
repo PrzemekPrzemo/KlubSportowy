@@ -38,6 +38,28 @@
                 </form>
             </div>
         </div>
+
+        <div class="card p-3 mt-3">
+            <h6><i class="bi bi-key"></i> Dostęp do portalu</h6>
+            <?php if (!empty($member['portal_password'])): ?>
+                <div class="alert alert-success py-2 small mb-2">
+                    Konto aktywne
+                    <?php if (!empty($member['portal_last_login'])): ?>
+                        <br>ostatnie logowanie: <?= format_datetime($member['portal_last_login']) ?>
+                    <?php endif; ?>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-secondary py-2 small mb-2">Brak konta portalu</div>
+            <?php endif; ?>
+            <form method="POST" action="<?= url('members/' . (int)$member['id'] . '/portal-password') ?>">
+                <?= csrf_field() ?>
+                <div class="input-group input-group-sm">
+                    <input type="password" name="portal_password" class="form-control" placeholder="Nowe hasło (min 8 znaków)" minlength="8" required>
+                    <button class="btn btn-warning">Ustaw</button>
+                </div>
+                <small class="text-muted d-block mt-1">Przekaż hasło zawodnikowi bezpiecznym kanałem.</small>
+            </form>
+        </div>
     </div>
     <div class="col-md-8">
         <div class="card p-3">

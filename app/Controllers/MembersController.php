@@ -117,6 +117,20 @@ class MembersController extends BaseController
         $this->redirect('members');
     }
 
+    /** Ustawia lub resetuje hasło portalu zawodnika. */
+    public function setPortalPassword(string $id): void
+    {
+        Csrf::verify();
+        $password = $_POST['portal_password'] ?? '';
+        if (strlen($password) < 8) {
+            Session::flash('error', 'Hasło musi mieć co najmniej 8 znaków.');
+            $this->redirect('members/' . $id);
+        }
+        \App\Helpers\MemberAuth::setPassword((int)$id, $password);
+        Session::flash('success', 'Hasło portalu zawodnika ustawione.');
+        $this->redirect('members/' . $id);
+    }
+
     private function parseMemberPost(bool $forCreate = true): ?array
     {
         $data = [

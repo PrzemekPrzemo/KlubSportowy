@@ -147,6 +147,7 @@ $router->get('/members/:id',          [\App\Controllers\MembersController::class
 $router->get('/members/:id/edit',     [\App\Controllers\MembersController::class, 'edit']);
 $router->post('/members/:id/update',  [\App\Controllers\MembersController::class, 'update']);
 $router->post('/members/:id/delete',  [\App\Controllers\MembersController::class, 'delete']);
+$router->post('/members/:id/portal-password', [\App\Controllers\MembersController::class, 'setPortalPassword']);
 
 // Finanse
 $router->get('/fees',                      [\App\Controllers\FeesController::class, 'index']);
@@ -155,6 +156,17 @@ $router->post('/fees/rates/store',         [\App\Controllers\FeesController::cla
 $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::class, 'deleteRate']);
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
+
+// Portal zawodnika (self-service)
+$router->get('/portal/login',            [\App\Controllers\MemberPortalController::class, 'showLogin']);
+$router->post('/portal/login',           [\App\Controllers\MemberPortalController::class, 'login']);
+$router->get('/portal/logout',           [\App\Controllers\MemberPortalController::class, 'logout']);
+$router->get('/portal/dashboard',        [\App\Controllers\MemberPortalController::class, 'dashboard']);
+$router->get('/portal/profile',          [\App\Controllers\MemberPortalController::class, 'profile']);
+$router->post('/portal/profile/update',  [\App\Controllers\MemberPortalController::class, 'updateProfile']);
+$router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);
+$router->get('/portal/fees',             [\App\Controllers\MemberPortalController::class, 'fees']);
+$router->get('/portal/events',           [\App\Controllers\MemberPortalController::class, 'events']);
 
 // Powiadomienia (dzwoneczek)
 $router->post('/notifications/:id/read', [\App\Controllers\NotificationsController::class, 'markRead']);
