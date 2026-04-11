@@ -35,6 +35,22 @@ return [
         ['GET',  '/shooting/ammo/:id',             [\App\Sports\Shooting\Controllers\AmmoController::class, 'show']],
         ['POST', '/shooting/ammo/:id/adjust',      [\App\Sports\Shooting\Controllers\AmmoController::class, 'adjust']],
         ['POST', '/shooting/ammo/:id/delete',      [\App\Sports\Shooting\Controllers\AmmoController::class, 'delete']],
+
+        // Licencje PZSS
+        ['GET',  '/shooting/licenses',             [\App\Sports\Shooting\Controllers\PzssLicensesController::class, 'index']],
+        ['GET',  '/shooting/licenses/create',      [\App\Sports\Shooting\Controllers\PzssLicensesController::class, 'create']],
+        ['POST', '/shooting/licenses/store',       [\App\Sports\Shooting\Controllers\PzssLicensesController::class, 'store']],
+        ['GET',  '/shooting/licenses/:id/edit',    [\App\Sports\Shooting\Controllers\PzssLicensesController::class, 'edit']],
+        ['POST', '/shooting/licenses/:id/update',  [\App\Sports\Shooting\Controllers\PzssLicensesController::class, 'update']],
+        ['POST', '/shooting/licenses/:id/delete',  [\App\Sports\Shooting\Controllers\PzssLicensesController::class, 'delete']],
+
+        // Sędziowie PZSS
+        ['GET',  '/shooting/judges',               [\App\Sports\Shooting\Controllers\JudgesController::class, 'index']],
+        ['GET',  '/shooting/judges/create',        [\App\Sports\Shooting\Controllers\JudgesController::class, 'create']],
+        ['POST', '/shooting/judges/store',         [\App\Sports\Shooting\Controllers\JudgesController::class, 'store']],
+        ['GET',  '/shooting/judges/:id/edit',      [\App\Sports\Shooting\Controllers\JudgesController::class, 'edit']],
+        ['POST', '/shooting/judges/:id/update',    [\App\Sports\Shooting\Controllers\JudgesController::class, 'update']],
+        ['POST', '/shooting/judges/:id/delete',    [\App\Sports\Shooting\Controllers\JudgesController::class, 'delete']],
     ],
     'nav' => [
         ['label' => 'Broń klubowa',  'icon' => 'bi-bullseye',  'url' => 'shooting/weapons'],
