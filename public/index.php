@@ -156,6 +156,14 @@ $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::cla
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
+// Kalendarz
+$router->get('/calendar',              [\App\Controllers\CalendarController::class, 'index']);
+$router->get('/calendar/create',       [\App\Controllers\CalendarController::class, 'create']);
+$router->post('/calendar/store',       [\App\Controllers\CalendarController::class, 'store']);
+$router->get('/calendar/:id/edit',     [\App\Controllers\CalendarController::class, 'edit']);
+$router->post('/calendar/:id/update',  [\App\Controllers\CalendarController::class, 'update']);
+$router->post('/calendar/:id/delete',  [\App\Controllers\CalendarController::class, 'delete']);
+
 // Treningi
 $router->get('/trainings',                        [\App\Controllers\TrainingsController::class, 'index']);
 $router->get('/trainings/create',                 [\App\Controllers\TrainingsController::class, 'create']);
