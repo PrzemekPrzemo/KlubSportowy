@@ -122,9 +122,36 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
 <main class="main-content">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0"><?= View::e($title ?? '') ?></h2>
-        <?php if (!empty($subscription)): ?>
-            <span class="badge bg-secondary">Plan: <?= View::e($subscription['plan_name'] ?? '') ?> • do <?= View::e(format_date($subscription['valid_until'] ?? null)) ?></span>
-        <?php endif; ?>
+        <div class="d-flex align-items-center gap-2">
+            <?php if (!empty($unreadNotifsCount)): ?>
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline-secondary position-relative" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <?= (int)$unreadNotifsCount ?>
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-2" style="width:340px; max-height:400px; overflow-y:auto;">
+                        <h6 class="dropdown-header">Powiadomienia (<?= (int)$unreadNotifsCount ?>)</h6>
+                        <?php foreach (($unreadNotifs ?? []) as $n): ?>
+                            <form method="POST" action="<?= url('notifications/' . (int)$n['id'] . '/read') ?>" class="m-0">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-link text-start w-100 px-2 py-1 text-decoration-none text-dark">
+                                    <strong class="small d-block"><?= View::e($n['title']) ?></strong>
+                                    <?php if (!empty($n['body'])): ?>
+                                        <div class="small text-muted"><?= View::e(substr($n['body'], 0, 80)) ?></div>
+                                    <?php endif; ?>
+                                    <small class="text-muted"><?= format_datetime($n['created_at']) ?></small>
+                                </button>
+                            </form>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+            <?php if (!empty($subscription)): ?>
+                <span class="badge bg-secondary">Plan: <?= View::e($subscription['plan_name'] ?? '') ?> • do <?= View::e(format_date($subscription['valid_until'] ?? null)) ?></span>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php foreach (['flashSuccess'=>'success','flashError'=>'danger','flashWarning'=>'warning','flashInfo'=>'info'] as $k => $cls): ?>

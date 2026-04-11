@@ -61,6 +61,17 @@ abstract class BaseController
             $data['navModules'] = null;
         }
 
+        // Powiadomienia in-app (dzwoneczek)
+        $data['unreadNotifs']      = [];
+        $data['unreadNotifsCount'] = 0;
+        if (Auth::id() !== null) {
+            try {
+                $n = new \App\Models\NotificationModel();
+                $data['unreadNotifs']      = $n->unreadForUser((int)Auth::id(), 10);
+                $data['unreadNotifsCount'] = $n->countUnread((int)Auth::id());
+            } catch (\Throwable) {}
+        }
+
         $this->view->render($template, $data);
     }
 
