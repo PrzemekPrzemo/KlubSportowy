@@ -156,6 +156,12 @@ $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::cla
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
+// Szablony e-mail + kolejka
+$router->get('/email/templates',                [\App\Controllers\EmailTemplatesController::class, 'index']);
+$router->get('/email/templates/:type',          [\App\Controllers\EmailTemplatesController::class, 'edit']);
+$router->post('/email/templates/:type/save',    [\App\Controllers\EmailTemplatesController::class, 'save']);
+$router->get('/email/queue',                    [\App\Controllers\EmailTemplatesController::class, 'queue']);
+
 // Ogłoszenia
 $router->get('/announcements',              [\App\Controllers\AnnouncementsController::class, 'index']);
 $router->get('/announcements/create',       [\App\Controllers\AnnouncementsController::class, 'create']);
