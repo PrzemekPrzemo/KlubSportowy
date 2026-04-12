@@ -57,30 +57,43 @@ class MessageModel extends ClubScopedModel
     }
 
     /**
-     * Wątek — wiadomość główna + odpowiedzi.
+     * Wątek — wiadomość główna + odpowiedzi, scoped by club_id.
      */
     public function thread(int $parentId): array
     {
+        $clubId = $this->clubId();
         $sql = "SELECT m.*,
                        CASE m.sender_type
                            WHEN 'user'   THEN (SELECT full_name FROM users   WHERE id = m.sender_id)
                            WHEN 'member' THEN (SELECT CONCAT(first_name,' ',last_name) FROM members WHERE id = m.sender_id)
                        END AS sender_name
                 FROM messages m
-                WHERE m.id = ? OR m.parent_id = ?
-                ORDER BY m.created_at ASC";
+                WHERE (m.id = ? OR m.parent_id = ?)";
+        $params = [$parentId, $parentId];
+        if ($clubId !== null) {
+            $sql .= " AND m.club_id = ?";
+            $params[] = $clubId;
+        }
+        $sql .= " ORDER BY m.created_at ASC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$parentId, $parentId]);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
     /**
-     * Oznacz wiadomość jako przeczytaną.
+     * Oznacz wiadomość jako przeczytaną, scoped by club_id.
      */
     public function markRead(int $id): bool
     {
-        $stmt = $this->db->prepare("UPDATE messages SET read_at = NOW() WHERE id = ? AND read_at IS NULL");
-        return $stmt->execute([$id]);
+        $clubId = $this->clubId();
+        $sql = "UPDATE messages SET read_at = NOW() WHERE id = ? AND read_at IS NULL";
+        $params = [$id];
+        if ($clubId !== null) {
+            $sql .= " AND club_id = ?";
+            $params[] = $clubId;
+        }
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
     }
 
     /**

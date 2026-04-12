@@ -142,6 +142,15 @@ $router->get('/admin/activity',             [\App\Controllers\AdminController::c
 $router->get('/admin/clubs/:id/users',      [\App\Controllers\AdminController::class, 'clubUsers']);
 $router->post('/admin/clubs/:id/users/:userId/impersonate', [\App\Controllers\AdminController::class, 'impersonate']);
 
+// Admin: extended club management (BLOK 2A)
+$router->get('/admin/clubs/create-full',       [\App\Controllers\AdminController::class, 'createClubFull']);
+$router->post('/admin/clubs/create-full',      [\App\Controllers\AdminController::class, 'storeClubFull']);
+$router->get('/admin/clubs/:id/edit-full',     [\App\Controllers\AdminController::class, 'editClubFull']);
+$router->post('/admin/clubs/:id/edit-full',    [\App\Controllers\AdminController::class, 'updateClubFull']);
+$router->post('/admin/clubs/:id/toggle-sport', [\App\Controllers\AdminController::class, 'toggleClubSport']);
+$router->post('/admin/clubs/:id/limits',       [\App\Controllers\AdminController::class, 'setClubLimits']);
+$router->get('/admin/clubs/:id/analytics',     [\App\Controllers\AdminController::class, 'clubAnalytics']);
+
 // Admin: demo tokeny
 $router->get('/admin/demos',           [\App\Controllers\DemoController::class, 'index']);
 $router->post('/admin/demos/create',   [\App\Controllers\DemoController::class, 'create']);
@@ -267,6 +276,10 @@ $router->post('/portal/profile/update',  [\App\Controllers\MemberPortalControlle
 $router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);
 $router->get('/portal/fees',             [\App\Controllers\MemberPortalController::class, 'fees']);
 $router->get('/portal/events',           [\App\Controllers\MemberPortalController::class, 'events']);
+
+// Portal: club selection (BLOK 2B - unified member identity)
+$router->get('/portal/club-select',      [\App\Controllers\MemberPortalController::class, 'showClubSelect']);
+$router->post('/portal/club-select/:id', [\App\Controllers\MemberPortalController::class, 'selectClub']);
 
 // Portal: płatności online
 $router->get('/portal/payments',         [\App\Controllers\MemberPaymentController::class, 'index']);

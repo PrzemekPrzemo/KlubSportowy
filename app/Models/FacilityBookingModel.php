@@ -57,15 +57,20 @@ class FacilityBookingModel extends ClubScopedModel
     }
 
     /**
-     * Sprawdzanie konfliktów rezerwacji.
+     * Sprawdzanie konfliktów rezerwacji, scoped by club_id.
      */
     public function conflicts(int $facilityId, string $start, string $end, ?int $excludeId = null): array
     {
+        $clubId = $this->clubId();
         $sql = "SELECT * FROM facility_bookings
                 WHERE facility_id = ?
                   AND start_time < ? AND end_time > ?
                   AND status != 'cancelled'";
         $params = [$facilityId, $end, $start];
+        if ($clubId !== null) {
+            $sql .= " AND club_id = ?";
+            $params[] = $clubId;
+        }
         if ($excludeId !== null) {
             $sql .= " AND id != ?";
             $params[] = $excludeId;
