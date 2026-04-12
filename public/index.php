@@ -396,6 +396,10 @@ $router->get('/api/v1/sports',                   [\App\Controllers\Api\SportsApi
 $router->get('/api/v1/sports/catalog',           [\App\Controllers\Api\SportsApiController::class, 'catalog']);
 $router->get('/api/v1/sports/:sportId/disciplines', [\App\Controllers\Api\SportsApiController::class, 'disciplines']);
 
+// API: push device tokens
+$router->post('/api/v1/devices/register',   [\App\Controllers\Api\DevicesApiController::class, 'register']);
+$router->post('/api/v1/devices/unregister', [\App\Controllers\Api\DevicesApiController::class, 'unregister']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 

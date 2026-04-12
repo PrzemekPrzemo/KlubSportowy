@@ -141,4 +141,100 @@ class ValidatorTest extends TestCase
         $this->assertCount(2, $v->errors());
         $this->assertNotNull($v->firstError());
     }
+
+    // ------------------------------------------------------------------
+    // Additional edge-case tests (BLOK 3)
+    // ------------------------------------------------------------------
+
+    public function testUrlValid(): void
+    {
+        $v = Validator::make(['u' => 'https://example.com'], ['u' => 'required|url']);
+        $this->assertTrue($v->passes());
+    }
+
+    public function testUrlInvalid(): void
+    {
+        $v = Validator::make(['u' => 'not a url'], ['u' => 'required|url']);
+        $this->assertTrue($v->fails());
+    }
+
+    public function testIntegerValid(): void
+    {
+        $v = Validator::make(['n' => '42'], ['n' => 'required|integer']);
+        $this->assertTrue($v->passes());
+    }
+
+    public function testIntegerInvalidFloat(): void
+    {
+        $v = Validator::make(['n' => '3.14'], ['n' => 'required|integer']);
+        $this->assertTrue($v->fails());
+    }
+
+    public function testConfirmedPasses(): void
+    {
+        $v = Validator::make(
+            ['password' => 'secret123', 'password_confirmation' => 'secret123'],
+            ['password' => 'required|confirmed']
+        );
+        $this->assertTrue($v->passes());
+    }
+
+    public function testConfirmedFails(): void
+    {
+        $v = Validator::make(
+            ['password' => 'secret123', 'password_confirmation' => 'different'],
+            ['password' => 'required|confirmed']
+        );
+        $this->assertTrue($v->fails());
+    }
+
+    public function testAllErrorsFlat(): void
+    {
+        $v = Validator::make(
+            ['a' => '', 'b' => ''],
+            ['a' => 'required', 'b' => 'required']
+        );
+        $this->assertTrue($v->fails());
+        $all = $v->allErrors();
+        $this->assertCount(2, $all);
+        $this->assertIsString($all[0]);
+    }
+
+    public function testWhitespaceTrimmed(): void
+    {
+        $v = Validator::make(['name' => '  Jan  '], ['name' => 'required']);
+        $this->assertTrue($v->passes());
+        $this->assertEquals('Jan', $v->validated()['name']);
+    }
+
+    public function testMaxValuePasses(): void
+    {
+        $v = Validator::make(['a' => '100'], ['a' => 'required|numeric|max_value:200']);
+        $this->assertTrue($v->passes());
+    }
+
+    public function testMaxValueFails(): void
+    {
+        $v = Validator::make(['a' => '300'], ['a' => 'required|numeric|max_value:200']);
+        $this->assertTrue($v->fails());
+    }
+
+    public function testPhoneInvalidChars(): void
+    {
+        $v = Validator::make(['p' => 'abc-phone'], ['p' => 'required|phone']);
+        $this->assertTrue($v->fails());
+    }
+
+    public function testMissingFieldWithRequiredFails(): void
+    {
+        $v = Validator::make([], ['name' => 'required']);
+        $this->assertTrue($v->fails());
+    }
+
+    public function testMissingFieldWithoutRequiredPasses(): void
+    {
+        $v = Validator::make([], ['nickname' => 'min:3']);
+        $this->assertTrue($v->passes());
+        $this->assertNull($v->validated()['nickname']);
+    }
 }

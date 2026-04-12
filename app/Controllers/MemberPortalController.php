@@ -9,6 +9,7 @@ use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Models\EventModel;
 use App\Models\MedicalExamModel;
+use App\Models\MemberIdentityModel;
 use App\Models\MemberLicenseModel;
 use App\Models\MemberModel;
 use App\Models\PaymentModel;
@@ -19,6 +20,9 @@ class MemberPortalController extends BaseController
     public function showLogin(): void
     {
         if (MemberAuth::check()) {
+            if (MemberAuth::isMultiClub() && MemberAuth::clubId() === null) {
+                $this->redirect('portal/club-select');
+            }
             $this->redirect('portal/dashboard');
         }
         $this->view->setLayout('portal_auth');
@@ -38,7 +42,7 @@ class MemberPortalController extends BaseController
 
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-        // Rate limiting — check before processing
+        // Rate limiting
         if (!RateLimiter::check($ip, 'portal_login')) {
             Session::flash('error', 'Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.');
             $this->redirect('portal/login');
@@ -49,6 +53,24 @@ class MemberPortalController extends BaseController
             $this->redirect('portal/login');
         }
 
+        $identityModel = new MemberIdentityModel();
+
+        // Try unified identity login first
+        $identity = $identityModel->findByEmail($email);
+        if ($identity && $identityModel->verifyPassword($identity, $password)) {
+            RateLimiter::reset($ip, 'portal_login');
+            $identityModel->touchLogin((int)$identity['id']);
+            MemberAuth::loginIdentity($identity);
+
+            // Check multi-club
+            $clubs = $identityModel->clubsForIdentity((int)$identity['id']);
+            if (count($clubs) > 1) {
+                $this->redirect('portal/club-select');
+            }
+            $this->redirect('portal/dashboard');
+        }
+
+        // Fallback: legacy member login (direct members table)
         $db = Database::pdo();
         $stmt = $db->prepare("SELECT * FROM members WHERE email = ? AND status = 'aktywny' LIMIT 1");
         $stmt->execute([$email]);
@@ -62,7 +84,6 @@ class MemberPortalController extends BaseController
 
         RateLimiter::reset($ip, 'portal_login');
         MemberAuth::login($member);
-        // Aktualizuj portal_last_login
         $db->prepare("UPDATE members SET portal_last_login = NOW() WHERE id = ?")->execute([$member['id']]);
 
         $this->redirect('portal/dashboard');
@@ -74,25 +95,81 @@ class MemberPortalController extends BaseController
         $this->redirect('portal/login');
     }
 
+    /**
+     * Show club selection page for multi-club identities.
+     */
+    public function showClubSelect(): void
+    {
+        MemberAuth::requireLogin();
+
+        $clubs = MemberAuth::currentClubs();
+
+        // Enrich with sport badges
+        $db = Database::pdo();
+        foreach ($clubs as &$club) {
+            $stmt = $db->prepare(
+                "SELECT s.name FROM club_sports cs
+                 JOIN sports s ON s.id = cs.sport_id
+                 WHERE cs.club_id = ? AND cs.is_active = 1
+                 ORDER BY s.name LIMIT 5"
+            );
+            $stmt->execute([(int)$club['id']]);
+            $club['sport_badges'] = array_column($stmt->fetchAll(), 'name');
+        }
+        unset($club);
+
+        $this->view->setLayout('portal_auth');
+        $this->view->render('portal/club_select', [
+            'title'        => 'Wybierz klub',
+            'clubs'        => $clubs,
+            'flashError'   => Session::getFlash('error'),
+            'flashSuccess' => Session::getFlash('success'),
+            'appName'      => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    /**
+     * POST: Select a club from multi-club list.
+     */
+    public function selectClub(string $clubId): void
+    {
+        Csrf::verify();
+        MemberAuth::requireLogin();
+
+        $cid = (int)$clubId;
+        if (!MemberAuth::selectClub($cid)) {
+            Session::flash('error', 'Nie masz członkostwa w wybranym klubie.');
+            $this->redirect('portal/club-select');
+        }
+
+        $this->redirect('portal/dashboard');
+    }
+
     public function dashboard(): void
     {
         MemberAuth::requireLogin();
+
+        // If multi-club and no club selected yet, redirect
+        if (MemberAuth::isMultiClub() && MemberAuth::clubId() === null) {
+            $this->redirect('portal/club-select');
+        }
+
         $member = MemberAuth::member();
 
-        // Zaległości
+        // Payments
         $pm = new PaymentModel();
         $payments = $pm->listForClub((int)$member['id'], (int)date('Y'), 1, 10);
         $totalThisYear = array_sum(array_map(fn($p) => (float)$p['amount'], $payments['data'] ?? []));
 
-        // Badania
+        // Medical
         $medical = (new MedicalExamModel())->latestForMember((int)$member['id']);
 
-        // Licencje
+        // Licenses
         $licenses = (new MemberLicenseModel())
             ->listForClub(null, null, 1, 5)['data'] ?? [];
         $licenses = array_filter($licenses, fn($l) => (int)$l['member_id'] === (int)$member['id']);
 
-        // Nadchodzące wydarzenia klubu
+        // Upcoming events and trainings
         $upcoming = (new EventModel())->upcomingForClub(5);
         $trainings = (new TrainingModel())->upcomingForClub(5);
 

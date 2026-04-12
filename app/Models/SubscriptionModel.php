@@ -48,4 +48,34 @@ class SubscriptionModel extends BaseModel
         );
         return $stmt->fetchAll();
     }
+
+    /**
+     * Check if club is over member limit, respecting admin overrides.
+     * max_members_override takes precedence over plan.max_members.
+     */
+    public function isOverMemberLimitWithOverride(int $clubId): bool
+    {
+        $sub = $this->findForClub($clubId);
+        if ($sub === null) {
+            return false;
+        }
+
+        // Override takes precedence
+        $limit = $sub['max_members_override'] ?? null;
+        if ($limit === null) {
+            $limit = $sub['max_members'] ?? null;
+        }
+
+        if ($limit === null) {
+            return false; // unlimited
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM members WHERE club_id = ? AND status = 'aktywny'"
+        );
+        $stmt->execute([$clubId]);
+        $count = (int)$stmt->fetchColumn();
+
+        return $count >= (int)$limit;
+    }
 }

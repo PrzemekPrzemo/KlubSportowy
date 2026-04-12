@@ -1759,3 +1759,91 @@ CREATE TABLE IF NOT EXISTS `member_identities` (
 
 ALTER TABLE `members` ADD COLUMN `identity_id` INT UNSIGNED NULL AFTER `club_id`;
 ALTER TABLE `members` ADD CONSTRAINT `fk_member_identity` FOREIGN KEY (`identity_id`) REFERENCES `member_identities`(`id`) ON DELETE SET NULL;
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `device_tokens` (
+  `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `member_id`  INT UNSIGNED NOT NULL,
+  `token`      VARCHAR(500) NOT NULL,
+  `platform`   ENUM('android','ios','web') NOT NULL DEFAULT 'android',
+  `is_active`  TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `uq_token` (`token`(191)),
+  KEY `idx_dt_member` (`member_id`),
+  FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET foreign_key_checks = 1;
+
+-- ============================================================
+-- Migration 024: Shop (products, orders, order items)
+-- ============================================================
+SET foreign_key_checks = 0;
+CREATE TABLE IF NOT EXISTS `shop_products` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id` INT UNSIGNED NOT NULL,
+  `name` VARCHAR(150) NOT NULL,
+  `description` TEXT NULL,
+  `price` DECIMAL(10,2) NOT NULL,
+  `category` ENUM('odzież','sprzęt','akcesoria','gadżety','inne') NOT NULL DEFAULT 'inne',
+  `sizes` JSON NULL,
+  `image_path` VARCHAR(255) NULL,
+  `stock` INT UNSIGNED NOT NULL DEFAULT 0,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_sp_club` (`club_id`),
+  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `shop_orders` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id` INT UNSIGNED NOT NULL,
+  `member_id` INT UNSIGNED NULL,
+  `customer_name` VARCHAR(120) NOT NULL,
+  `customer_email` VARCHAR(120) NULL,
+  `customer_phone` VARCHAR(20) NULL,
+  `total` DECIMAL(10,2) NOT NULL,
+  `status` ENUM('nowe','opłacone','w_realizacji','wysłane','odebrane','anulowane') NOT NULL DEFAULT 'nowe',
+  `shipping_address` TEXT NULL,
+  `notes` TEXT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_so_club` (`club_id`),
+  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `shop_order_items` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `order_id` INT UNSIGNED NOT NULL,
+  `product_id` INT UNSIGNED NOT NULL,
+  `quantity` SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+  `unit_price` DECIMAL(10,2) NOT NULL,
+  `size` VARCHAR(20) NULL,
+  FOREIGN KEY (`order_id`) REFERENCES `shop_orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`product_id`) REFERENCES `shop_products`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SET foreign_key_checks = 1;
+
+-- ============================================================
+-- Migration 025: Result images (OCR manual upload)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `result_images` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id` INT UNSIGNED NOT NULL,
+  `event_id` INT UNSIGNED NULL,
+  `member_id` INT UNSIGNED NULL,
+  `sport_id` INT UNSIGNED NULL,
+  `image_path` VARCHAR(255) NOT NULL,
+  `original_filename` VARCHAR(255) NOT NULL,
+  `extracted_data` JSON NULL,
+  `status` ENUM('uploaded','processed','verified') NOT NULL DEFAULT 'uploaded',
+  `uploaded_by` INT UNSIGNED NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_ri_club` (`club_id`),
+  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`sport_id`) REFERENCES `sports`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`uploaded_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

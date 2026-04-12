@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\CsvExporter;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Models\MemberIdentityModel;
 use App\Models\MemberModel;
 use App\Models\MemberSportModel;
 use App\Models\SportModel;
@@ -61,6 +62,25 @@ class MembersController extends BaseController
         $id    = $model->insert($data);
 
         $this->syncSports($id);
+
+        // Link to unified identity (cross-club)
+        $email       = $data['email'] ?? '';
+        $displayName = ($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '');
+        if ($email !== '') {
+            try {
+                $identityModel = new MemberIdentityModel();
+                $identity = $identityModel->findOrCreate(
+                    $email,
+                    $data['pesel'] ?? null,
+                    $data['phone'] ?? null,
+                    trim($displayName)
+                );
+                $identityModel->linkMember((int)$identity['id'], $id);
+            } catch (\Throwable $e) {
+                // Identity linking is non-critical, log and continue
+                error_log('MemberIdentity link failed: ' . $e->getMessage());
+            }
+        }
 
         Session::flash('success', 'Zawodnik dodany.');
         $this->redirect('members/' . $id);
