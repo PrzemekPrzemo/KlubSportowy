@@ -105,3 +105,32 @@
         </div>
     </div>
 </div>
+
+<!-- Drag & Drop lineup editor -->
+<div class="card p-3 mt-3">
+    <h5><i class="bi bi-arrows-move"></i> Edytor składu (drag & drop)</h5>
+    <p class="small text-muted">Kliknij pozycję na boisku, potem wybierz zawodnika z listy poniżej.</p>
+    <?php
+    $memberJson = json_encode(array_map(fn($m) => [
+        'id' => (int)$m['id'],
+        'name' => $m['last_name'] . ' ' . $m['first_name'],
+        'number' => '',
+    ], $members), JSON_UNESCAPED_UNICODE);
+    $lineupJson = json_encode(array_map(fn($l) => [
+        'member_id' => (int)$l['member_id'],
+        'position' => $l['position'] ?? '',
+        'name' => ($l['last_name'] ?? '') . ' ' . ($l['first_name'] ?? ''),
+        'jersey_number' => $l['jersey_number'] ?? '',
+    ], $match['lineup'] ?? []), JSON_UNESCAPED_UNICODE);
+    ?>
+    <div id="lineup-editor"
+         data-sport="football"
+         data-match-id="<?= (int)$match['id'] ?>"
+         data-team-id="<?= (int)$match['home_team_id'] ?>"
+         data-members='<?= View::e($memberJson) ?>'
+         data-lineup='<?= View::e($lineupJson) ?>'
+         data-save-url="<?= url('football/matches/' . (int)$match['id'] . '/lineup-save') ?>"
+         data-csrf="<?= csrf_token() ?>">
+    </div>
+</div>
+<script src="<?= url('js/lineup-editor.js') ?>"></script>

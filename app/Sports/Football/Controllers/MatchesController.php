@@ -118,6 +118,38 @@ class MatchesController extends BaseController
         $this->redirect('football/matches/' . $id);
     }
 
+    /** Batch save lineup z drag&drop editora. */
+    public function saveLineup(string $id): void
+    {
+        Csrf::verify();
+        $teamId = (int)($_POST['team_id'] ?? 0);
+        $lineup = $_POST['lineup'] ?? [];
+        if (!is_array($lineup) || $teamId <= 0) {
+            Session::flash('error', 'Nieprawidłowe dane składu.');
+            $this->redirect('football/matches/' . $id);
+        }
+        $db = Database::pdo();
+        // Clear existing lineup for this match+team
+        $db->prepare("DELETE FROM football_lineups WHERE match_id = ? AND team_id = ?")
+           ->execute([(int)$id, $teamId]);
+        // Insert new
+        $stmt = $db->prepare(
+            "INSERT INTO football_lineups (match_id, member_id, team_id, position, is_starter, jersey_number)
+             VALUES (?, ?, ?, ?, 1, ?)"
+        );
+        foreach ($lineup as $entry) {
+            $memberId = (int)($entry['member_id'] ?? 0);
+            if ($memberId <= 0) continue;
+            $stmt->execute([
+                (int)$id, $memberId, $teamId,
+                $entry['position'] ?? null,
+                !empty($entry['jersey_number']) ? (int)$entry['jersey_number'] : null,
+            ]);
+        }
+        Session::flash('success', 'Skład zapisany z edytora.');
+        $this->redirect('football/matches/' . $id);
+    }
+
     private function parsePost(): ?array
     {
         $data = [

@@ -21,6 +21,7 @@ return [
         ['POST', '/football/matches/:id/delete', [\App\Sports\Football\Controllers\MatchesController::class, 'delete']],
         ['POST', '/football/matches/:id/event',  [\App\Sports\Football\Controllers\MatchesController::class, 'addEvent']],
         ['POST', '/football/matches/:id/lineup', [\App\Sports\Football\Controllers\MatchesController::class, 'addLineup']],
+        ['POST', '/football/matches/:id/lineup-save', [\App\Sports\Football\Controllers\MatchesController::class, 'saveLineup']],
         ['GET',  '/football/transfers',           [\App\Sports\Football\Controllers\TransfersController::class, 'index']],
         ['GET',  '/football/transfers/create',    [\App\Sports\Football\Controllers\TransfersController::class, 'create']],
         ['POST', '/football/transfers/store',     [\App\Sports\Football\Controllers\TransfersController::class, 'store']],

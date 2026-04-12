@@ -1577,3 +1577,106 @@ CREATE TABLE IF NOT EXISTS `online_payments` (
   COMMENT='Platnosci online z portalu zawodnika';
 
 SET foreign_key_checks = 1;
+-- Gallery: albums & photos
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `gallery_albums` (
+  `id`          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`     INT UNSIGNED NOT NULL,
+  `sport_id`    INT UNSIGNED NULL,
+  `event_id`    INT UNSIGNED NULL,
+  `title`       VARCHAR(200) NOT NULL,
+  `description` TEXT NULL,
+  `cover_path`  VARCHAR(255) NULL,
+  `is_public`   TINYINT(1) NOT NULL DEFAULT 0,
+  `created_by`  INT UNSIGNED NULL,
+  `created_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_ga_club` (`club_id`),
+  KEY `idx_ga_sport` (`sport_id`),
+  KEY `idx_ga_event` (`event_id`),
+  FOREIGN KEY (`club_id`)    REFERENCES `clubs`(`id`)  ON DELETE CASCADE,
+  FOREIGN KEY (`sport_id`)   REFERENCES `sports`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`)  ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Albumy zdjec galerii klubowej';
+
+CREATE TABLE IF NOT EXISTS `gallery_photos` (
+  `id`             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `album_id`       INT UNSIGNED NOT NULL,
+  `file_path`      VARCHAR(255) NOT NULL,
+  `thumbnail_path` VARCHAR(255) NULL,
+  `caption`        VARCHAR(255) NULL,
+  `uploaded_by`    INT UNSIGNED NULL,
+  `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_gp_album` (`album_id`),
+  FOREIGN KEY (`album_id`)    REFERENCES `gallery_albums`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`uploaded_by`) REFERENCES `users`(`id`)          ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Zdjecia w albumach galerii';
+
+SET foreign_key_checks = 1;
+-- Internal messaging system
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `messages` (
+  `id`             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`        INT UNSIGNED NOT NULL,
+  `sender_type`    ENUM('user','member') NOT NULL,
+  `sender_id`      INT UNSIGNED NOT NULL,
+  `recipient_type` ENUM('user','member','group') NOT NULL,
+  `recipient_id`   INT UNSIGNED NULL,
+  `group_scope`    ENUM('club','sport','team') NULL,
+  `group_id`       INT UNSIGNED NULL,
+  `subject`        VARCHAR(200) NOT NULL,
+  `body`           TEXT NOT NULL,
+  `parent_id`      INT UNSIGNED NULL COMMENT 'Thread parent message',
+  `read_at`        DATETIME NULL,
+  `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_msg_club`      (`club_id`),
+  KEY `idx_msg_sender`    (`sender_type`, `sender_id`),
+  KEY `idx_msg_recipient` (`recipient_type`, `recipient_id`),
+  KEY `idx_msg_parent`    (`parent_id`),
+  FOREIGN KEY (`club_id`)   REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`parent_id`) REFERENCES `messages`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Wiadomosci wewnetrzne klubu';
+
+CREATE TABLE IF NOT EXISTS `facilities` (
+  `id`          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`     INT UNSIGNED NOT NULL,
+  `name`        VARCHAR(150) NOT NULL,
+  `type`        ENUM('boisko','sala','hala','tor','strzelnica','basen','kort','inne') NOT NULL DEFAULT 'inne',
+  `capacity`    SMALLINT UNSIGNED NULL,
+  `location`    VARCHAR(150) NULL,
+  `description` TEXT NULL,
+  `is_active`   TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_fac_club` (`club_id`),
+  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Obiekty sportowe klubu';
+
+CREATE TABLE IF NOT EXISTS `facility_bookings` (
+  `id`             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `facility_id`    INT UNSIGNED NOT NULL,
+  `club_id`        INT UNSIGNED NOT NULL,
+  `booked_by`      INT UNSIGNED NOT NULL,
+  `booked_for_id`  INT UNSIGNED NULL COMMENT 'Opcjonalnie - rezerwacja dla zawodnika',
+  `start_time`     DATETIME NOT NULL,
+  `end_time`       DATETIME NOT NULL,
+  `title`          VARCHAR(150) NOT NULL,
+  `status`         ENUM('confirmed','pending','cancelled') NOT NULL DEFAULT 'confirmed',
+  `notes`          TEXT NULL,
+  `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_fb_facility`  (`facility_id`),
+  KEY `idx_fb_club`      (`club_id`),
+  KEY `idx_fb_time`      (`start_time`, `end_time`),
+  FOREIGN KEY (`facility_id`)   REFERENCES `facilities`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`club_id`)       REFERENCES `clubs`(`id`)      ON DELETE CASCADE,
+  FOREIGN KEY (`booked_by`)     REFERENCES `users`(`id`)      ON DELETE CASCADE,
+  FOREIGN KEY (`booked_for_id`) REFERENCES `members`(`id`)    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Rezerwacje obiektow sportowych';
+
+SET foreign_key_checks = 1;

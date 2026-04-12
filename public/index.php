@@ -262,6 +262,15 @@ $router->get('/email/templates/:type',          [\App\Controllers\EmailTemplates
 $router->post('/email/templates/:type/save',    [\App\Controllers\EmailTemplatesController::class, 'save']);
 $router->get('/email/queue',                    [\App\Controllers\EmailTemplatesController::class, 'queue']);
 
+// Galeria
+$router->get('/gallery',                    [\App\Controllers\GalleryController::class, 'index']);
+$router->get('/gallery/create',             [\App\Controllers\GalleryController::class, 'create']);
+$router->post('/gallery/store',             [\App\Controllers\GalleryController::class, 'store']);
+$router->get('/gallery/:id',                [\App\Controllers\GalleryController::class, 'show']);
+$router->post('/gallery/:id/upload',        [\App\Controllers\GalleryController::class, 'upload']);
+$router->post('/gallery/:id/delete',        [\App\Controllers\GalleryController::class, 'delete']);
+$router->post('/gallery/photo/:id/delete',  [\App\Controllers\GalleryController::class, 'deletePhoto']);
+
 // Ogłoszenia
 $router->get('/announcements',              [\App\Controllers\AnnouncementsController::class, 'index']);
 $router->get('/announcements/create',       [\App\Controllers\AnnouncementsController::class, 'create']);
@@ -322,6 +331,27 @@ $router->get('/reports/member-card/:id',    [\App\Controllers\ReportsController:
 $router->get('/club/api-keys',              [\App\Controllers\ApiKeysController::class, 'index']);
 $router->post('/club/api-keys/generate',    [\App\Controllers\ApiKeysController::class, 'generate']);
 $router->post('/club/api-keys/:id/revoke',  [\App\Controllers\ApiKeysController::class, 'revoke']);
+
+// Wiadomości wewnętrzne
+$router->get('/messages',              [\App\Controllers\MessagesController::class, 'inbox']);
+$router->get('/messages/sent',         [\App\Controllers\MessagesController::class, 'sent']);
+$router->get('/messages/compose',      [\App\Controllers\MessagesController::class, 'compose']);
+$router->post('/messages/store',       [\App\Controllers\MessagesController::class, 'store']);
+$router->get('/messages/:id',          [\App\Controllers\MessagesController::class, 'show']);
+$router->post('/messages/:id/read',    [\App\Controllers\MessagesController::class, 'markRead']);
+
+// Analityka klubu
+$router->get('/analytics',      [\App\Controllers\AnalyticsController::class, 'dashboard']);
+$router->get('/analytics/data', [\App\Controllers\AnalyticsController::class, 'data']);
+
+// Rezerwacje obiektów
+$router->get('/bookings',                        [\App\Controllers\BookingsController::class, 'index']);
+$router->get('/bookings/facilities',             [\App\Controllers\BookingsController::class, 'facilities']);
+$router->post('/bookings/facilities/store',      [\App\Controllers\BookingsController::class, 'storeFacility']);
+$router->post('/bookings/facilities/:id/delete', [\App\Controllers\BookingsController::class, 'deleteFacility']);
+$router->get('/bookings/calendar',               [\App\Controllers\BookingsController::class, 'calendar']);
+$router->post('/bookings/book',                  [\App\Controllers\BookingsController::class, 'book']);
+$router->post('/bookings/:id/cancel',            [\App\Controllers\BookingsController::class, 'cancel']);
 
 // ── REST API v1 (Bearer token auth, no CSRF) ─────────────
 $router->get('/api/v1/members',                  [\App\Controllers\Api\MembersApiController::class, 'index']);

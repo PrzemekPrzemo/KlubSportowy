@@ -81,6 +81,10 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         'fees_rates'    => ['url' => 'fees/rates',    'icon' => 'bi-tag',            'label' => 'Stawki opłat',    'mod' => 'fees'],
         'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',    'label' => 'Badania lekarskie','mod' => 'medical'],
         'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',      'label' => 'Ogłoszenia',      'mod' => 'announcements'],
+        'gallery'       => ['url' => 'gallery',       'icon' => 'bi-images',         'label' => 'Galeria',         'mod' => null],
+        'messages'      => ['url' => 'messages',      'icon' => 'bi-chat-dots',      'label' => 'Wiadomości',      'mod' => null],
+        'analytics'     => ['url' => 'analytics',     'icon' => 'bi-graph-up',       'label' => 'Analityka',       'mod' => null],
+        'bookings'      => ['url' => 'bookings',      'icon' => 'bi-calendar-check', 'label' => 'Rezerwacje',      'mod' => null],
         'reports'       => ['url' => 'reports',       'icon' => 'bi-file-earmark-bar-graph', 'label' => 'Raporty',   'mod' => 'reports'],
         'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => 'RODO / Zgody','mod' => 'club'],
     ];
