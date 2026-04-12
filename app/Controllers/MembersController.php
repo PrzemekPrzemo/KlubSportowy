@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Helpers\CsvExporter;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
 use App\Models\MemberModel;
@@ -114,6 +115,74 @@ class MembersController extends BaseController
         Csrf::verify();
         (new MemberModel())->delete((int)$id);
         Session::flash('success', 'Zawodnik usunięty.');
+        $this->redirect('members');
+    }
+
+    public function bulkAction(): void
+    {
+        Csrf::verify();
+
+        $ids    = $_POST['member_ids'] ?? [];
+        $action = $_POST['action'] ?? '';
+
+        if (!is_array($ids) || empty($ids)) {
+            Session::flash('error', __('members.bulk_no_selection'));
+            $this->redirect('members');
+        }
+
+        $ids   = array_map('intval', $ids);
+        $model = new MemberModel();
+        $count = 0;
+
+        switch ($action) {
+            case 'delete':
+                foreach ($ids as $mid) {
+                    $model->delete($mid);
+                    $count++;
+                }
+                Session::flash('success', __('members.bulk_deleted', ['count' => $count]));
+                break;
+
+            case 'suspend':
+                foreach ($ids as $mid) {
+                    $model->update($mid, ['status' => 'zawieszony']);
+                    $count++;
+                }
+                Session::flash('success', __('members.bulk_suspended', ['count' => $count]));
+                break;
+
+            case 'activate':
+                foreach ($ids as $mid) {
+                    $model->update($mid, ['status' => 'aktywny']);
+                    $count++;
+                }
+                Session::flash('success', __('members.bulk_activated', ['count' => $count]));
+                break;
+
+            case 'export_csv':
+                $rows    = [];
+                $headers = ['Nr', __('form.first_name'), __('form.last_name'), __('form.email'), __('form.phone'), __('form.status')];
+                foreach ($ids as $mid) {
+                    $m = $model->findById($mid);
+                    if ($m) {
+                        $rows[] = [
+                            $m['member_number'] ?? '',
+                            $m['first_name']    ?? '',
+                            $m['last_name']     ?? '',
+                            $m['email']         ?? '',
+                            $m['phone']         ?? '',
+                            $m['status']        ?? '',
+                        ];
+                    }
+                }
+                CsvExporter::download('members_export.csv', $headers, $rows);
+                return; // CsvExporter calls exit
+
+            default:
+                Session::flash('error', __('members.bulk_invalid_action'));
+                break;
+        }
+
         $this->redirect('members');
     }
 

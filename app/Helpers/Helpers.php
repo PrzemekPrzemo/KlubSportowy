@@ -108,6 +108,13 @@ if (!function_exists('now')) {
     }
 }
 
+if (!function_exists('__')) {
+    function __(string $key, array $params = []): string
+    {
+        return \App\Helpers\Translator::t($key, $params);
+    }
+}
+
 if (!function_exists('current_club_name')) {
     function current_club_name(string $default = ''): string
     {
