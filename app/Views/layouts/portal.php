@@ -75,5 +75,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="<?= url('js/cookie-consent.js') ?>"></script>
 </body>
 </html>

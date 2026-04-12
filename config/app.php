@@ -21,4 +21,7 @@ return [
 
     // Default locale for sports module labels
     'default_federation_country' => 'PL',
+
+    // Error monitoring (Sentry DSN — leave empty to disable)
+    'sentry_dsn' => '',
 ];
