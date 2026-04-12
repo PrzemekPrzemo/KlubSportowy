@@ -72,6 +72,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     $navItems = [
         'dashboard'     => ['url' => 'dashboard',     'icon' => 'bi-speedometer2',   'label' => 'Dashboard',       'mod' => null],
         'members'       => ['url' => 'members',       'icon' => 'bi-people',         'label' => 'Zawodnicy',       'mod' => 'members'],
+        'import'        => ['url' => 'import',        'icon' => 'bi-upload',         'label' => 'Import CSV',      'mod' => 'members'],
         'sports'        => ['url' => 'sports',        'icon' => 'bi-trophy',         'label' => 'Sekcje sportowe', 'mod' => 'sports'],
         'calendar'      => ['url' => 'calendar',      'icon' => 'bi-calendar3',      'label' => 'Kalendarz',       'mod' => 'calendar'],
         'events'        => ['url' => 'events',        'icon' => 'bi-calendar-event', 'label' => 'Wydarzenia',      'mod' => 'events'],
