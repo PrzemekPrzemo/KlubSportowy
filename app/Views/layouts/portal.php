@@ -31,6 +31,7 @@ $memberName = Session::get('portal_member_name');
             <a href="<?= url('portal/dashboard') ?>" class="ms-4">Dashboard</a>
             <a href="<?= url('portal/profile') ?>">Mój profil</a>
             <a href="<?= url('portal/fees') ?>">Składki</a>
+            <a href="<?= url('portal/payments') ?>">Opłać online</a>
             <a href="<?= url('portal/events') ?>">Wydarzenia</a>
         </div>
         <div>

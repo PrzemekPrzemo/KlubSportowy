@@ -248,6 +248,11 @@ $router->post('/portal/password',        [\App\Controllers\MemberPortalControlle
 $router->get('/portal/fees',             [\App\Controllers\MemberPortalController::class, 'fees']);
 $router->get('/portal/events',           [\App\Controllers\MemberPortalController::class, 'events']);
 
+// Portal: płatności online
+$router->get('/portal/payments',         [\App\Controllers\MemberPaymentController::class, 'index']);
+$router->post('/portal/payments/pay',    [\App\Controllers\MemberPaymentController::class, 'pay']);
+$router->get('/portal/payments/success', [\App\Controllers\MemberPaymentController::class, 'success']);
+
 // Powiadomienia (dzwoneczek)
 $router->post('/notifications/:id/read', [\App\Controllers\NotificationsController::class, 'markRead']);
 
