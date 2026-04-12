@@ -31,10 +31,8 @@ $md = !empty($match['match_date']) ? str_replace(' ', 'T', substr($match['match_
                     <option value="<?= $s ?>" <?= ($match['status'] ?? 'zaplanowany')===$s?'selected':'' ?>><?= $s ?></option>
                 <?php endforeach; ?>
             </select></div>
-        <div class="col-md-2"><label class="form-label">Sędzia</label>
+        <div class="col-md-4"><label class="form-label">Sędzia</label>
             <input type="text" name="referee" value="<?= View::e($match['referee'] ?? '') ?>" class="form-control"></div>
-        <div class="col-md-2"><label class="form-label">Wynik gosp.</label>
-            <input type="number" name="home_score" value="<?= View::e($match['home_score'] ?? '') ?>" min="0" class="form-control"></div>
     </div>
 
     <h6 class="mt-4 mb-2">Wynik kwartalny</h6>
