@@ -1,0 +1,97 @@
+/* Dark mode — toggled via [data-theme="dark"] on <html> */
+[data-theme="dark"] {
+    --bg: #1e1e2e;
+    --text: #cdd6f4;
+    --card-bg: #313244;
+    --sidebar-bg: #11111b;
+    --border: #45475a;
+    --input-bg: #313244;
+    --input-text: #cdd6f4;
+    --muted: #6c7086;
+    --link: #89b4fa;
+}
+
+[data-theme="dark"] body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .main-content {
+    background: var(--bg) !important;
+}
+
+[data-theme="dark"] .card {
+    background: var(--card-bg) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .sidebar {
+    background: var(--sidebar-bg) !important;
+}
+
+[data-theme="dark"] .table {
+    color: var(--text) !important;
+    --bs-table-bg: var(--card-bg);
+    --bs-table-border-color: var(--border);
+}
+
+[data-theme="dark"] .table-light {
+    --bs-table-bg: #45475a !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .form-label {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--muted) !important;
+}
+
+[data-theme="dark"] .alert {
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background: var(--card-bg) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background: var(--sidebar-bg) !important;
+}
+
+[data-theme="dark"] a {
+    color: var(--link);
+}
+
+[data-theme="dark"] .list-group-item {
+    background: var(--card-bg) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--card-bg) !important;
+    color: var(--text) !important;
+}
+
+/* Auto dark mode — respects OS preference when no manual toggle */
+@media (prefers-color-scheme: dark) {
+    html:not([data-theme="light"]):not([data-theme="dark"]) {
+        --bg: #1e1e2e;
+        --text: #cdd6f4;
+    }
+}

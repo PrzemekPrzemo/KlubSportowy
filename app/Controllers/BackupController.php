@@ -97,10 +97,20 @@ class BackupController extends BaseController
             Session::flash('error', 'Plik nie istnieje.');
             $this->redirect('admin/backups');
         }
+
+        // Verify realpath stays within allowed backup directory
+        $realPath    = realpath($path);
+        $allowedBase = realpath(ROOT_PATH . '/storage/backups/');
+        if ($realPath === false || $allowedBase === false || !str_starts_with($realPath, $allowedBase . DIRECTORY_SEPARATOR)) {
+            http_response_code(403);
+            echo 'Dostęp zabroniony.';
+            exit;
+        }
+
         header('Content-Type: application/octet-stream');
         header('Content-Disposition: attachment; filename="' . $file . '"');
-        header('Content-Length: ' . filesize($path));
-        readfile($path);
+        header('Content-Length: ' . filesize($realPath));
+        readfile($realPath);
         exit;
     }
 

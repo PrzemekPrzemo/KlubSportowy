@@ -25,6 +25,19 @@ class ClubModel extends BaseModel
         return $this->paginate($sql, $params, $page, $perPage);
     }
 
+    public function needsOnboarding(int $clubId): bool
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM club_sports WHERE club_id = ?");
+        $stmt->execute([$clubId]);
+        $sportsCount = (int)$stmt->fetchColumn();
+
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM members WHERE club_id = ?");
+        $stmt->execute([$clubId]);
+        $membersCount = (int)$stmt->fetchColumn();
+
+        return $sportsCount === 0 || $membersCount === 0;
+    }
+
     public function stats(int $clubId): array
     {
         $out = ['members' => 0, 'sports' => 0, 'events_upcoming' => 0, 'payments_total' => 0.0];

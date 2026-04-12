@@ -111,6 +111,26 @@ abstract class BaseController
         Auth::requireSuperAdmin();
     }
 
+    /**
+     * Require that the current user's role has 'view' permission for the given module.
+     * Super admins bypass the check entirely.
+     */
+    protected function requireModule(string $module): void
+    {
+        if (Auth::isSuperAdmin()) {
+            return;
+        }
+
+        $role   = Auth::role() ?? '';
+        $clubId = ClubContext::current();
+
+        if ($role === '' || !(new RolePermissionModel())->can($role, $module, 'view', $clubId ? (int)$clubId : null)) {
+            http_response_code(403);
+            echo 'Brak uprawnień do modułu: ' . htmlspecialchars($module, ENT_QUOTES, 'UTF-8');
+            exit;
+        }
+    }
+
     protected function requireClubContext(): void
     {
         if (ClubContext::current() === null) {

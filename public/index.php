@@ -312,6 +312,9 @@ $router->get('/import',               [\App\Controllers\ImportController::class,
 $router->post('/import/upload',       [\App\Controllers\ImportController::class, 'upload']);
 $router->post('/import/execute',      [\App\Controllers\ImportController::class, 'execute']);
 
+// Global AJAX search
+$router->get('/api/search', [\App\Controllers\SearchController::class, 'search']);
+
 // Wydarzenia
 $router->get('/events',               [\App\Controllers\EventsController::class, 'index']);
 $router->get('/events/create',        [\App\Controllers\EventsController::class, 'create']);

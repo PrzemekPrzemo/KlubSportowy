@@ -19,6 +19,10 @@ class DashboardController extends BaseController
 
         $clubId = $this->currentClub();
 
+        if ((new ClubModel())->needsOnboarding($clubId)) {
+            $this->redirect('onboarding/step1');
+        }
+
         $stats            = (new ClubModel())->stats($clubId);
         $upcoming         = (new EventModel())->upcomingForClub(5);
         $upcomingTrainings = (new TrainingModel())->upcomingForClub(5);

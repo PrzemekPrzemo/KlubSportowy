@@ -15,6 +15,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= url('css/app.css') ?>">
+    <link rel="stylesheet" href="<?= url('css/dark-mode.css') ?>">
     <style>
         :root {
             --app-primary: <?= View::e($primary) ?>;
@@ -39,9 +40,17 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         .text-primary { color: var(--app-primary) !important; }
         .card { border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
         .sport-badge { display:inline-block; padding: .2rem .5rem; border-radius: .3rem; font-size: .75rem; color:#fff; }
+        .hamburger-btn { display: none; position: fixed; top: 10px; left: 10px; z-index: 1100; background: var(--app-navbar-bg); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 1.2rem; cursor: pointer; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1049; }
+        .search-wrapper { position: relative; }
+        .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; background: #fff; border: 1px solid #dee2e6; border-radius: .5rem; box-shadow: 0 4px 12px rgba(0,0,0,.15); max-height: 400px; overflow-y: auto; display: none; }
         @media (max-width: 768px) {
-            .sidebar { width: 100%; min-height: auto; position: static; }
-            .main-content { margin-left: 0; }
+            .sidebar { transform: translateX(-100%); transition: transform .3s ease; width: 260px; position: fixed; z-index: 1050; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
+            .hamburger-btn { display: block; }
+            .main-content { margin-left: 0; padding-top: 3.5rem; }
+            .table-responsive-auto { overflow-x: auto; }
         }
     </style>
     <?php if (!empty($branding['custom_css'])): ?>
@@ -50,7 +59,10 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
 </head>
 <body>
 
-<nav class="sidebar">
+<button class="hamburger-btn" id="hamburger-btn"><i class="bi bi-list"></i></button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<nav class="sidebar" id="sidebar">
     <div class="brand">
         <?php if (!empty($clubBranding['logo_path'])): ?>
             <img src="<?= url($clubBranding['logo_path']) ?>" alt="logo" style="max-width:180px; max-height:60px; margin-bottom:.5rem;">
@@ -149,10 +161,19 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         </div>
     <?php endif; ?>
     <a href="<?= url('2fa/setup') ?>"><i class="bi bi-shield-lock"></i> 2FA (TOTP)</a>
+    <a href="#" id="dark-mode-toggle" class="px-3 py-2" style="color:#cdd6f4;"><i class="bi bi-moon"></i></a>
     <a href="<?= url('auth/logout') ?>"><i class="bi bi-box-arrow-right"></i> Wyloguj</a>
 </nav>
 
 <main class="main-content">
+    <!-- Global search bar -->
+    <div class="search-wrapper mb-3" style="max-width:400px;">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="global-search-input" class="form-control" placeholder="Szukaj zawodników, wydarzeń...">
+        </div>
+        <div id="global-search-dropdown" class="search-dropdown"></div>
+    </div>
     <?php if (!empty($isImpersonating)): ?>
         <div class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -216,7 +237,25 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= url('js/app.js') ?>"></script>
+<script src="<?= url('js/search.js') ?>"></script>
+<script src="<?= url('js/dark-mode.js') ?>"></script>
 <script>
+// Hamburger sidebar toggle
+(function() {
+    var btn = document.getElementById('hamburger-btn');
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    if (!btn || !sidebar) return;
+    btn.addEventListener('click', function() {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+    });
+    if (overlay) overlay.addEventListener('click', function() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    });
+})();
+// Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function(err) {
     console.log('SW registration failed:', err);
