@@ -133,29 +133,43 @@ class MembersController extends BaseController
 
     private function parseMemberPost(bool $forCreate = true): ?array
     {
+        $redirect = $forCreate ? 'members/create' : 'members';
+
+        $v = \App\Helpers\Validator::make($_POST, [
+            'first_name'  => 'required|min:2|max:60',
+            'last_name'   => 'required|min:2|max:60',
+            'email'       => 'email|max:120',
+            'pesel'       => 'pesel',
+            'birth_date'  => 'date',
+            'phone'       => 'phone',
+            'join_date'   => 'required|date',
+            'status'      => 'required|in:aktywny,zawieszony,wykreslony,urlop',
+        ]);
+
+        if ($v->fails()) {
+            Session::flash('error', $v->firstError());
+            Session::flash('_old_input', $_POST);
+            $this->redirect($redirect);
+            return null;
+        }
+
+        $clean = $v->validated();
         $data = [
             'member_number'   => trim($_POST['member_number'] ?? ''),
-            'first_name'      => trim($_POST['first_name'] ?? ''),
-            'last_name'       => trim($_POST['last_name'] ?? ''),
-            'pesel'           => trim($_POST['pesel'] ?? '') ?: null,
-            'birth_date'      => trim($_POST['birth_date'] ?? '') ?: null,
+            'first_name'      => $clean['first_name'],
+            'last_name'       => $clean['last_name'],
+            'pesel'           => $clean['pesel'],
+            'birth_date'      => $clean['birth_date'],
             'gender'          => in_array($_POST['gender'] ?? '', ['M','K'], true) ? $_POST['gender'] : null,
-            'email'           => trim($_POST['email'] ?? '') ?: null,
-            'phone'           => trim($_POST['phone'] ?? '') ?: null,
+            'email'           => $clean['email'],
+            'phone'           => $clean['phone'],
             'address_street'  => trim($_POST['address_street'] ?? '') ?: null,
             'address_city'    => trim($_POST['address_city'] ?? '') ?: null,
             'address_postal'  => trim($_POST['address_postal'] ?? '') ?: null,
-            'join_date'       => trim($_POST['join_date'] ?? '') ?: date('Y-m-d'),
-            'status'          => in_array($_POST['status'] ?? '', ['aktywny','zawieszony','wykreslony','urlop'], true)
-                ? $_POST['status'] : 'aktywny',
+            'join_date'       => $clean['join_date'],
+            'status'          => $clean['status'],
             'notes'           => trim($_POST['notes'] ?? '') ?: null,
         ];
-
-        if ($data['first_name'] === '' || $data['last_name'] === '') {
-            Session::flash('error', 'Imię i nazwisko są wymagane.');
-            $this->redirect($forCreate ? 'members/create' : 'members');
-            return null;
-        }
 
         if ($forCreate && $data['member_number'] === '') {
             $data['member_number'] = (new MemberModel())->nextMemberNumber($this->currentClub());
