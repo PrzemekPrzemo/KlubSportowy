@@ -79,26 +79,26 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <?php endif; ?>
     </div>
 
-    <div class="section-label">Klub</div>
+    <div class="section-label"><?= __('nav.club') ?></div>
     <?php
     $navItems = [
-        'dashboard'     => ['url' => 'dashboard',     'icon' => 'bi-speedometer2',   'label' => 'Dashboard',       'mod' => null],
-        'members'       => ['url' => 'members',       'icon' => 'bi-people',         'label' => 'Zawodnicy',       'mod' => 'members'],
-        'import'        => ['url' => 'import',        'icon' => 'bi-upload',         'label' => 'Import CSV',      'mod' => 'members'],
-        'sports'        => ['url' => 'sports',        'icon' => 'bi-trophy',         'label' => 'Sekcje sportowe', 'mod' => 'sports'],
-        'calendar'      => ['url' => 'calendar',      'icon' => 'bi-calendar3',      'label' => 'Kalendarz',       'mod' => 'calendar'],
-        'events'        => ['url' => 'events',        'icon' => 'bi-calendar-event', 'label' => 'Wydarzenia',      'mod' => 'events'],
-        'trainings'     => ['url' => 'trainings',     'icon' => 'bi-stopwatch',      'label' => 'Treningi',        'mod' => 'trainings'],
-        'fees'          => ['url' => 'fees',          'icon' => 'bi-cash-coin',      'label' => 'Finanse',         'mod' => 'fees'],
-        'fees_rates'    => ['url' => 'fees/rates',    'icon' => 'bi-tag',            'label' => 'Stawki opłat',    'mod' => 'fees'],
-        'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',    'label' => 'Badania lekarskie','mod' => 'medical'],
-        'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',      'label' => 'Ogłoszenia',      'mod' => 'announcements'],
-        'gallery'       => ['url' => 'gallery',       'icon' => 'bi-images',         'label' => 'Galeria',         'mod' => null],
-        'messages'      => ['url' => 'messages',      'icon' => 'bi-chat-dots',      'label' => 'Wiadomości',      'mod' => null],
-        'analytics'     => ['url' => 'analytics',     'icon' => 'bi-graph-up',       'label' => 'Analityka',       'mod' => null],
-        'bookings'      => ['url' => 'bookings',      'icon' => 'bi-calendar-check', 'label' => 'Rezerwacje',      'mod' => null],
-        'reports'       => ['url' => 'reports',       'icon' => 'bi-file-earmark-bar-graph', 'label' => 'Raporty',   'mod' => 'reports'],
-        'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => 'RODO / Zgody','mod' => 'club'],
+        'dashboard'     => ['url' => 'dashboard',     'icon' => 'bi-speedometer2',   'label' => __('nav.dashboard'),       'mod' => null],
+        'members'       => ['url' => 'members',       'icon' => 'bi-people',         'label' => __('nav.members'),         'mod' => 'members'],
+        'import'        => ['url' => 'import',        'icon' => 'bi-upload',         'label' => __('nav.import_csv'),      'mod' => 'members'],
+        'sports'        => ['url' => 'sports',        'icon' => 'bi-trophy',         'label' => __('nav.sports_sections'), 'mod' => 'sports'],
+        'calendar'      => ['url' => 'calendar',      'icon' => 'bi-calendar3',      'label' => __('nav.calendar'),        'mod' => 'calendar'],
+        'events'        => ['url' => 'events',        'icon' => 'bi-calendar-event', 'label' => __('nav.events'),          'mod' => 'events'],
+        'trainings'     => ['url' => 'trainings',     'icon' => 'bi-stopwatch',      'label' => __('nav.trainings'),       'mod' => 'trainings'],
+        'fees'          => ['url' => 'fees',          'icon' => 'bi-cash-coin',      'label' => __('nav.finances'),        'mod' => 'fees'],
+        'fees_rates'    => ['url' => 'fees/rates',    'icon' => 'bi-tag',            'label' => __('nav.fee_rates'),       'mod' => 'fees'],
+        'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',    'label' => __('nav.medical'),         'mod' => 'medical'],
+        'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',      'label' => __('nav.announcements'),   'mod' => 'announcements'],
+        'gallery'       => ['url' => 'gallery',       'icon' => 'bi-images',         'label' => __('nav.gallery'),         'mod' => null],
+        'messages'      => ['url' => 'messages',      'icon' => 'bi-chat-dots',      'label' => __('nav.messages'),        'mod' => null],
+        'analytics'     => ['url' => 'analytics',     'icon' => 'bi-graph-up',       'label' => __('nav.analytics'),       'mod' => null],
+        'bookings'      => ['url' => 'bookings',      'icon' => 'bi-calendar-check', 'label' => __('nav.bookings'),        'mod' => null],
+        'reports'       => ['url' => 'reports',       'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),  'mod' => 'reports'],
+        'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),    'mod' => 'club'],
     ];
     $allowed = $navModules ?? null; // null = pełny dostęp
     foreach ($navItems as $item):
@@ -108,7 +108,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     <?php endif; endforeach; ?>
 
     <?php if (!empty($sportNav)): ?>
-        <div class="section-label">Sekcja: <?= View::e($activeSportKey) ?></div>
+        <div class="section-label"><?= __('nav.section') ?>: <?= View::e($activeSportKey) ?></div>
         <?php foreach ($sportNav as $item): ?>
             <a href="<?= url($item['url'] ?? '#') ?>">
                 <i class="bi <?= View::e($item['icon'] ?? 'bi-dot') ?>"></i>
@@ -118,7 +118,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     <?php endif; ?>
 
     <?php if (!empty($clubSports)): ?>
-        <div class="section-label">Szybkie przełączanie sekcji</div>
+        <div class="section-label"><?= __('nav.quick_switch') ?></div>
         <?php foreach ($clubSports as $cs): ?>
             <form method="POST" action="<?= url('sports/activate/' . (int)$cs['club_sport_id']) ?>" class="m-0">
                 <?= csrf_field() ?>
@@ -131,38 +131,44 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     <?php endif; ?>
 
     <?php if ($allowed === null || in_array('club', $allowed, true)): ?>
-        <div class="section-label">Ustawienia klubu</div>
-        <a href="<?= url('club/settings') ?>"><i class="bi bi-gear"></i> Dane klubu</a>
-        <a href="<?= url('club/customization') ?>"><i class="bi bi-palette"></i> Branding</a>
-        <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> SMTP / SMS</a>
-        <a href="<?= url('club/users') ?>"><i class="bi bi-people-fill"></i> Użytkownicy</a>
-        <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> Szablony e-mail</a>
-        <a href="<?= url('club/webhooks') ?>"><i class="bi bi-plug"></i> Webhooks</a>
-        <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> Plan / Billing</a>
-        <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
-        <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> Klucze API</a>
-        <a href="<?= url('federation') ?>"><i class="bi bi-globe"></i> Federacje</a>
+        <div class="section-label"><?= __('nav.club_settings') ?></div>
+        <a href="<?= url('club/settings') ?>"><i class="bi bi-gear"></i> <?= __('nav.club_data') ?></a>
+        <a href="<?= url('club/customization') ?>"><i class="bi bi-palette"></i> <?= __('nav.branding') ?></a>
+        <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> <?= __('nav.smtp_sms') ?></a>
+        <a href="<?= url('club/users') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.users') ?></a>
+        <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> <?= __('nav.email_templates') ?></a>
+        <a href="<?= url('club/webhooks') ?>"><i class="bi bi-plug"></i> <?= __('nav.webhooks') ?></a>
+        <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.plan_billing') ?></a>
+        <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
+        <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> <?= __('nav.api_keys') ?></a>
+        <a href="<?= url('federation') ?>"><i class="bi bi-globe"></i> <?= __('nav.federations') ?></a>
     <?php endif; ?>
 
     <?php if (!empty($isSuperAdmin)): ?>
-        <div class="section-label">Administracja</div>
-        <a href="<?= url('admin/dashboard') ?>"><i class="bi bi-shield-lock"></i> Panel admina</a>
-        <a href="<?= url('admin/clubs') ?>"><i class="bi bi-building"></i> Kluby</a>
-        <a href="<?= url('admin/sports') ?>"><i class="bi bi-grid-3x3-gap"></i> Katalog sportów</a>
-        <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> Plany</a>
-        <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> Log aktywności</a>
-        <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> Kopie zapasowe</a>
+        <div class="section-label"><?= __('nav.administration') ?></div>
+        <a href="<?= url('admin/dashboard') ?>"><i class="bi bi-shield-lock"></i> <?= __('nav.admin_panel') ?></a>
+        <a href="<?= url('admin/clubs') ?>"><i class="bi bi-building"></i> <?= __('nav.clubs') ?></a>
+        <a href="<?= url('admin/sports') ?>"><i class="bi bi-grid-3x3-gap"></i> <?= __('nav.sports_catalog') ?></a>
+        <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> <?= __('nav.plans') ?></a>
+        <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> <?= __('nav.activity_log') ?></a>
+        <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> <?= __('nav.backups') ?></a>
     <?php endif; ?>
 
-    <div class="section-label">Konto</div>
+    <div class="section-label"><?= __('nav.account') ?></div>
     <?php if (!empty($authUser)): ?>
         <div class="px-3 py-2 small text-muted">
             <i class="bi bi-person-circle"></i> <?= View::e($authUser['full_name'] ?? $authUser['username'] ?? '') ?>
         </div>
     <?php endif; ?>
-    <a href="<?= url('2fa/setup') ?>"><i class="bi bi-shield-lock"></i> 2FA (TOTP)</a>
+    <a href="<?= url('2fa/setup') ?>"><i class="bi bi-shield-lock"></i> <?= __('nav.2fa_totp') ?></a>
     <a href="#" id="dark-mode-toggle" class="px-3 py-2" style="color:#cdd6f4;"><i class="bi bi-moon"></i></a>
-    <a href="<?= url('auth/logout') ?>"><i class="bi bi-box-arrow-right"></i> Wyloguj</a>
+    <div class="px-3 py-2 small">
+        <i class="bi bi-translate"></i>
+        <a href="?lang=pl" class="text-light <?= \App\Helpers\Translator::getLocale() === 'pl' ? 'fw-bold' : '' ?>" style="text-decoration:none;">PL</a>
+        |
+        <a href="?lang=en" class="text-light <?= \App\Helpers\Translator::getLocale() === 'en' ? 'fw-bold' : '' ?>" style="text-decoration:none;">EN</a>
+    </div>
+    <a href="<?= url('auth/logout') ?>"><i class="bi bi-box-arrow-right"></i> <?= __('nav.logout') ?></a>
 </nav>
 
 <main class="main-content">
@@ -170,7 +176,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
     <div class="search-wrapper mb-3" style="max-width:400px;">
         <div class="input-group input-group-sm">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" id="global-search-input" class="form-control" placeholder="Szukaj zawodników, wydarzeń...">
+            <input type="text" id="global-search-input" class="form-control" placeholder="<?= View::e(__('common.search_placeholder')) ?>">
         </div>
         <div id="global-search-dropdown" class="search-dropdown"></div>
     </div>
@@ -178,14 +184,14 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <div class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
             <div>
                 <i class="bi bi-person-fill-lock"></i>
-                <strong>Impersonujesz</strong> użytkownika <?= View::e($authUser['full_name'] ?? '') ?>
+                <strong><?= __('impersonate.label') ?></strong> <?= View::e($authUser['full_name'] ?? '') ?>
                 <?php if (!empty($authUser['email'])): ?>
                     (<?= View::e($authUser['email']) ?>)
                 <?php endif; ?>
             </div>
             <form method="POST" action="<?= url('impersonate/stop') ?>" class="m-0">
                 <?= csrf_field() ?>
-                <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> Powrót do admina</button>
+                <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> <?= __('impersonate.back') ?></button>
             </form>
         </div>
     <?php endif; ?>
@@ -201,7 +207,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
                         </span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-2" style="width:340px; max-height:400px; overflow-y:auto;">
-                        <h6 class="dropdown-header">Powiadomienia (<?= (int)$unreadNotifsCount ?>)</h6>
+                        <h6 class="dropdown-header"><?= __('notif.notifications') ?> (<?= (int)$unreadNotifsCount ?>)</h6>
                         <?php foreach (($unreadNotifs ?? []) as $n): ?>
                             <form method="POST" action="<?= url('notifications/' . (int)$n['id'] . '/read') ?>" class="m-0">
                                 <?= csrf_field() ?>

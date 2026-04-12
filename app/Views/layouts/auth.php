@@ -18,7 +18,7 @@
 <div class="auth-card">
     <div class="auth-brand">
         <h1><i class="bi bi-trophy"></i> <?= View::e($appName ?? 'KlubSportowy') ?></h1>
-        <small>Wielosportowy portal zarządzania klubem</small>
+        <small><?= __('auth.subtitle') ?></small>
     </div>
 
     <?php foreach (['flashError'=>'danger','flashSuccess'=>'success','flashWarning'=>'warning'] as $k => $cls): ?>
