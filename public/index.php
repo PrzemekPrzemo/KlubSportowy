@@ -84,6 +84,12 @@ require ROOT_PATH . '/app/Helpers/Helpers.php';
 // Session
 \App\Helpers\Session::start();
 
+// ── i18n locale detection ────────────────────────────────
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['pl', 'en'])) {
+    \App\Helpers\Session::set('locale', $_GET['lang']);
+}
+\App\Helpers\Translator::setLocale(\App\Helpers\Translator::getLocale());
+
 // ── Multi-club: wykrywanie subdomeny ─────────────────────
 $baseDomain = '';
 try {
@@ -120,6 +126,7 @@ $router->post('/club-select/:id', [\App\Controllers\ClubSelectorController::clas
 
 // Dashboard
 $router->get('/dashboard', [\App\Controllers\DashboardController::class, 'index']);
+$router->post('/dashboard/widgets', [\App\Controllers\DashboardController::class, 'saveWidgets']);
 
 // Admin (super admin)
 $router->get('/admin/dashboard',            [\App\Controllers\AdminController::class, 'dashboard']);
@@ -193,6 +200,7 @@ $router->get('/gdpr/member/:memberId/export',     [\App\Controllers\GdprControll
 $router->post('/gdpr/member/:memberId/anonymize', [\App\Controllers\GdprController::class, 'anonymize']);
 
 // Zawodnicy
+$router->post('/members/bulk',        [\App\Controllers\MembersController::class, 'bulkAction']);
 $router->get('/members',              [\App\Controllers\MembersController::class, 'index']);
 $router->get('/members/create',       [\App\Controllers\MembersController::class, 'create']);
 $router->post('/members/store',       [\App\Controllers\MembersController::class, 'store']);
