@@ -315,6 +315,14 @@ $router->get('/calendar/:id/edit',     [\App\Controllers\CalendarController::cla
 $router->post('/calendar/:id/update',  [\App\Controllers\CalendarController::class, 'update']);
 $router->post('/calendar/:id/delete',  [\App\Controllers\CalendarController::class, 'delete']);
 
+// Transmisje live
+$router->get('/livestream',                [\App\Controllers\LivestreamController::class, 'index']);
+$router->get('/livestream/create',         [\App\Controllers\LivestreamController::class, 'create']);
+$router->post('/livestream/store',         [\App\Controllers\LivestreamController::class, 'store']);
+$router->get('/livestream/:id/watch',      [\App\Controllers\LivestreamController::class, 'watch']);
+$router->post('/livestream/:id/status',    [\App\Controllers\LivestreamController::class, 'setStatus']);
+$router->post('/livestream/:id/delete',    [\App\Controllers\LivestreamController::class, 'delete']);
+
 // Treningi
 $router->get('/trainings',                        [\App\Controllers\TrainingsController::class, 'index']);
 $router->get('/trainings/create',                 [\App\Controllers\TrainingsController::class, 'create']);

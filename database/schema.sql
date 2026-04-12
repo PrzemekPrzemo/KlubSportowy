@@ -1710,3 +1710,52 @@ ALTER TABLE `members` MODIFY `phone` TEXT NULL;
 CREATE INDEX `idx_members_pesel_hash` ON `members` (`pesel_hash`);
 CREATE INDEX `idx_members_email_hash` ON `members` (`email_hash`);
 CREATE INDEX `idx_members_phone_hash` ON `members` (`phone_hash`);
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `livestreams` (
+  `id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`      INT UNSIGNED NOT NULL,
+  `event_id`     INT UNSIGNED NULL,
+  `title`        VARCHAR(200) NOT NULL,
+  `platform`     ENUM('youtube','twitch','facebook','inne') NOT NULL DEFAULT 'youtube',
+  `stream_url`   VARCHAR(500) NOT NULL,
+  `embed_code`   TEXT NULL,
+  `status`       ENUM('zaplanowana','na_zywo','zakonczona') NOT NULL DEFAULT 'zaplanowana',
+  `scheduled_at` DATETIME NULL,
+  `started_at`   DATETIME NULL,
+  `ended_at`     DATETIME NULL,
+  `viewers_peak` INT UNSIGNED NULL,
+  `is_public`    TINYINT(1) NOT NULL DEFAULT 1,
+  `created_by`   INT UNSIGNED NULL,
+  `created_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY `idx_ls_club` (`club_id`),
+  KEY `idx_ls_status` (`status`),
+  FOREIGN KEY (`club_id`)    REFERENCES `clubs`(`id`)  ON DELETE CASCADE,
+  FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`)  ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET foreign_key_checks = 1;
+
+-- Migration 020: Admin overrides for club subscriptions
+ALTER TABLE `club_subscriptions`
+  ADD COLUMN `max_members_override` INT UNSIGNED NULL,
+  ADD COLUMN `max_sports_override` TINYINT UNSIGNED NULL,
+  ADD COLUMN `custom_features` JSON NULL,
+  ADD COLUMN `admin_notes` TEXT NULL;
+
+-- Migration 021: Unified member identities (cross-club identity)
+CREATE TABLE IF NOT EXISTS `member_identities` (
+  `id`                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `identity_hash`     VARCHAR(64)  NOT NULL UNIQUE COMMENT 'SHA-256 of primary identifier',
+  `portal_email`      VARCHAR(120) NOT NULL UNIQUE,
+  `portal_password`   VARCHAR(255) NULL,
+  `portal_last_login` DATETIME     NULL,
+  `display_name`      VARCHAR(120) NOT NULL,
+  `created_at`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `members` ADD COLUMN `identity_id` INT UNSIGNED NULL AFTER `club_id`;
+ALTER TABLE `members` ADD CONSTRAINT `fk_member_identity` FOREIGN KEY (`identity_id`) REFERENCES `member_identities`(`id`) ON DELETE SET NULL;
