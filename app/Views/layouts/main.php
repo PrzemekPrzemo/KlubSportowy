@@ -120,6 +120,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <a href="<?= url('club/webhooks') ?>"><i class="bi bi-plug"></i> Webhooks</a>
         <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> Plan / Billing</a>
         <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
+        <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> Klucze API</a>
     <?php endif; ?>
 
     <?php if (!empty($isSuperAdmin)): ?>

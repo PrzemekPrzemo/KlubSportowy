@@ -302,6 +302,22 @@ $router->get('/reports/finances-csv',       [\App\Controllers\ReportsController:
 $router->get('/reports/event-protocol/:id', [\App\Controllers\ReportsController::class, 'eventProtocolPdf']);
 $router->get('/reports/member-card/:id',    [\App\Controllers\ReportsController::class, 'memberCardPdf']);
 
+// Klucze API (panel klubu)
+$router->get('/club/api-keys',              [\App\Controllers\ApiKeysController::class, 'index']);
+$router->post('/club/api-keys/generate',    [\App\Controllers\ApiKeysController::class, 'generate']);
+$router->post('/club/api-keys/:id/revoke',  [\App\Controllers\ApiKeysController::class, 'revoke']);
+
+// ── REST API v1 (Bearer token auth, no CSRF) ─────────────
+$router->get('/api/v1/members',                  [\App\Controllers\Api\MembersApiController::class, 'index']);
+$router->get('/api/v1/members/:id',              [\App\Controllers\Api\MembersApiController::class, 'show']);
+$router->get('/api/v1/events',                   [\App\Controllers\Api\EventsApiController::class, 'index']);
+$router->get('/api/v1/events/upcoming',          [\App\Controllers\Api\EventsApiController::class, 'upcoming']);
+$router->get('/api/v1/payments',                 [\App\Controllers\Api\PaymentsApiController::class, 'index']);
+$router->get('/api/v1/payments/summary',         [\App\Controllers\Api\PaymentsApiController::class, 'summary']);
+$router->get('/api/v1/sports',                   [\App\Controllers\Api\SportsApiController::class, 'index']);
+$router->get('/api/v1/sports/catalog',           [\App\Controllers\Api\SportsApiController::class, 'catalog']);
+$router->get('/api/v1/sports/:sportId/disciplines', [\App\Controllers\Api\SportsApiController::class, 'disciplines']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 
