@@ -108,8 +108,8 @@ if ($baseDomain !== '') {
 // ============================================================
 $router = new \App\Helpers\Router();
 
-// Strona startowa → login
-$router->get('/', [\App\Controllers\AuthController::class, 'showLogin']);
+// Strona startowa → landing (public) or redirect to dashboard (logged in)
+$router->get('/', [\App\Controllers\LandingController::class, 'index']);
 
 // Auth
 $router->get('/auth/login',  [\App\Controllers\AuthController::class, 'showLogin']);
