@@ -1,30 +1,35 @@
 <?php
-// ============================================================
-// Moduł sportu: PIŁKA NOŻNA (PZPN)
-// ============================================================
-
+// Football plugin manifest
 return [
     'key'        => 'football',
     'name'       => 'Piłka nożna',
     'federation' => 'PZPN',
-    'features'   => [
-        'teams',          // drużyny klubu (seniorzy, juniorzy, etc.)
-        'positions',      // pozycje zawodników (BR, OB, PM, NA ...)
-        'matches',        // mecze ligowe i sparingi
-        'cards',          // kartki żółte / czerwone / kontuzje
-        'transfers',      // okienka transferowe / wypożyczenia
-        'pzpn_license',   // licencje PZPN (zawodnicza, trenerska)
-    ],
+    'features'   => ['teams','positions','matches','cards','transfers','pzpn_license'],
     'routes' => [
-        // ['GET',  '/football/teams',             [\App\Sports\Football\Controllers\TeamsController::class, 'index']],
-        // ['GET',  '/football/matches',           [\App\Sports\Football\Controllers\MatchesController::class, 'index']],
-        // ['GET',  '/football/transfers',         [\App\Sports\Football\Controllers\TransfersController::class, 'index']],
+        ['GET',  '/football/teams',              [\App\Sports\Football\Controllers\TeamsController::class, 'index']],
+        ['GET',  '/football/teams/create',       [\App\Sports\Football\Controllers\TeamsController::class, 'create']],
+        ['POST', '/football/teams/store',        [\App\Sports\Football\Controllers\TeamsController::class, 'store']],
+        ['GET',  '/football/teams/:id/edit',     [\App\Sports\Football\Controllers\TeamsController::class, 'edit']],
+        ['POST', '/football/teams/:id/update',   [\App\Sports\Football\Controllers\TeamsController::class, 'update']],
+        ['POST', '/football/teams/:id/delete',   [\App\Sports\Football\Controllers\TeamsController::class, 'delete']],
+        ['GET',  '/football/matches',            [\App\Sports\Football\Controllers\MatchesController::class, 'index']],
+        ['GET',  '/football/matches/create',     [\App\Sports\Football\Controllers\MatchesController::class, 'create']],
+        ['POST', '/football/matches/store',      [\App\Sports\Football\Controllers\MatchesController::class, 'store']],
+        ['GET',  '/football/matches/:id',        [\App\Sports\Football\Controllers\MatchesController::class, 'show']],
+        ['GET',  '/football/matches/:id/edit',   [\App\Sports\Football\Controllers\MatchesController::class, 'edit']],
+        ['POST', '/football/matches/:id/update', [\App\Sports\Football\Controllers\MatchesController::class, 'update']],
+        ['POST', '/football/matches/:id/delete', [\App\Sports\Football\Controllers\MatchesController::class, 'delete']],
+        ['POST', '/football/matches/:id/event',  [\App\Sports\Football\Controllers\MatchesController::class, 'addEvent']],
+        ['POST', '/football/matches/:id/lineup', [\App\Sports\Football\Controllers\MatchesController::class, 'addLineup']],
+        ['GET',  '/football/transfers',           [\App\Sports\Football\Controllers\TransfersController::class, 'index']],
+        ['GET',  '/football/transfers/create',    [\App\Sports\Football\Controllers\TransfersController::class, 'create']],
+        ['POST', '/football/transfers/store',     [\App\Sports\Football\Controllers\TransfersController::class, 'store']],
+        ['POST', '/football/transfers/:id/delete',[\App\Sports\Football\Controllers\TransfersController::class, 'delete']],
     ],
     'nav' => [
-        ['label' => 'Drużyny',     'icon' => 'bi-people',       'url' => 'football/teams'],
-        ['label' => 'Mecze',       'icon' => 'bi-flag',         'url' => 'football/matches'],
-        ['label' => 'Transfery',   'icon' => 'bi-arrow-left-right','url' => 'football/transfers'],
-        ['label' => 'Licencje PZPN','icon' => 'bi-patch-check', 'url' => 'football/licenses'],
+        ['label' => 'Drużyny',   'icon' => 'bi-people',           'url' => 'football/teams'],
+        ['label' => 'Mecze',     'icon' => 'bi-flag',             'url' => 'football/matches'],
+        ['label' => 'Transfery', 'icon' => 'bi-arrow-left-right', 'url' => 'football/transfers'],
     ],
     'migrations' => __DIR__ . '/migrations',
 ];
