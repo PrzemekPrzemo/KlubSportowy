@@ -141,6 +141,7 @@ $router->get('/admin/plans',                [\App\Controllers\AdminController::c
 $router->get('/admin/activity',             [\App\Controllers\AdminController::class, 'activityLog']);
 $router->get('/admin/clubs/:id/users',      [\App\Controllers\AdminController::class, 'clubUsers']);
 $router->post('/admin/clubs/:id/users/:userId/impersonate', [\App\Controllers\AdminController::class, 'impersonate']);
+$router->post('/admin/clubs/:clubId/members/:memberId/impersonate-member', [\App\Controllers\AdminController::class, 'impersonateMember']);
 
 // Admin: extended club management (BLOK 2A)
 $router->get('/admin/clubs/create-full',       [\App\Controllers\AdminController::class, 'createClubFull']);

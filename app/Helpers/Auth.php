@@ -130,10 +130,41 @@ class Auth
         ClubContext::set($clubId);
     }
 
+    /** Super admin impersonates a member (portal session). */
+    public static function impersonateMember(array $member): void
+    {
+        Session::set('impersonation_original', [
+            'user_id'        => Session::get('user_id'),
+            'username'       => Session::get('username'),
+            'full_name'      => Session::get('full_name'),
+            'email'          => Session::get('email'),
+            'role'           => Session::get('role'),
+            'club_id'        => Session::get('club_id'),
+            'is_super_admin' => Session::get('is_super_admin'),
+        ]);
+
+        Session::set('portal_member_id',    (int)$member['id']);
+        Session::set('portal_member_name',  $member['first_name'] . ' ' . $member['last_name']);
+        Session::set('portal_member_email', $member['email'] ?? '');
+        Session::set('portal_club_id',      (int)$member['club_id']);
+        Session::set('impersonating',       'member');
+        // Clear admin keys so portal works cleanly
+        Session::set('user_id', null);
+        Session::set('is_super_admin', false);
+        ClubContext::set((int)$member['club_id']);
+    }
+
     public static function stopImpersonation(): void
     {
         $original = Session::get('impersonation_original');
         if (!$original) return;
+
+        // Clean up portal member keys if impersonating member
+        Session::remove('portal_member_id');
+        Session::remove('portal_member_name');
+        Session::remove('portal_member_email');
+        Session::remove('portal_club_id');
+        Session::remove('portal_identity_id');
 
         Session::remove('impersonating');
         Session::remove('impersonation_original');

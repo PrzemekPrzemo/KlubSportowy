@@ -42,6 +42,19 @@ $memberName = Session::get('portal_member_name');
 </nav>
 
 <div class="portal-container">
+    <?php if (\App\Helpers\Auth::isImpersonating() && \App\Helpers\Session::get('impersonating') === 'member'): ?>
+        <div class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <i class="bi bi-person-fill-lock"></i>
+                <strong>Impersonujesz zawodnika</strong> <?= View::e($memberName ?? '') ?>
+            </div>
+            <form method="POST" action="<?= url('impersonate/stop') ?>" class="m-0">
+                <?= csrf_field() ?>
+                <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> Powrót do admina</button>
+            </form>
+        </div>
+    <?php endif; ?>
+
     <h2 class="mb-3"><?= View::e($title ?? '') ?></h2>
 
     <?php if ($flashSuccess): ?>

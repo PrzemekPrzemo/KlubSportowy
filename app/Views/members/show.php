@@ -27,10 +27,18 @@
                 <?php endif; ?>
             </dl>
             <hr>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <a href="<?= url('members/' . (int)$member['id'] . '/edit') ?>" class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-pencil"></i> Edytuj
                 </a>
+                <?php if (!empty($isSuperAdmin)): ?>
+                    <form method="POST" action="<?= url('admin/clubs/' . (int)$member['club_id'] . '/members/' . (int)$member['id'] . '/impersonate-member') ?>" class="m-0">
+                        <?= csrf_field() ?>
+                        <button class="btn btn-sm btn-outline-warning" title="Zaloguj się do portalu jako ten zawodnik">
+                            <i class="bi bi-person-badge"></i> Portal zawodnika
+                        </button>
+                    </form>
+                <?php endif; ?>
                 <form method="POST" action="<?= url('members/' . (int)$member['id'] . '/delete') ?>"
                       onsubmit="return confirm('Usunąć zawodnika?')" class="m-0">
                     <?= csrf_field() ?>

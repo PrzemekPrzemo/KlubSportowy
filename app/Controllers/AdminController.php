@@ -598,4 +598,22 @@ class AdminController extends BaseController
             'eventsPerSport'   => $eventsPerSport,
         ]);
     }
+
+    /** Impersonacja jako zawodnik — otwiera portal member. */
+    public function impersonateMember(string $clubId, string $memberId): void
+    {
+        Csrf::verify();
+        $db   = \App\Helpers\Database::pdo();
+        $stmt = $db->prepare("SELECT * FROM members WHERE id = ? AND club_id = ?");
+        $stmt->execute([(int)$memberId, (int)$clubId]);
+        $member = $stmt->fetch();
+        if (!$member) {
+            Session::flash('error', 'Nie znaleziono zawodnika.');
+            $this->redirect('admin/clubs/' . $clubId . '/users');
+        }
+        \App\Helpers\Auth::impersonateMember($member);
+        (new \App\Models\ActivityLogModel())->log('impersonate_member', 'member', (int)$memberId, 'club=' . $clubId);
+        Session::flash('success', 'Impersonujesz zawodnika: ' . $member['first_name'] . ' ' . $member['last_name']);
+        $this->redirect('portal/dashboard');
+    }
 }
