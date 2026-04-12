@@ -144,6 +144,11 @@ $router->post('/admin/backups/:file/delete',    [\App\Controllers\BackupControll
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
+// Strony publiczne (bez logowania)
+$router->get('/pub',                 [\App\Controllers\PublicController::class, 'clubList']);
+$router->get('/pub/:slug/results',   [\App\Controllers\PublicController::class, 'clubResults']);
+$router->get('/pub/:slug',           [\App\Controllers\PublicController::class, 'clubPage']);
+
 // Sekcje sportowe w kontekście klubu
 $router->get('/sports',                [\App\Controllers\SportsController::class, 'index']);
 $router->post('/sports/enable',        [\App\Controllers\SportsController::class, 'enable']);
@@ -194,6 +199,12 @@ $router->post('/club/smtp/save',          [\App\Controllers\ClubManagementContro
 $router->get('/club/users',               [\App\Controllers\ClubManagementController::class, 'users']);
 $router->post('/club/users/add',          [\App\Controllers\ClubManagementController::class, 'addUser']);
 $router->post('/club/users/:userId/revoke', [\App\Controllers\ClubManagementController::class, 'revokeUser']);
+
+// Webhooki
+$router->get('/club/webhooks',              [\App\Controllers\WebhooksController::class, 'index']);
+$router->get('/club/webhooks/create',       [\App\Controllers\WebhooksController::class, 'create']);
+$router->post('/club/webhooks/store',       [\App\Controllers\WebhooksController::class, 'store']);
+$router->post('/club/webhooks/:id/delete',  [\App\Controllers\WebhooksController::class, 'delete']);
 
 // Portal zawodnika (self-service)
 $router->get('/portal/login',            [\App\Controllers\MemberPortalController::class, 'showLogin']);
