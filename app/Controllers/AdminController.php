@@ -62,13 +62,63 @@ class AdminController extends BaseController
             "SELECT COALESCE(SUM(amount),0) FROM payments WHERE YEAR(payment_date) = YEAR(CURDATE())"
         )->fetchColumn();
 
+        // Revenue monthly from billing_invoices (last 12 months, paid only)
+        $revenueMonthly = $db->query(
+            "SELECT DATE_FORMAT(paid_at, '%Y-%m') AS month, SUM(total) AS total
+             FROM billing_invoices
+             WHERE status = 'paid' AND paid_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+             GROUP BY month ORDER BY month"
+        )->fetchAll();
+
+        // Expiring soon: clubs with valid_until <= 7 days from now, not expired/cancelled
+        $expiringSoon = $db->query(
+            "SELECT c.id, c.name, c.city, cs.valid_until, cs.status, sp.name AS plan_name
+             FROM club_subscriptions cs
+             JOIN clubs c ON c.id = cs.club_id
+             JOIN subscription_plans sp ON sp.id = cs.plan_id
+             WHERE cs.valid_until <= DATE_ADD(NOW(), INTERVAL 7 DAY)
+               AND cs.status NOT IN ('expired','cancelled')
+             ORDER BY cs.valid_until ASC"
+        )->fetchAll();
+
+        // Top 10 clubs by active member count
+        $topClubs = $db->query(
+            "SELECT c.id, c.name, c.city, COALESCE(sp.name, '—') AS plan_name,
+                    COUNT(m.id) AS members_count
+             FROM clubs c
+             LEFT JOIN members m ON m.club_id = c.id AND m.status = 'aktywny'
+             LEFT JOIN club_subscriptions cs ON cs.club_id = c.id
+             LEFT JOIN subscription_plans sp ON sp.id = cs.plan_id
+             GROUP BY c.id, c.name, c.city, sp.name
+             ORDER BY members_count DESC
+             LIMIT 10"
+        )->fetchAll();
+
+        // 5 most recently created clubs
+        $recentClubs = $db->query(
+            "SELECT id, name, city, created_at
+             FROM clubs
+             ORDER BY created_at DESC
+             LIMIT 5"
+        )->fetchAll();
+
+        // Failed invoices: issued but past due
+        $failedInvoices = (int)$db->query(
+            "SELECT COUNT(*) FROM billing_invoices WHERE status = 'issued' AND due_date < NOW()"
+        )->fetchColumn();
+
         $this->render('admin/global_dashboard', [
-            'title'          => 'Panel administratora',
-            'metrics'        => $metrics,
-            'revenueTrend'   => $revenueTrend,
-            'clubsGrowth'    => $clubsGrowth,
-            'membersGrowth'  => $membersGrowth,
+            'title'           => 'Panel administratora',
+            'metrics'         => $metrics,
+            'revenueTrend'    => $revenueTrend,
+            'clubsGrowth'     => $clubsGrowth,
+            'membersGrowth'   => $membersGrowth,
             'revenueThisYear' => $revenueThisYear,
+            'revenueMonthly'  => $revenueMonthly,
+            'expiringSoon'    => $expiringSoon,
+            'topClubs'        => $topClubs,
+            'recentClubs'     => $recentClubs,
+            'failedInvoices'  => $failedInvoices,
         ]);
     }
 

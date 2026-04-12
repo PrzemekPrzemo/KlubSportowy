@@ -150,8 +150,13 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <a href="<?= url('admin/clubs') ?>"><i class="bi bi-building"></i> <?= __('nav.clubs') ?></a>
         <a href="<?= url('admin/sports') ?>"><i class="bi bi-grid-3x3-gap"></i> <?= __('nav.sports_catalog') ?></a>
         <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> <?= __('nav.plans') ?></a>
+        <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
         <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> <?= __('nav.activity_log') ?></a>
         <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> <?= __('nav.backups') ?></a>
+        <?php if (!empty($currentClubId)): ?>
+            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> Konfiguracja</a>
+            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> Feature flags</a>
+        <?php endif; ?>
     <?php endif; ?>
 
     <div class="section-label"><?= __('nav.account') ?></div>

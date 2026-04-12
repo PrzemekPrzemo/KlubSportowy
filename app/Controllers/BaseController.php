@@ -62,6 +62,39 @@ abstract class BaseController
             $data['navModules'] = null;
         }
 
+        // Feature flags per-club: disable modules via club_settings.module_*
+        if ($data['currentClubId'] && is_array($data['navModules'])) {
+            try {
+                $cs = new \App\Models\ClubSettingsModel();
+                $flagKeys = ['gallery','messages','bookings','analytics','shop','livestream'];
+                foreach ($flagKeys as $fk) {
+                    $val = $cs->get((int)$data['currentClubId'], 'module_' . $fk, '1');
+                    if ($val === '0') {
+                        $data['navModules'] = array_values(array_filter($data['navModules'], fn($m) => $m !== $fk));
+                    }
+                }
+            } catch (\Throwable) {}
+        }
+        // Feature flags also for super admin (navModules=null) — store disabled modules for view filtering
+        if ($data['currentClubId'] && $data['navModules'] === null) {
+            try {
+                $cs = new \App\Models\ClubSettingsModel();
+                $disabledModules = [];
+                $flagKeys = ['gallery','messages','bookings','analytics','shop','livestream'];
+                foreach ($flagKeys as $fk) {
+                    $val = $cs->get((int)$data['currentClubId'], 'module_' . $fk, '1');
+                    if ($val === '0') {
+                        $disabledModules[] = $fk;
+                    }
+                }
+                $data['disabledModules'] = $disabledModules;
+            } catch (\Throwable) {
+                $data['disabledModules'] = [];
+            }
+        } else {
+            $data['disabledModules'] = $data['disabledModules'] ?? [];
+        }
+
         // Powiadomienia in-app (dzwoneczek)
         $data['unreadNotifs']      = [];
         $data['unreadNotifsCount'] = 0;

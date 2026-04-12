@@ -171,6 +171,21 @@ $router->post('/admin/backups/create',          [\App\Controllers\BackupControll
 $router->get('/admin/backups/:file/download',   [\App\Controllers\BackupController::class, 'download']);
 $router->post('/admin/backups/:file/delete',    [\App\Controllers\BackupController::class, 'delete']);
 
+// Admin: subskrypcje klubów
+$router->get('/admin/subscriptions',                    [\App\Controllers\AdminSubscriptionsController::class, 'index']);
+$router->get('/admin/subscriptions/revenue',            [\App\Controllers\AdminSubscriptionsController::class, 'revenue']);
+$router->post('/admin/subscriptions/:id/extend',        [\App\Controllers\AdminSubscriptionsController::class, 'extend']);
+$router->post('/admin/subscriptions/:id/plan',          [\App\Controllers\AdminSubscriptionsController::class, 'changePlan']);
+$router->post('/admin/subscriptions/:id/suspend',       [\App\Controllers\AdminSubscriptionsController::class, 'suspend']);
+$router->post('/admin/subscriptions/:id/activate',      [\App\Controllers\AdminSubscriptionsController::class, 'activate']);
+$router->post('/admin/subscriptions/:id/override',      [\App\Controllers\AdminSubscriptionsController::class, 'override']);
+
+// Admin: konfiguracja klubu + feature flags
+$router->get('/admin/clubs/:id/config',          [\App\Controllers\AdminClubConfigController::class, 'settings']);
+$router->post('/admin/clubs/:id/config/save',    [\App\Controllers\AdminClubConfigController::class, 'saveSettings']);
+$router->get('/admin/clubs/:id/features',        [\App\Controllers\AdminClubConfigController::class, 'features']);
+$router->post('/admin/clubs/:id/features/save',  [\App\Controllers\AdminClubConfigController::class, 'saveFeatures']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
