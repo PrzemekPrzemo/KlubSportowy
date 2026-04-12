@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Helpers\Auth;
+use App\Helpers\ClubContext;
 use App\Helpers\Csrf;
+use App\Helpers\NotificationDispatcher;
 use App\Helpers\Session;
 use App\Models\EventModel;
 use App\Models\SportModel;
@@ -67,6 +69,20 @@ class EventsController extends BaseController
         }
 
         (new EventModel())->insert($data);
+
+        // Notify club members about future events
+        if (!empty($data['event_date']) && strtotime($data['event_date']) > time()) {
+            $clubId = ClubContext::current();
+            if ($clubId) {
+                NotificationDispatcher::notifyClubMembers($clubId, 'new_event', [
+                    'event_name' => $data['name'],
+                    'event_date' => $data['event_date'],
+                    'event_location' => $data['location'] ?? '',
+                    'event_type' => $data['type'],
+                ]);
+            }
+        }
+
         Session::flash('success', 'Wydarzenie dodane.');
         $this->redirect('events');
     }

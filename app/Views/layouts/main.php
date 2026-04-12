@@ -98,6 +98,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         'analytics'     => ['url' => 'analytics',     'icon' => 'bi-graph-up',       'label' => __('nav.analytics'),       'mod' => null],
         'bookings'      => ['url' => 'bookings',      'icon' => 'bi-calendar-check', 'label' => __('nav.bookings'),        'mod' => null],
         'reports'       => ['url' => 'reports',       'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),  'mod' => 'reports'],
+        'documents'     => ['url' => 'documents',     'icon' => 'bi-file-earmark-pdf',       'label' => __('nav.documents'), 'mod' => null],
         'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),    'mod' => 'club'],
     ];
     $allowed = $navModules ?? null; // null = pełny dostęp
@@ -273,5 +274,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="<?= url('js/cookie-consent.js') ?>"></script>
 </body>
 </html>

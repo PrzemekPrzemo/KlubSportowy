@@ -38,12 +38,20 @@ if (!is_dir($logDir)) {
 ini_set('log_errors', '1');
 ini_set('error_log', $logDir . '/app.log');
 
-set_exception_handler(function (Throwable $e) use ($debugMode): void {
+set_exception_handler(function (Throwable $e) use ($debugMode, $appConfig): void {
     http_response_code(500);
     error_log(sprintf("[%s] %s: %s in %s:%d\n%s\n",
         date('Y-m-d H:i:s'), get_class($e), $e->getMessage(),
         $e->getFile(), $e->getLine(), $e->getTraceAsString()
     ));
+
+    // Report to external error monitoring (Sentry etc.)
+    try {
+        require_once ROOT_PATH . '/app/Helpers/ErrorMonitor.php';
+        \App\Helpers\ErrorMonitor::init($appConfig);
+        \App\Helpers\ErrorMonitor::captureException($e);
+    } catch (\Throwable) {}
+
     if ($debugMode) {
         echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Błąd</title>'
             . '<style>body{font-family:monospace;background:#1e1e2e;color:#cdd6f4;padding:2em}'
@@ -83,6 +91,7 @@ require ROOT_PATH . '/app/Helpers/Helpers.php';
 
 // Session
 \App\Helpers\Session::start();
+\App\Helpers\Session::checkTimeout();
 
 // ── i18n locale detection ────────────────────────────────
 if (isset($_GET['lang']) && in_array($_GET['lang'], ['pl', 'en'])) {
@@ -115,6 +124,18 @@ $router->get('/', [\App\Controllers\LandingController::class, 'index']);
 $router->get('/auth/login',  [\App\Controllers\AuthController::class, 'showLogin']);
 $router->post('/auth/login', [\App\Controllers\AuthController::class, 'login']);
 $router->get('/auth/logout', [\App\Controllers\AuthController::class, 'logout']);
+
+// Password reset — user
+$router->get('/auth/forgot-password',       [\App\Controllers\PasswordResetController::class, 'showForgot']);
+$router->post('/auth/forgot-password',      [\App\Controllers\PasswordResetController::class, 'sendReset']);
+$router->get('/auth/reset-password/:token', [\App\Controllers\PasswordResetController::class, 'showReset']);
+$router->post('/auth/reset-password',       [\App\Controllers\PasswordResetController::class, 'processReset']);
+
+// Password reset — member portal
+$router->get('/portal/forgot-password',       [\App\Controllers\PasswordResetController::class, 'showForgotMember']);
+$router->post('/portal/forgot-password',      [\App\Controllers\PasswordResetController::class, 'sendResetMember']);
+$router->get('/portal/reset-password/:token', [\App\Controllers\PasswordResetController::class, 'showResetMember']);
+$router->post('/portal/reset-password',       [\App\Controllers\PasswordResetController::class, 'processResetMember']);
 
 // Rejestracja publiczna klubu
 $router->get('/register',  [\App\Controllers\AuthController::class, 'showRegister']);
@@ -151,6 +172,7 @@ $router->post('/admin/clubs/:id/edit-full',    [\App\Controllers\AdminController
 $router->post('/admin/clubs/:id/toggle-sport', [\App\Controllers\AdminController::class, 'toggleClubSport']);
 $router->post('/admin/clubs/:id/limits',       [\App\Controllers\AdminController::class, 'setClubLimits']);
 $router->get('/admin/clubs/:id/analytics',     [\App\Controllers\AdminController::class, 'clubAnalytics']);
+$router->get('/admin/clubs/:id/export',        [\App\Controllers\ClubExportController::class, 'adminExport']);
 
 // Admin: demo tokeny
 $router->get('/admin/demos',           [\App\Controllers\DemoController::class, 'index']);
@@ -191,6 +213,10 @@ $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::cl
 
 // Demo — publiczny dostep przez token
 $router->get('/demo/:token', [\App\Controllers\DemoController::class, 'loginViaToken']);
+
+// Legal pages
+$router->get('/terms',   [\App\Controllers\LegalController::class, 'terms']);
+$router->get('/privacy', [\App\Controllers\LegalController::class, 'privacy']);
 
 // Strony publiczne (bez logowania)
 $router->get('/pub',                 [\App\Controllers\PublicController::class, 'clubList']);
@@ -266,6 +292,9 @@ $router->post('/club/smtp/save',          [\App\Controllers\ClubManagementContro
 $router->get('/club/users',               [\App\Controllers\ClubManagementController::class, 'users']);
 $router->post('/club/users/add',          [\App\Controllers\ClubManagementController::class, 'addUser']);
 $router->post('/club/users/:userId/revoke', [\App\Controllers\ClubManagementController::class, 'revokeUser']);
+
+// Club export
+$router->get('/club/export', [\App\Controllers\ClubExportController::class, 'export']);
 
 // Webhooki
 $router->get('/club/webhooks',              [\App\Controllers\WebhooksController::class, 'index']);
@@ -377,6 +406,16 @@ $router->get('/events',               [\App\Controllers\EventsController::class,
 $router->get('/events/create',        [\App\Controllers\EventsController::class, 'create']);
 $router->post('/events/store',        [\App\Controllers\EventsController::class, 'store']);
 $router->post('/events/:id/delete',   [\App\Controllers\EventsController::class, 'delete']);
+
+// iCal export
+$router->get('/ics/event/:id',    [\App\Controllers\IcsController::class, 'event']);
+$router->get('/ics/training/:id', [\App\Controllers\IcsController::class, 'training']);
+
+// Dokumenty PDF
+$router->get('/documents',                      [\App\Controllers\DocumentsController::class, 'index']);
+$router->get('/documents/agreement/:memberId',  [\App\Controllers\DocumentsController::class, 'memberAgreement']);
+$router->get('/documents/consent/:memberId',    [\App\Controllers\DocumentsController::class, 'trainingConsent']);
+$router->get('/documents/waiver/:memberId',     [\App\Controllers\DocumentsController::class, 'liabilityWaiver']);
 
 // Statystyki i porównywarka zawodników
 $router->get('/stats/member/:memberId',  [\App\Controllers\PlayerStatsController::class, 'profile']);

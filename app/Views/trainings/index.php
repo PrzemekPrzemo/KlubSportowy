@@ -40,7 +40,8 @@
                     <td><?= View::e($t['location'] ?? '') ?></td>
                     <td><span class="badge bg-secondary"><?= (int)$t['attendees_count'] ?><?= $t['max_participants'] ? ' / ' . (int)$t['max_participants'] : '' ?></span></td>
                     <td><small><?= View::e($t['status']) ?></small></td>
-                    <td class="text-end">
+                    <td class="text-end d-flex gap-1 justify-content-end">
+                        <a href="<?= url('ics/training/' . (int)$t['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Pobierz .ics"><i class="bi bi-calendar-plus"></i></a>
                         <a href="<?= url('trainings/' . (int)$t['id'] . '/edit') ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>

@@ -19,6 +19,7 @@ return [
     'nav.analytics'           => 'Analityka',
     'nav.bookings'            => 'Rezerwacje',
     'nav.reports'             => 'Raporty',
+    'nav.documents'           => 'Dokumenty',
     'nav.gdpr'                => 'RODO / Zgody',
     'nav.club_settings'       => 'Ustawienia klubu',
     'nav.club_data'           => 'Dane klubu',
