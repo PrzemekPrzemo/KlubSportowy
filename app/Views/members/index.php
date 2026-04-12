@@ -24,7 +24,8 @@
         </div>
         <div class="col-md-2 d-flex gap-2">
             <button class="btn btn-primary flex-fill"><i class="bi bi-search"></i></button>
-            <a href="<?= url('members/create') ?>" class="btn btn-success flex-fill"><i class="bi bi-plus"></i></a>
+            <a href="<?= url('members/create') ?>" class="btn btn-success flex-fill" title="Nowy zawodnik"><i class="bi bi-plus"></i></a>
+            <a href="<?= url('import') ?>" class="btn btn-outline-primary flex-fill" title="Import CSV"><i class="bi bi-upload"></i></a>
         </div>
     </form>
 </div>

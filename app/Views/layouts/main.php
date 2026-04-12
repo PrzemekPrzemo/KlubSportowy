@@ -124,6 +124,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> Plan / Billing</a>
         <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
         <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> Klucze API</a>
+        <a href="<?= url('federation') ?>"><i class="bi bi-globe"></i> Federacje</a>
     <?php endif; ?>
 
     <?php if (!empty($isSuperAdmin)): ?>

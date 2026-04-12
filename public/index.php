@@ -205,6 +205,12 @@ $router->post('/2fa/disable',  [\App\Controllers\TwoFactorController::class, 'di
 $router->get('/2fa/verify',    [\App\Controllers\TwoFactorController::class, 'verify']);
 $router->post('/2fa/verify',   [\App\Controllers\TwoFactorController::class, 'verifyCode']);
 
+// Integracje z federacjami sportowymi
+$router->get('/federation',                    [\App\Controllers\FederationController::class, 'index']);
+$router->get('/federation/configure',          [\App\Controllers\FederationController::class, 'configure']);
+$router->post('/federation/configure/save',    [\App\Controllers\FederationController::class, 'saveConfigure']);
+$router->get('/federation/verify/:licenseId',  [\App\Controllers\FederationController::class, 'verifyLicense']);
+
 // Zarządzanie klubem (ustawienia / branding / SMTP / użytkownicy)
 $router->get('/club/settings',            [\App\Controllers\ClubManagementController::class, 'settings']);
 $router->post('/club/settings/save',      [\App\Controllers\ClubManagementController::class, 'saveSettings']);
@@ -286,6 +292,11 @@ $router->post('/trainings/:id/delete',            [\App\Controllers\TrainingsCon
 $router->post('/trainings/:id/attendee/add',      [\App\Controllers\TrainingsController::class, 'addAttendee']);
 $router->post('/trainings/:id/attendee/:attendeeId/remove', [\App\Controllers\TrainingsController::class, 'removeAttendee']);
 $router->post('/trainings/:id/attendance',        [\App\Controllers\TrainingsController::class, 'markAttendance']);
+
+// Import CSV
+$router->get('/import',               [\App\Controllers\ImportController::class, 'index']);
+$router->post('/import/upload',       [\App\Controllers\ImportController::class, 'upload']);
+$router->post('/import/execute',      [\App\Controllers\ImportController::class, 'execute']);
 
 // Wydarzenia
 $router->get('/events',               [\App\Controllers\EventsController::class, 'index']);
