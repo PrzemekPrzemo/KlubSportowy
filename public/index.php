@@ -413,6 +413,29 @@ $router->get('/api/v1/sports/:sportId/disciplines', [\App\Controllers\Api\Sports
 $router->post('/api/v1/devices/register',   [\App\Controllers\Api\DevicesApiController::class, 'register']);
 $router->post('/api/v1/devices/unregister', [\App\Controllers\Api\DevicesApiController::class, 'unregister']);
 
+// Sklep klubowy
+$router->get('/shop/products',               [\App\Controllers\ShopController::class, 'products']);
+$router->get('/shop/products/create',        [\App\Controllers\ShopController::class, 'productForm']);
+$router->get('/shop/products/:id/edit',      [\App\Controllers\ShopController::class, 'productForm']);
+$router->post('/shop/products/store',        [\App\Controllers\ShopController::class, 'storeProduct']);
+$router->post('/shop/products/:id/delete',   [\App\Controllers\ShopController::class, 'deleteProduct']);
+$router->get('/pub/:slug/shop',              [\App\Controllers\ShopController::class, 'catalog']);
+$router->get('/shop/cart',                   [\App\Controllers\ShopController::class, 'cart']);
+$router->post('/shop/cart/add',              [\App\Controllers\ShopController::class, 'addToCart']);
+$router->get('/shop/checkout',               [\App\Controllers\ShopController::class, 'checkout']);
+$router->post('/shop/checkout/store',        [\App\Controllers\ShopController::class, 'storeOrder']);
+$router->get('/shop/confirmation/:id',       [\App\Controllers\ShopController::class, 'orderConfirmation']);
+$router->get('/shop/orders',                 [\App\Controllers\ShopController::class, 'orders']);
+$router->post('/shop/orders/:id/status',     [\App\Controllers\ShopController::class, 'updateOrderStatus']);
+
+// OCR — zdjecia wynikow
+$router->get('/results',                     [\App\Controllers\ResultImageController::class, 'index']);
+$router->get('/results/upload',              [\App\Controllers\ResultImageController::class, 'upload']);
+$router->post('/results/upload',             [\App\Controllers\ResultImageController::class, 'storeUpload']);
+$router->get('/results/:id',                 [\App\Controllers\ResultImageController::class, 'show']);
+$router->post('/results/:id/save',           [\App\Controllers\ResultImageController::class, 'save']);
+$router->post('/results/:id/delete',         [\App\Controllers\ResultImageController::class, 'deleteImage']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 
