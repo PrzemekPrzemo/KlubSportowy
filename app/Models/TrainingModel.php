@@ -31,9 +31,12 @@ class TrainingModel extends ClubScopedModel
                 FROM trainings t
                 LEFT JOIN sports s ON s.id = t.sport_id
                 WHERE t.start_time >= NOW() AND t.status = 'zaplanowany'";
-        if ($clubId !== null) $sql .= " AND t.club_id = " . (int)$clubId;
+        $params = [];
+        if ($clubId !== null) { $sql .= " AND t.club_id = ?"; $params[] = $clubId; }
         $sql .= " ORDER BY t.start_time ASC LIMIT " . (int)$limit;
-        return $this->db->query($sql)->fetchAll();
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
     }
 
     public function withAttendees(int $id): ?array

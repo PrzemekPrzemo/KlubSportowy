@@ -40,9 +40,13 @@ class PaymentModel extends ClubScopedModel
         $clubId = $this->clubId();
         $sql    = "SELECT COALESCE(SUM(amount), 0) FROM payments
                    WHERE period_year = YEAR(CURDATE())";
+        $params = [];
         if ($clubId !== null) {
-            $sql .= " AND club_id = " . (int)$clubId;
+            $sql .= " AND club_id = ?";
+            $params[] = $clubId;
         }
-        return (float)$this->db->query($sql)->fetchColumn();
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (float)$stmt->fetchColumn();
     }
 }

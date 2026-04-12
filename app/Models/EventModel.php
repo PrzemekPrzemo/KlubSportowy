@@ -46,10 +46,14 @@ class EventModel extends ClubScopedModel
                    FROM events e
                    LEFT JOIN sports s ON s.id = e.sport_id
                    WHERE e.event_date >= NOW()";
+        $params = [];
         if ($clubId !== null) {
-            $sql .= " AND e.club_id = " . (int)$clubId;
+            $sql .= " AND e.club_id = ?";
+            $params[] = $clubId;
         }
         $sql .= " ORDER BY e.event_date ASC LIMIT " . (int)$limit;
-        return $this->db->query($sql)->fetchAll();
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
     }
 }
