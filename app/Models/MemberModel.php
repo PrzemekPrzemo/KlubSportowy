@@ -2,9 +2,65 @@
 
 namespace App\Models;
 
+use App\Helpers\Encryption;
+
 class MemberModel extends ClubScopedModel
 {
     protected string $table = 'members';
+
+    /** Pola szyfrowane — auto encrypt przy insert/update, auto decrypt przy findById. */
+    private const ENCRYPTED_FIELDS = ['pesel', 'email', 'phone'];
+    private const HASH_FIELDS = ['pesel' => 'pesel_hash', 'email' => 'email_hash', 'phone' => 'phone_hash'];
+
+    public function insert(array $data): int
+    {
+        if (Encryption::isConfigured()) {
+            foreach (self::ENCRYPTED_FIELDS as $field) {
+                if (!empty($data[$field])) {
+                    $hashField = self::HASH_FIELDS[$field] ?? null;
+                    if ($hashField) {
+                        $data[$hashField] = Encryption::hash($data[$field]);
+                    }
+                    $data[$field] = Encryption::encrypt($data[$field]);
+                }
+            }
+        }
+        return parent::insert($data);
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        if (Encryption::isConfigured()) {
+            foreach (self::ENCRYPTED_FIELDS as $field) {
+                if (array_key_exists($field, $data) && $data[$field] !== null && $data[$field] !== '') {
+                    $hashField = self::HASH_FIELDS[$field] ?? null;
+                    if ($hashField) {
+                        $data[$hashField] = Encryption::hash($data[$field]);
+                    }
+                    $data[$field] = Encryption::encrypt($data[$field]);
+                }
+            }
+        }
+        return parent::update($id, $data);
+    }
+
+    public function findById(int $id): ?array
+    {
+        $row = parent::findById($id);
+        return $row ? $this->decryptRow($row) : null;
+    }
+
+    private function decryptRow(array $row): array
+    {
+        if (!Encryption::isConfigured()) return $row;
+        foreach (self::ENCRYPTED_FIELDS as $field) {
+            if (!empty($row[$field])) {
+                $decrypted = Encryption::decrypt($row[$field]);
+                $row[$field] = $decrypted ?? $row[$field]; // fallback to raw if decrypt fails
+            }
+        }
+        return $row;
+    }
 
     public function search(string $q = '', ?string $status = null, ?int $clubSportId = null, int $page = 1, int $perPage = 20): array
     {
@@ -25,10 +81,14 @@ class MemberModel extends ClubScopedModel
         }
 
         if ($q !== '') {
-            $sql     .= " AND (m.first_name LIKE ? OR m.last_name LIKE ?
-                               OR m.member_number LIKE ? OR m.email LIKE ?)";
-            $like     = '%' . $q . '%';
-            $params   = [...$params, $like, $like, $like, $like];
+            // Szukanie po first_name/last_name/member_number (nieszyfrowane)
+            // + po email_hash (zaszyfrowane — hash query i porównaj)
+            $like = '%' . $q . '%';
+            $emailHash = Encryption::isConfigured() ? Encryption::hash($q) : '';
+            $sql .= " AND (m.first_name LIKE ? OR m.last_name LIKE ?
+                           OR m.member_number LIKE ?
+                           OR m.email_hash = ?)";
+            $params = [...$params, $like, $like, $like, $emailHash];
         }
 
         if ($status !== null && $status !== '') {
