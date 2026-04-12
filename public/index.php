@@ -378,6 +378,10 @@ $router->get('/events/create',        [\App\Controllers\EventsController::class,
 $router->post('/events/store',        [\App\Controllers\EventsController::class, 'store']);
 $router->post('/events/:id/delete',   [\App\Controllers\EventsController::class, 'delete']);
 
+// Statystyki i porównywarka zawodników
+$router->get('/stats/member/:memberId',  [\App\Controllers\PlayerStatsController::class, 'profile']);
+$router->get('/stats/compare',           [\App\Controllers\PlayerStatsController::class, 'compare']);
+
 // Raporty
 $router->get('/reports',                    [\App\Controllers\ReportsController::class, 'index']);
 $router->get('/reports/members-pdf',        [\App\Controllers\ReportsController::class, 'membersPdf']);
