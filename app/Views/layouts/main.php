@@ -77,6 +77,8 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         'fees_rates'    => ['url' => 'fees/rates',    'icon' => 'bi-tag',            'label' => 'Stawki opłat',    'mod' => 'fees'],
         'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',    'label' => 'Badania lekarskie','mod' => 'medical'],
         'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',      'label' => 'Ogłoszenia',      'mod' => 'announcements'],
+        'reports'       => ['url' => 'reports',       'icon' => 'bi-file-earmark-bar-graph', 'label' => 'Raporty',   'mod' => 'reports'],
+        'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => 'RODO / Zgody','mod' => 'club'],
     ];
     $allowed = $navModules ?? null; // null = pełny dostęp
     foreach ($navItems as $item):
@@ -124,6 +126,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <a href="<?= url('admin/sports') ?>"><i class="bi bi-grid-3x3-gap"></i> Katalog sportów</a>
         <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> Plany</a>
         <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> Log aktywności</a>
+        <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> Kopie zapasowe</a>
     <?php endif; ?>
 
     <div class="section-label">Konto</div>

@@ -135,6 +135,12 @@ $router->get('/admin/activity',             [\App\Controllers\AdminController::c
 $router->get('/admin/clubs/:id/users',      [\App\Controllers\AdminController::class, 'clubUsers']);
 $router->post('/admin/clubs/:id/users/:userId/impersonate', [\App\Controllers\AdminController::class, 'impersonate']);
 
+// Admin: backupy
+$router->get('/admin/backups',                  [\App\Controllers\BackupController::class, 'index']);
+$router->post('/admin/backups/create',          [\App\Controllers\BackupController::class, 'create']);
+$router->get('/admin/backups/:file/download',   [\App\Controllers\BackupController::class, 'download']);
+$router->post('/admin/backups/:file/delete',    [\App\Controllers\BackupController::class, 'delete']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
@@ -144,6 +150,14 @@ $router->post('/sports/enable',        [\App\Controllers\SportsController::class
 $router->post('/sports/disable/:id',   [\App\Controllers\SportsController::class, 'disable']);
 $router->post('/sports/activate/:id',  [\App\Controllers\SportsController::class, 'activate']);
 $router->post('/sports/clear-active',  [\App\Controllers\SportsController::class, 'clearActive']);
+
+// GDPR
+$router->get('/gdpr',                            [\App\Controllers\GdprController::class, 'index']);
+$router->get('/gdpr/member/:memberId',            [\App\Controllers\GdprController::class, 'memberConsents']);
+$router->post('/gdpr/member/:memberId/grant',     [\App\Controllers\GdprController::class, 'grantConsent']);
+$router->post('/gdpr/member/:memberId/revoke',    [\App\Controllers\GdprController::class, 'revokeConsent']);
+$router->get('/gdpr/member/:memberId/export',     [\App\Controllers\GdprController::class, 'exportData']);
+$router->post('/gdpr/member/:memberId/anonymize', [\App\Controllers\GdprController::class, 'anonymize']);
 
 // Zawodnicy
 $router->get('/members',              [\App\Controllers\MembersController::class, 'index']);
@@ -242,6 +256,15 @@ $router->get('/events',               [\App\Controllers\EventsController::class,
 $router->get('/events/create',        [\App\Controllers\EventsController::class, 'create']);
 $router->post('/events/store',        [\App\Controllers\EventsController::class, 'store']);
 $router->post('/events/:id/delete',   [\App\Controllers\EventsController::class, 'delete']);
+
+// Raporty
+$router->get('/reports',                    [\App\Controllers\ReportsController::class, 'index']);
+$router->get('/reports/members-pdf',        [\App\Controllers\ReportsController::class, 'membersPdf']);
+$router->get('/reports/members-csv',        [\App\Controllers\ReportsController::class, 'membersCsv']);
+$router->get('/reports/finances-pdf',       [\App\Controllers\ReportsController::class, 'financesPdf']);
+$router->get('/reports/finances-csv',       [\App\Controllers\ReportsController::class, 'financesCsv']);
+$router->get('/reports/event-protocol/:id', [\App\Controllers\ReportsController::class, 'eventProtocolPdf']);
+$router->get('/reports/member-card/:id',    [\App\Controllers\ReportsController::class, 'memberCardPdf']);
 
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);

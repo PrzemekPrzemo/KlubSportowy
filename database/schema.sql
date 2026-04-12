@@ -1415,3 +1415,57 @@ CREATE TABLE IF NOT EXISTS `basketball_player_stats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET foreign_key_checks = 1;
+-- GDPR migration
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `member_consents` (
+  `id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`      INT UNSIGNED NOT NULL,
+  `member_id`    INT UNSIGNED NOT NULL,
+  `consent_type` ENUM('rodo','marketing','wizerunek','newsletter','profilowanie') NOT NULL,
+  `granted`      TINYINT(1) NOT NULL DEFAULT 0,
+  `granted_at`   DATETIME NULL,
+  `revoked_at`   DATETIME NULL,
+  `ip_address`   VARCHAR(45) NULL,
+  `notes`        VARCHAR(255) NULL,
+  `created_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `uq_consent` (`club_id`, `member_id`, `consent_type`),
+  KEY `idx_mc_member` (`member_id`),
+  FOREIGN KEY (`club_id`)   REFERENCES `clubs`(`id`)   ON DELETE CASCADE,
+  FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Zgody RODO zawodnikow';
+
+ALTER TABLE `members`
+  ADD COLUMN `anonymized_at` DATETIME NULL AFTER `portal_last_login`;
+
+-- ============================================================
+-- WEBHOOKS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `webhook_endpoints` (
+  `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`    INT UNSIGNED NOT NULL,
+  `url`        VARCHAR(500) NOT NULL,
+  `secret`     VARCHAR(255) NOT NULL,
+  `events`     JSON NOT NULL COMMENT '["member.created","payment.received"]',
+  `is_active`  TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Webhook endpointy per klub';
+
+CREATE TABLE IF NOT EXISTS `webhook_log` (
+  `id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `endpoint_id`   INT UNSIGNED NOT NULL,
+  `event`         VARCHAR(80) NOT NULL,
+  `payload`       JSON NULL,
+  `response_code` SMALLINT NULL,
+  `response_body` TEXT NULL,
+  `sent_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`endpoint_id`) REFERENCES `webhook_endpoints`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Log wyslanych webhookow';
+
+SET foreign_key_checks = 1;
