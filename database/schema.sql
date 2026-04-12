@@ -1468,4 +1468,58 @@ CREATE TABLE IF NOT EXISTS `webhook_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Log wyslanych webhookow';
 
+-- ============================================================
+-- DEMO TOKENS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `demo_tokens` (
+  `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `token`      VARCHAR(64)  NOT NULL UNIQUE,
+  `club_id`    INT UNSIGNED NOT NULL,
+  `expires_at` DATETIME     NOT NULL,
+  `created_by` INT UNSIGNED NULL,
+  `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`club_id`)    REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Tokeny demo do automatycznego logowania do klubu demo';
+
+-- ============================================================
+-- ADS / REKLAMY
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `ads` (
+  `id`          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`     INT UNSIGNED NULL COMMENT 'NULL = globalny',
+  `title`       VARCHAR(150)  NOT NULL,
+  `image_path`  VARCHAR(255)  NULL,
+  `link_url`    VARCHAR(500)  NULL,
+  `target`      ENUM('club_panel','member_portal','public') NOT NULL DEFAULT 'club_panel',
+  `position`    ENUM('sidebar','top_banner','footer') NOT NULL DEFAULT 'top_banner',
+  `plan_min`    VARCHAR(20)   NULL COMMENT 'minimalny plan subskrypcji',
+  `start_date`  DATE          NULL,
+  `end_date`    DATE          NULL,
+  `is_active`   TINYINT(1)    NOT NULL DEFAULT 1,
+  `impressions` INT UNSIGNED  NOT NULL DEFAULT 0,
+  `clicks`      INT UNSIGNED  NOT NULL DEFAULT 0,
+  `created_at`  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Reklamy wyswietlane w panelu klubu, portalu zawodnika i stronach publicznych';
+
+-- ============================================================
+-- RATE LIMITING
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+  `id`              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `ip`              VARCHAR(45)  NOT NULL,
+  `action`          VARCHAR(60)  NOT NULL,
+  `attempts`        INT UNSIGNED NOT NULL DEFAULT 0,
+  `last_attempt_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `blocked_until`   DATETIME     NULL,
+  UNIQUE KEY `uq_ip_action` (`ip`, `action`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Rate limiting — ochrona przed brute-force';
+
 SET foreign_key_checks = 1;

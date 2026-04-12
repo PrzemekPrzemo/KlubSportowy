@@ -117,6 +117,9 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> SMTP / SMS</a>
         <a href="<?= url('club/users') ?>"><i class="bi bi-people-fill"></i> Użytkownicy</a>
         <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> Szablony e-mail</a>
+        <a href="<?= url('club/webhooks') ?>"><i class="bi bi-plug"></i> Webhooks</a>
+        <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> Plan / Billing</a>
+        <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
     <?php endif; ?>
 
     <?php if (!empty($isSuperAdmin)): ?>

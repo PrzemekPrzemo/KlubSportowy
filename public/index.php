@@ -135,6 +135,19 @@ $router->get('/admin/activity',             [\App\Controllers\AdminController::c
 $router->get('/admin/clubs/:id/users',      [\App\Controllers\AdminController::class, 'clubUsers']);
 $router->post('/admin/clubs/:id/users/:userId/impersonate', [\App\Controllers\AdminController::class, 'impersonate']);
 
+// Admin: demo tokeny
+$router->get('/admin/demos',           [\App\Controllers\DemoController::class, 'index']);
+$router->post('/admin/demos/create',   [\App\Controllers\DemoController::class, 'create']);
+$router->post('/admin/demos/cleanup',  [\App\Controllers\DemoController::class, 'cleanup']);
+
+// Admin: reklamy
+$router->get('/admin/ads',              [\App\Controllers\AdsController::class, 'index']);
+$router->get('/admin/ads/create',       [\App\Controllers\AdsController::class, 'create']);
+$router->post('/admin/ads/store',       [\App\Controllers\AdsController::class, 'store']);
+$router->get('/admin/ads/:id/edit',     [\App\Controllers\AdsController::class, 'edit']);
+$router->post('/admin/ads/:id/update',  [\App\Controllers\AdsController::class, 'update']);
+$router->post('/admin/ads/:id/delete',  [\App\Controllers\AdsController::class, 'delete']);
+
 // Admin: backupy
 $router->get('/admin/backups',                  [\App\Controllers\BackupController::class, 'index']);
 $router->post('/admin/backups/create',          [\App\Controllers\BackupController::class, 'create']);
@@ -143,6 +156,9 @@ $router->post('/admin/backups/:file/delete',    [\App\Controllers\BackupControll
 
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
+
+// Demo — publiczny dostep przez token
+$router->get('/demo/:token', [\App\Controllers\DemoController::class, 'loginViaToken']);
 
 // Strony publiczne (bez logowania)
 $router->get('/pub',                 [\App\Controllers\PublicController::class, 'clubList']);
@@ -205,6 +221,15 @@ $router->get('/club/webhooks',              [\App\Controllers\WebhooksController
 $router->get('/club/webhooks/create',       [\App\Controllers\WebhooksController::class, 'create']);
 $router->post('/club/webhooks/store',       [\App\Controllers\WebhooksController::class, 'store']);
 $router->post('/club/webhooks/:id/delete',  [\App\Controllers\WebhooksController::class, 'delete']);
+
+// Billing (subskrypcje)
+$router->get('/billing/plans',               [\App\Controllers\BillingController::class, 'plans']);
+$router->post('/billing/upgrade',            [\App\Controllers\BillingController::class, 'upgrade']);
+$router->get('/billing/invoices',            [\App\Controllers\BillingController::class, 'invoices']);
+$router->post('/billing/invoices/:id/paid',  [\App\Controllers\BillingController::class, 'markPaid']);
+
+// Stripe/P24 Webhook (no CSRF — signed)
+$router->post('/webhook/payment', [\App\Controllers\PaymentWebhookController::class, 'handle']);
 
 // Portal zawodnika (self-service)
 $router->get('/portal/login',            [\App\Controllers\MemberPortalController::class, 'showLogin']);

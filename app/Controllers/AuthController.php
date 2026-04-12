@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Auth;
 use App\Helpers\Csrf;
+use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Models\UserModel;
 
@@ -30,6 +31,14 @@ class AuthController extends BaseController
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
 
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // Rate limiting — check before processing
+        if (!RateLimiter::check($ip, 'login')) {
+            Session::flash('error', 'Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.');
+            $this->redirect('auth/login');
+        }
+
         if ($username === '' || $password === '') {
             Session::flash('error', 'Wprowadź login i hasło.');
             $this->redirect('auth/login');
@@ -40,6 +49,7 @@ class AuthController extends BaseController
              ?? $userModel->findByEmail($username);
 
         if ($user === null || !$user['is_active'] || !$userModel->verifyPassword($user, $password)) {
+            RateLimiter::hit($ip, 'login');
             Session::flash('error', 'Nieprawidłowy login lub hasło.');
             $this->redirect('auth/login');
         }
@@ -50,6 +60,7 @@ class AuthController extends BaseController
             $this->redirect('2fa/verify');
         }
 
+        RateLimiter::reset($ip, 'login');
         Auth::login($user);
         $userModel->touchLastLogin((int)$user['id']);
 

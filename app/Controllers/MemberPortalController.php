@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Csrf;
 use App\Helpers\Database;
 use App\Helpers\MemberAuth;
+use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Models\EventModel;
 use App\Models\MedicalExamModel;
@@ -34,6 +35,15 @@ class MemberPortalController extends BaseController
         Csrf::verify();
         $email    = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // Rate limiting — check before processing
+        if (!RateLimiter::check($ip, 'portal_login')) {
+            Session::flash('error', 'Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.');
+            $this->redirect('portal/login');
+        }
+
         if ($email === '' || $password === '') {
             Session::flash('error', 'Podaj e-mail i hasło.');
             $this->redirect('portal/login');
@@ -45,10 +55,12 @@ class MemberPortalController extends BaseController
         $member = $stmt->fetch();
 
         if (!$member || !MemberAuth::verifyPassword($member, $password)) {
+            RateLimiter::hit($ip, 'portal_login');
             Session::flash('error', 'Nieprawidłowy e-mail lub hasło.');
             $this->redirect('portal/login');
         }
 
+        RateLimiter::reset($ip, 'portal_login');
         MemberAuth::login($member);
         // Aktualizuj portal_last_login
         $db->prepare("UPDATE members SET portal_last_login = NOW() WHERE id = ?")->execute([$member['id']]);
