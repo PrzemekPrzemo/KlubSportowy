@@ -165,6 +165,18 @@ $router->get('/pub',                 [\App\Controllers\PublicController::class, 
 $router->get('/pub/:slug/results',   [\App\Controllers\PublicController::class, 'clubResults']);
 $router->get('/pub/:slug',           [\App\Controllers\PublicController::class, 'clubPage']);
 
+// Onboarding wizard
+$router->get('/onboarding/step1',      [\App\Controllers\OnboardingController::class, 'step1']);
+$router->post('/onboarding/step1',     [\App\Controllers\OnboardingController::class, 'saveStep1']);
+$router->get('/onboarding/step2',      [\App\Controllers\OnboardingController::class, 'step2']);
+$router->post('/onboarding/step2',     [\App\Controllers\OnboardingController::class, 'saveStep2']);
+$router->get('/onboarding/step3',      [\App\Controllers\OnboardingController::class, 'step3']);
+$router->post('/onboarding/step3',     [\App\Controllers\OnboardingController::class, 'saveStep3']);
+$router->get('/onboarding/step4',      [\App\Controllers\OnboardingController::class, 'step4']);
+$router->post('/onboarding/step4',     [\App\Controllers\OnboardingController::class, 'saveStep4']);
+$router->get('/onboarding/step5',      [\App\Controllers\OnboardingController::class, 'step5']);
+$router->post('/onboarding/complete',  [\App\Controllers\OnboardingController::class, 'complete']);
+
 // Sekcje sportowe w kontekście klubu
 $router->get('/sports',                [\App\Controllers\SportsController::class, 'index']);
 $router->post('/sports/enable',        [\App\Controllers\SportsController::class, 'enable']);
@@ -356,7 +368,8 @@ $router->get('/bookings/calendar',               [\App\Controllers\BookingsContr
 $router->post('/bookings/book',                  [\App\Controllers\BookingsController::class, 'book']);
 $router->post('/bookings/:id/cancel',            [\App\Controllers\BookingsController::class, 'cancel']);
 
-// ── REST API v1 (Bearer token auth, no CSRF) ─────────────
+// ── REST API v1 ─────────────
+$router->post('/api/v1/auth/login',    [\App\Controllers\Api\AuthApiController::class, 'login']);
 $router->get('/api/v1/members',                  [\App\Controllers\Api\MembersApiController::class, 'index']);
 $router->get('/api/v1/members/:id',              [\App\Controllers\Api\MembersApiController::class, 'show']);
 $router->get('/api/v1/events',                   [\App\Controllers\Api\EventsApiController::class, 'index']);
