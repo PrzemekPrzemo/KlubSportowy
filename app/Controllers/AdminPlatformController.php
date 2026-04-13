@@ -1,0 +1,224 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Helpers\Csrf;
+use App\Helpers\Database;
+use App\Helpers\Session;
+use App\Models\ClubCustomizationModel;
+
+/**
+ * Master Admin: zarządzanie planami cenowymi + branding per-klub + support.
+ */
+class AdminPlatformController extends BaseController
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this->requireSuperAdmin();
+    }
+
+    // ── Plany cenowe (CRUD) ─────────────────────────────────
+
+    public function plans(): void
+    {
+        $db    = Database::pdo();
+        $plans = $db->query("SELECT * FROM subscription_plans ORDER BY sort_order")->fetchAll();
+        $this->render('admin/platform/plans', [
+            'title' => 'Zarządzanie planami cenowymi',
+            'plans' => $plans,
+        ]);
+    }
+
+    public function editPlan(string $id): void
+    {
+        $db   = Database::pdo();
+        $stmt = $db->prepare("SELECT * FROM subscription_plans WHERE id = ?");
+        $stmt->execute([(int)$id]);
+        $plan = $stmt->fetch();
+        if (!$plan) { Session::flash('error', 'Nie znaleziono planu.'); $this->redirect('admin/platform/plans'); }
+
+        $this->render('admin/platform/plan_form', [
+            'title' => 'Edycja planu: ' . $plan['name'],
+            'plan'  => $plan,
+        ]);
+    }
+
+    public function updatePlan(string $id): void
+    {
+        Csrf::verify();
+        $db = Database::pdo();
+        $stmt = $db->prepare(
+            "UPDATE subscription_plans SET name = ?, max_members = ?, max_sports = ?,
+                    price_monthly = ?, price_yearly = ?, features = ?, is_active = ?, sort_order = ?
+             WHERE id = ?"
+        );
+        $stmt->execute([
+            trim($_POST['name'] ?? ''),
+            !empty($_POST['max_members']) ? (int)$_POST['max_members'] : null,
+            !empty($_POST['max_sports']) ? (int)$_POST['max_sports'] : null,
+            (float)($_POST['price_monthly'] ?? 0),
+            (float)($_POST['price_yearly'] ?? 0),
+            trim($_POST['features'] ?? '') ?: null,
+            isset($_POST['is_active']) ? 1 : 0,
+            (int)($_POST['sort_order'] ?? 0),
+            (int)$id,
+        ]);
+        Session::flash('success', 'Plan zaktualizowany.');
+        $this->redirect('admin/platform/plans');
+    }
+
+    public function createPlan(): void
+    {
+        $this->render('admin/platform/plan_form', [
+            'title' => 'Nowy plan',
+            'plan'  => null,
+        ]);
+    }
+
+    public function storePlan(): void
+    {
+        Csrf::verify();
+        $db = Database::pdo();
+        $stmt = $db->prepare(
+            "INSERT INTO subscription_plans (code, name, max_members, max_sports,
+                    price_monthly, price_yearly, features, is_active, sort_order)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $code = strtolower(preg_replace('/[^a-z0-9]/', '_', trim($_POST['name'] ?? 'plan')));
+        $stmt->execute([
+            $code,
+            trim($_POST['name'] ?? ''),
+            !empty($_POST['max_members']) ? (int)$_POST['max_members'] : null,
+            !empty($_POST['max_sports']) ? (int)$_POST['max_sports'] : null,
+            (float)($_POST['price_monthly'] ?? 0),
+            (float)($_POST['price_yearly'] ?? 0),
+            trim($_POST['features'] ?? '') ?: null,
+            isset($_POST['is_active']) ? 1 : 0,
+            (int)($_POST['sort_order'] ?? 0),
+        ]);
+        Session::flash('success', 'Plan utworzony.');
+        $this->redirect('admin/platform/plans');
+    }
+
+    // ── Branding per-klub (edycja z poziomu master admin) ───
+
+    public function clubBranding(string $clubId): void
+    {
+        $club   = (new \App\Models\ClubModel())->findById((int)$clubId);
+        if (!$club) { Session::flash('error', 'Nie znaleziono klubu.'); $this->redirect('admin/clubs'); }
+
+        $custom = (new ClubCustomizationModel())->findForClub((int)$clubId) ?? ClubCustomizationModel::defaults();
+        $this->render('admin/platform/club_branding', [
+            'title'  => 'Branding: ' . $club['name'],
+            'club'   => $club,
+            'custom' => $custom,
+        ]);
+    }
+
+    public function saveClubBranding(string $clubId): void
+    {
+        Csrf::verify();
+        $data = [
+            'primary_color' => trim($_POST['primary_color'] ?? '#EE2C28'),
+            'navbar_bg'     => trim($_POST['navbar_bg'] ?? '#232322'),
+            'accent_color'  => trim($_POST['accent_color'] ?? '#EE2C28'),
+            'custom_css'    => trim($_POST['custom_css'] ?? '') ?: null,
+            'motto'         => trim($_POST['motto'] ?? '') ?: null,
+            'subdomain'     => trim($_POST['subdomain'] ?? '') ?: null,
+        ];
+
+        if (!empty($_FILES['logo']['tmp_name'])) {
+            $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, ['png','jpg','jpeg','webp','svg','gif'], true)) {
+                $dir = ROOT_PATH . '/public/uploads/clubs/' . (int)$clubId;
+                if (!is_dir($dir)) @mkdir($dir, 0775, true);
+                $filename = 'logo_' . time() . '.' . $ext;
+                if (move_uploaded_file($_FILES['logo']['tmp_name'], $dir . '/' . $filename)) {
+                    $data['logo_path'] = 'uploads/clubs/' . (int)$clubId . '/' . $filename;
+                }
+            }
+        }
+
+        (new ClubCustomizationModel())->upsert((int)$clubId, $data);
+        Session::flash('success', 'Branding klubu zaktualizowany.');
+        $this->redirect('admin/platform/branding/' . $clubId);
+    }
+
+    // ── Support tickets ─────────────────────────────────────
+
+    public function supportTickets(): void
+    {
+        $db = Database::pdo();
+        $tickets = $db->query(
+            "SELECT st.*, c.name AS club_name, u.full_name AS author_name
+             FROM support_tickets st
+             LEFT JOIN clubs c ON c.id = st.club_id
+             LEFT JOIN users u ON u.id = st.user_id
+             ORDER BY st.status = 'open' DESC, st.created_at DESC"
+        )->fetchAll();
+
+        $this->render('admin/platform/support', [
+            'title'   => 'Zgłoszenia techniczne',
+            'tickets' => $tickets,
+        ]);
+    }
+
+    public function viewTicket(string $id): void
+    {
+        $db   = Database::pdo();
+        $stmt = $db->prepare(
+            "SELECT st.*, c.name AS club_name, u.full_name AS author_name
+             FROM support_tickets st
+             LEFT JOIN clubs c ON c.id = st.club_id
+             LEFT JOIN users u ON u.id = st.user_id
+             WHERE st.id = ?"
+        );
+        $stmt->execute([(int)$id]);
+        $ticket = $stmt->fetch();
+        if (!$ticket) { Session::flash('error', 'Nie znaleziono.'); $this->redirect('admin/platform/support'); }
+
+        $replies = $db->prepare(
+            "SELECT r.*, u.full_name AS author_name
+             FROM support_replies r
+             LEFT JOIN users u ON u.id = r.user_id
+             WHERE r.ticket_id = ?
+             ORDER BY r.created_at ASC"
+        );
+        $replies->execute([(int)$id]);
+
+        $this->render('admin/platform/ticket_view', [
+            'title'   => 'Zgłoszenie #' . $id,
+            'ticket'  => $ticket,
+            'replies' => $replies->fetchAll(),
+        ]);
+    }
+
+    public function replyTicket(string $id): void
+    {
+        Csrf::verify();
+        $body = trim($_POST['body'] ?? '');
+        if ($body === '') { Session::flash('error', 'Treść wymagana.'); $this->redirect('admin/platform/support/' . $id); }
+
+        $db = Database::pdo();
+        $db->prepare(
+            "INSERT INTO support_replies (ticket_id, user_id, body) VALUES (?, ?, ?)"
+        )->execute([(int)$id, \App\Helpers\Auth::id(), $body]);
+
+        // Update ticket status
+        $newStatus = $_POST['status'] ?? 'in_progress';
+        $db->prepare("UPDATE support_tickets SET status = ? WHERE id = ?")->execute([$newStatus, (int)$id]);
+
+        Session::flash('success', 'Odpowiedź wysłana.');
+        $this->redirect('admin/platform/support/' . $id);
+    }
+
+    public function closeTicket(string $id): void
+    {
+        Csrf::verify();
+        $db = Database::pdo();
+        $db->prepare("UPDATE support_tickets SET status = 'closed' WHERE id = ?")->execute([(int)$id]);
+        Session::flash('success', 'Zgłoszenie zamknięte.');
+        $this->redirect('admin/platform/support');
+    }
+}

@@ -193,6 +193,26 @@ $router->post('/admin/backups/create',          [\App\Controllers\BackupControll
 $router->get('/admin/backups/:file/download',   [\App\Controllers\BackupController::class, 'download']);
 $router->post('/admin/backups/:file/delete',    [\App\Controllers\BackupController::class, 'delete']);
 
+// Admin: platforma (plany cenowe, branding per-klub, support)
+$router->get('/admin/platform/plans',                [\App\Controllers\AdminPlatformController::class, 'plans']);
+$router->get('/admin/platform/plans/create',         [\App\Controllers\AdminPlatformController::class, 'createPlan']);
+$router->post('/admin/platform/plans/store',         [\App\Controllers\AdminPlatformController::class, 'storePlan']);
+$router->get('/admin/platform/plans/:id/edit',       [\App\Controllers\AdminPlatformController::class, 'editPlan']);
+$router->post('/admin/platform/plans/:id/update',    [\App\Controllers\AdminPlatformController::class, 'updatePlan']);
+$router->get('/admin/platform/branding/:clubId',     [\App\Controllers\AdminPlatformController::class, 'clubBranding']);
+$router->post('/admin/platform/branding/:clubId/save', [\App\Controllers\AdminPlatformController::class, 'saveClubBranding']);
+$router->get('/admin/platform/support',              [\App\Controllers\AdminPlatformController::class, 'supportTickets']);
+$router->get('/admin/platform/support/:id',          [\App\Controllers\AdminPlatformController::class, 'viewTicket']);
+$router->post('/admin/platform/support/:id/reply',   [\App\Controllers\AdminPlatformController::class, 'replyTicket']);
+$router->post('/admin/platform/support/:id/close',   [\App\Controllers\AdminPlatformController::class, 'closeTicket']);
+
+// Support tickets (klub zarzad)
+$router->get('/support',          [\App\Controllers\SupportController::class, 'index']);
+$router->get('/support/create',   [\App\Controllers\SupportController::class, 'create']);
+$router->post('/support/store',   [\App\Controllers\SupportController::class, 'store']);
+$router->get('/support/:id',      [\App\Controllers\SupportController::class, 'show']);
+$router->post('/support/:id/reply', [\App\Controllers\SupportController::class, 'reply']);
+
 // Admin: subskrypcje klubów
 $router->get('/admin/subscriptions',                    [\App\Controllers\AdminSubscriptionsController::class, 'index']);
 $router->get('/admin/subscriptions/revenue',            [\App\Controllers\AdminSubscriptionsController::class, 'revenue']);

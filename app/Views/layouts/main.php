@@ -145,6 +145,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232323';
         <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
         <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> <?= __('nav.api_keys') ?></a>
         <a href="<?= url('federation') ?>"><i class="bi bi-globe"></i> <?= __('nav.federations') ?></a>
+        <a href="<?= url('support') ?>"><i class="bi bi-headset"></i> Wsparcie techniczne</a>
     <?php endif; ?>
 
     <?php if (!empty($isSuperAdmin)): ?>
@@ -156,9 +157,12 @@ $navbarBg = $branding['navbar_bg']     ?? '#232323';
         <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
         <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> <?= __('nav.activity_log') ?></a>
         <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> <?= __('nav.backups') ?></a>
+        <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
+        <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
         <?php if (!empty($currentClubId)): ?>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> Konfiguracja</a>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> Feature flags</a>
+            <a href="<?= url('admin/platform/branding/' . (int)$currentClubId) ?>"><i class="bi bi-palette2"></i> Branding klubu</a>
         <?php endif; ?>
     <?php endif; ?>
 
