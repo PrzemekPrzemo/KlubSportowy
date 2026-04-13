@@ -5,7 +5,7 @@
   "start_url": "/portal/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#E52C38",
+  "theme_color": "#EE2C28",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },

@@ -1,14 +1,15 @@
 <?php
 use App\Helpers\View;
 $branding = $clubBranding ?? [];
-$primary  = $branding['primary_color'] ?? '#E52C38';
+$primary  = $branding['primary_color'] ?? '#EE2C28';
 $navbarBg = $branding['navbar_bg']     ?? '#232323';
 ?><!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#E52C38">
+    <meta name="theme-color" content="#EE2C28">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.json">
     <title><?= View::e($title ?? 'ClubDesk') ?> — <?= View::e($appName ?? 'ClubDesk') ?></title>
@@ -68,7 +69,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232323';
         <?php if (!empty($clubBranding['logo_path'])): ?>
             <img src="<?= url($clubBranding['logo_path']) ?>" alt="logo" style="max-width:180px; max-height:60px; margin-bottom:.5rem;">
         <?php endif; ?>
-        <h5 class="mb-0"><strong style="color:#E52C38">CD</strong> <?= View::e($appName ?? 'ClubDesk') ?></h5>
+        <h5 class="mb-0"><img src="/images/logo-cd.svg" alt="CD" style="height:28px;vertical-align:middle;margin-right:6px;"> <span style="color:#EE2C28;font-weight:700;">clubdesk.pl</span></h5>
         <?php if (!empty($currentClub)): ?>
             <small class="d-block mt-1 text-muted"><?= View::e($currentClub['name']) ?></small>
         <?php endif; ?>

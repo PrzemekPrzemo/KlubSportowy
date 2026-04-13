@@ -2,17 +2,18 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= View::e($title ?? 'ClubDesk') ?> — <?= View::e($appName ?? 'ClubDesk') ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; }
-        .hero-section { background: linear-gradient(135deg, #E52C38 0%, #6610f2 100%); color: #fff; padding: 5rem 0; }
+        .hero-section { background: linear-gradient(135deg, #EE2C28 0%, #6610f2 100%); color: #fff; padding: 5rem 0; }
         .feature-card { border: 0; box-shadow: 0 2px 8px rgba(0,0,0,.08); transition: transform .2s; }
         .feature-card:hover { transform: translateY(-4px); }
         .pricing-card { border: 0; box-shadow: 0 2px 12px rgba(0,0,0,.1); }
-        .pricing-card.featured { border: 2px solid #E52C38; }
+        .pricing-card.featured { border: 2px solid #EE2C28; }
         footer { background: #212529; color: #adb5bd; padding: 2rem 0; font-size: .85rem; }
         footer a { color: #cdd6f4; text-decoration: none; }
         footer a:hover { color: #fff; }

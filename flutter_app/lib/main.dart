@@ -19,12 +19,12 @@ class ClubDeskApp extends StatelessWidget {
         title: 'ClubDesk',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorSchemeSeed: const Color(0xFFE52C38),
+          colorSchemeSeed: const Color(0xFFEE2C28),
           useMaterial3: true,
           fontFamily: 'Poppins',
         ),
         darkTheme: ThemeData(
-          colorSchemeSeed: const Color(0xFFE52C38),
+          colorSchemeSeed: const Color(0xFFEE2C28),
           brightness: Brightness.dark,
           useMaterial3: true,
         ),
