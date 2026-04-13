@@ -4,8 +4,8 @@
     <p class="text-muted">Ostatnia aktualizacja: 1 stycznia 2026 r.</p>
 
     <h2>1. Administrator danych</h2>
-    <p>1.1. Administratorem danych osobowych przetwarzanych w serwisie KlubSportowy jest
-    KlubSportowy Sp. z o.o. z siedziba w Warszawie, ul. Sportowa 1, 00-001 Warszawa
+    <p>1.1. Administratorem danych osobowych przetwarzanych w serwisie ClubDesk jest
+    ClubDesk Sp. z o.o. z siedziba w Warszawie, ul. Sportowa 1, 00-001 Warszawa
     (dalej: "Administrator").</p>
     <p>1.2. Kontakt z Administratorem mozliwy jest pod adresem e-mail: rodo@klubsportowy.pl.</p>
     <p>1.3. Administrator wyznaczyl Inspektora Ochrony Danych (IOD), z ktorym mozna skontaktowac

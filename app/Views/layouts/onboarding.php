@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= View::e($title ?? 'Onboarding') ?> — <?= View::e($appName ?? 'KlubSportowy') ?></title>
+    <title><?= View::e($title ?? 'Onboarding') ?> — <?= View::e($appName ?? 'ClubDesk') ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
@@ -44,7 +44,7 @@
     <div class="container">
         <div class="text-center">
             <a href="<?= url('dashboard') ?>" class="onboarding-brand">
-                <i class="bi bi-trophy"></i> <?= View::e($appName ?? 'KlubSportowy') ?>
+                <i class="bi bi-trophy"></i> <?= View::e($appName ?? 'ClubDesk') ?>
             </a>
         </div>
         <?php

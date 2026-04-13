@@ -1,9 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 /* KlubSportowy — base overrides
  * Per-club color theming is injected as CSS variables in layouts/main.php.
  */
 
 body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
 }
 
 .card {

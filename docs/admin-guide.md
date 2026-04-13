@@ -1,4 +1,4 @@
-# KlubSportowy — Przewodnik super administratora
+# ClubDesk — Przewodnik super administratora
 
 Dokument przeznaczony dla administratorów platformy (rola `super_admin`).
 

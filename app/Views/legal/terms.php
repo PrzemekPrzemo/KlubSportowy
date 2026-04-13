@@ -1,12 +1,12 @@
 <?php use App\Helpers\View; ?>
 <div class="container py-5" style="max-width:800px;">
-    <h1 class="mb-4">Regulamin serwisu KlubSportowy</h1>
+    <h1 class="mb-4">Regulamin serwisu ClubDesk</h1>
     <p class="text-muted">Ostatnia aktualizacja: 1 stycznia 2026 r.</p>
 
     <h2>1. Postanowienia ogolne</h2>
-    <p>1.1. Niniejszy Regulamin okresla zasady korzystania z serwisu internetowego KlubSportowy
+    <p>1.1. Niniejszy Regulamin okresla zasady korzystania z serwisu internetowego ClubDesk
     (dalej: "Serwis"), dostepnego pod adresem internetowym okreslanym przez operatora.</p>
-    <p>1.2. Operatorem Serwisu jest KlubSportowy Sp. z o.o. z siedziba w Warszawie,
+    <p>1.2. Operatorem Serwisu jest ClubDesk Sp. z o.o. z siedziba w Warszawie,
     ul. Sportowa 1, 00-001 Warszawa, wpisana do rejestru przedsiebiorcow KRS pod numerem 0000000000,
     NIP: 0000000000, REGON: 000000000 (dalej: "Operator").</p>
     <p>1.3. Serwis jest platforma do zarzadzania klubami sportowymi, umozliwiajaca m.in. prowadzenie

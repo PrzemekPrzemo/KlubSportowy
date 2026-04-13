@@ -1,5 +1,5 @@
 -- ============================================================
--- KlubSportowy — Multi-Sport Club Management Portal
+-- ClubDesk — Multi-Sport Club Management Portal
 -- Database Schema (Phase 1)
 -- ============================================================
 -- Strategy: shared database, shared schema, club_id discriminator.
@@ -687,8 +687,8 @@ INSERT INTO `subscription_plans` (`code`, `name`, `max_members`, `max_sports`, `
 
 -- Global settings
 INSERT INTO `settings` (`key`, `value`, `label`, `type`) VALUES
-  ('base_domain',         '',          'Domena bazowa systemu (np. klubsportowy.pl)', 'text'),
-  ('system_name',         'KlubSportowy', 'Nazwa platformy',                            'text'),
+  ('base_domain',         '',          'Domena bazowa systemu (np. clubdesk.pl)', 'text'),
+  ('system_name',         'ClubDesk', 'Nazwa platformy',                            'text'),
   ('system_logo',         '',          'Ścieżka do logo systemu',                      'text'),
   ('alert_payment_days',  '30',        'Alert zaległości w składkach (dni)',           'number'),
   ('alert_license_days',  '60',        'Alert wygasającej licencji (dni)',             'number'),
@@ -698,13 +698,13 @@ INSERT INTO `settings` (`key`, `value`, `label`, `type`) VALUES
 
 -- Domyślny super-admin (hasło: Admin1234! — zmień po pierwszym logowaniu)
 INSERT INTO `users` (`username`, `email`, `password`, `full_name`, `is_super_admin`) VALUES
-  ('admin', 'admin@klubsportowy.pl',
+  ('admin', 'admin@clubdesk.pl',
    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
    'Administrator Systemu', 1);
 
 -- Domyślny klub demo
 INSERT INTO `clubs` (`name`, `short_name`, `city`, `email`) VALUES
-  ('Klub Demo', 'DEMO', 'Warszawa', 'demo@klubsportowy.pl');
+  ('Klub Demo', 'DEMO', 'Warszawa', 'demo@clubdesk.pl');
 
 INSERT INTO `club_customization` (`club_id`) VALUES (1);
 

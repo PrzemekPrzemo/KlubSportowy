@@ -1,17 +1,18 @@
 <?php
 use App\Helpers\View;
 $branding = $clubBranding ?? [];
-$primary  = $branding['primary_color'] ?? '#0d6efd';
-$navbarBg = $branding['navbar_bg']     ?? '#212529';
+$primary  = $branding['primary_color'] ?? '#E52C38';
+$navbarBg = $branding['navbar_bg']     ?? '#232323';
 ?><!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0d6efd">
+    <meta name="theme-color" content="#E52C38">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.json">
-    <title><?= View::e($title ?? 'KlubSportowy') ?> — <?= View::e($appName ?? 'KlubSportowy') ?></title>
+    <title><?= View::e($title ?? 'ClubDesk') ?> — <?= View::e($appName ?? 'ClubDesk') ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= url('css/app.css') ?>">
@@ -35,7 +36,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         .sidebar a.active { background: rgba(255,255,255,.08); border-left-color: var(--app-primary); color: #fff; font-weight: 600; }
         .sidebar .brand { padding: .5rem 1rem 1rem 1rem; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: .5rem; }
         .sidebar .section-label { text-transform: uppercase; font-size: .7rem; color: #7f849c; padding: 1rem 1rem .3rem 1rem; letter-spacing: .1em; }
-        .main-content { margin-left: 260px; padding: 1.5rem; min-height: 100vh; background: #f8f9fa; }
+        .main-content { margin-left: 260px; padding: 1.5rem; min-height: 100vh; background: #F0F2F5; }
         .btn-primary, .bg-primary { background-color: var(--app-primary) !important; border-color: var(--app-primary) !important; }
         .text-primary { color: var(--app-primary) !important; }
         .card { border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
@@ -67,7 +68,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#212529';
         <?php if (!empty($clubBranding['logo_path'])): ?>
             <img src="<?= url($clubBranding['logo_path']) ?>" alt="logo" style="max-width:180px; max-height:60px; margin-bottom:.5rem;">
         <?php endif; ?>
-        <h5 class="mb-0"><i class="bi bi-trophy"></i> <?= View::e($appName ?? 'KlubSportowy') ?></h5>
+        <h5 class="mb-0"><strong style="color:#E52C38">CD</strong> <?= View::e($appName ?? 'ClubDesk') ?></h5>
         <?php if (!empty($currentClub)): ?>
             <small class="d-block mt-1 text-muted"><?= View::e($currentClub['name']) ?></small>
         <?php endif; ?>

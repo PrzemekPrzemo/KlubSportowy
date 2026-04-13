@@ -166,8 +166,8 @@
             <?php
             $faqs = [
                 [
-                    'q' => 'Co to jest KlubSportowy?',
-                    'a' => 'KlubSportowy to kompleksowa platforma SaaS do zarzadzania klubami sportowymi. Umozliwia zarzadzanie czlonkami, finansami, wydarzeniami, treningami, komunikacja i wiele wiecej — wszystko w jednym miejscu.'
+                    'q' => 'Co to jest ClubDesk?',
+                    'a' => 'ClubDesk to kompleksowa platforma SaaS do zarzadzania klubami sportowymi. Umozliwia zarzadzanie czlonkami, finansami, wydarzeniami, treningami, komunikacja i wiele wiecej — wszystko w jednym miejscu.'
                 ],
                 [
                     'q' => 'Ile kosztuje?',
@@ -175,7 +175,7 @@
                 ],
                 [
                     'q' => 'Czy moge zarzadzac wieloma sportami?',
-                    'a' => 'Tak! KlubSportowy obsluguje wiele sekcji sportowych w jednym klubie. Mozesz dodac pilke nozna, koszykowke, lekkoatletyka i dowolny inny sport — kazda sekcja ma wlasne ustawienia i modul.'
+                    'a' => 'Tak! ClubDesk obsluguje wiele sekcji sportowych w jednym klubie. Mozesz dodac pilke nozna, koszykowke, lekkoatletyka i dowolny inny sport — kazda sekcja ma wlasne ustawienia i modul.'
                 ],
                 [
                     'q' => 'Jak dziala portal zawodnika?',

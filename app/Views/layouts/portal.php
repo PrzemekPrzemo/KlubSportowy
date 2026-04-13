@@ -16,8 +16,8 @@ $memberName = Session::get('portal_member_name');
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { font-family: system-ui, sans-serif; background:#f0f2f5; }
-        .portal-nav { background: linear-gradient(135deg,#198754,#0d6efd); color:#fff; padding:1rem 2rem; }
+        body { font-family: 'Poppins', system-ui, sans-serif; background:#f0f2f5; }
+        .portal-nav { background: linear-gradient(135deg,#E52C38,#0d6efd); color:#fff; padding:1rem 2rem; }
         .portal-nav a { color:#fff; text-decoration:none; margin-right: 1.5rem; }
         .portal-nav a:hover, .portal-nav a.active { text-decoration: underline; }
         .portal-container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }

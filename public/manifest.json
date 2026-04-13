@@ -1,11 +1,11 @@
 {
-  "name": "KlubSportowy",
-  "short_name": "KlubSport",
+  "name": "ClubDesk",
+  "short_name": "ClubDesk",
   "description": "Wielosportowy portal zarządzania klubem",
   "start_url": "/portal/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0d6efd",
+  "theme_color": "#E52C38",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },

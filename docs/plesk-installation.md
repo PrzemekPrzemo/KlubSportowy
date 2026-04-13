@@ -1,4 +1,4 @@
-# Instrukcja wdrożenia KlubSportowy na Plesk Panel
+# Instrukcja wdrożenia ClubDesk na Plesk Panel
 
 ## Domena: portal.clubdesk.pl
 
@@ -94,7 +94,7 @@ Lub przez phpMyAdmin:
 ### Opcja A: Git (zalecane)
 ```bash
 cd /var/www/vhosts/portal.clubdesk.pl/httpdocs
-git clone https://github.com/PrzemekPrzemo/KlubSportowy.git .
+git clone https://github.com/PrzemekPrzemo/ClubDesk.git .
 git checkout main
 ```
 
@@ -376,7 +376,7 @@ composer install --no-dev --optimize-autoloader  # jeśli zmiany w composer.json
 
 ## 16. Kontakt i support
 
-- Repo: `github.com/PrzemekPrzemo/KlubSportowy`
+- Repo: `github.com/PrzemekPrzemo/ClubDesk`
 - Logi: `storage/logs/app.log`
 - Backup: `storage/backups/`
 - Monitoring: Sentry (jeśli skonfigurowany w sentry_dsn)

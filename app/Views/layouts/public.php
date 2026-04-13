@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= View::e($title ?? 'KlubSportowy') ?> — <?= View::e($appName ?? 'KlubSportowy') ?></title>
+    <title><?= View::e($title ?? 'ClubDesk') ?> — <?= View::e($appName ?? 'ClubDesk') ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
@@ -21,7 +21,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" href="<?= url('pub') ?>">
-            <i class="bi bi-trophy"></i> <?= View::e($appName ?? 'KlubSportowy') ?>
+            <i class="bi bi-trophy"></i> <?= View::e($appName ?? 'ClubDesk') ?>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#pubNav">
             <span class="navbar-toggler-icon"></span>
@@ -45,7 +45,7 @@
 
 <footer class="mt-5">
     <div class="container text-center">
-        &copy; <?= date('Y') ?> <?= View::e($appName ?? 'KlubSportowy') ?>. Wszystkie prawa zastrzezone.
+        &copy; <?= date('Y') ?> <?= View::e($appName ?? 'ClubDesk') ?>. Wszystkie prawa zastrzezone.
     </div>
 </footer>
 

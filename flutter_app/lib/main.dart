@@ -5,26 +5,26 @@ import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 
 void main() {
-  runApp(const KlubSportowyApp());
+  runApp(const ClubDeskApp());
 }
 
-class KlubSportowyApp extends StatelessWidget {
-  const KlubSportowyApp({super.key});
+class ClubDeskApp extends StatelessWidget {
+  const ClubDeskApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AuthService()..init(),
       child: MaterialApp(
-        title: 'KlubSportowy',
+        title: 'ClubDesk',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF0d6efd),
+          colorSchemeSeed: const Color(0xFFE52C38),
           useMaterial3: true,
-          fontFamily: 'Roboto',
+          fontFamily: 'Poppins',
         ),
         darkTheme: ThemeData(
-          colorSchemeSeed: const Color(0xFF0d6efd),
+          colorSchemeSeed: const Color(0xFFE52C38),
           brightness: Brightness.dark,
           useMaterial3: true,
         ),

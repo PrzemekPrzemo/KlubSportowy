@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Icon(Icons.sports, size: 64, color: colorScheme.primary),
                       const SizedBox(height: 8),
-                      Text('KlubSportowy', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('ClubDesk', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
                       Text('Portal zawodnika', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
                       const SizedBox(height: 32),
