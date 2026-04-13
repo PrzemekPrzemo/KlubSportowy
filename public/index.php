@@ -117,8 +117,8 @@ if ($baseDomain !== '') {
 // ============================================================
 $router = new \App\Helpers\Router();
 
-// Strona startowa → landing (public) or redirect to dashboard (logged in)
-$router->get('/', [\App\Controllers\LandingController::class, 'index']);
+// Strona startowa → logowanie (landing page jest na clubdesk.pl)
+$router->get('/', [\App\Controllers\AuthController::class, 'showLogin']);
 
 // Auth
 $router->get('/auth/login',  [\App\Controllers\AuthController::class, 'showLogin']);
