@@ -234,6 +234,7 @@ $router->get('/onboarding/step4',      [\App\Controllers\OnboardingController::c
 $router->post('/onboarding/step4',     [\App\Controllers\OnboardingController::class, 'saveStep4']);
 $router->get('/onboarding/step5',      [\App\Controllers\OnboardingController::class, 'step5']);
 $router->post('/onboarding/complete',  [\App\Controllers\OnboardingController::class, 'complete']);
+$router->get('/onboarding/skip',       [\App\Controllers\OnboardingController::class, 'skip']);
 
 // Sekcje sportowe w kontekście klubu
 $router->get('/sports',                [\App\Controllers\SportsController::class, 'index']);

@@ -45,7 +45,8 @@
                             Importuj i dalej <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
-                </form>
+                <div class="text-center mt-3"><a href="<?= url('onboarding/skip') ?>" class="text-muted small">Dokończ później &rarr;</a></div>
+</form>
             </div>
 
             <!-- Manual Entry Tab -->
@@ -90,7 +91,8 @@
                             Dodaj i dalej <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
-                </form>
+                <div class="text-center mt-3"><a href="<?= url('onboarding/skip') ?>" class="text-muted small">Dokończ później &rarr;</a></div>
+</form>
             </div>
         </div>
     </div>
