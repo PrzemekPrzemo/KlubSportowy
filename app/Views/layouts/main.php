@@ -180,17 +180,17 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
 
     <div class="section-label"><?= __('nav.account') ?></div>
     <?php if (!empty($authUser)): ?>
-        <div class="px-3 py-2 small text-muted">
+        <div class="px-3 py-2 small" style="color:rgba(255,255,255,0.55);">
             <i class="bi bi-person-circle"></i> <?= View::e($authUser['full_name'] ?? $authUser['username'] ?? '') ?>
         </div>
     <?php endif; ?>
     <a href="<?= url('2fa/setup') ?>"><i class="bi bi-shield-lock"></i> <?= __('nav.2fa_totp') ?></a>
-    <a href="#" id="dark-mode-toggle" class="px-3 py-2" style="color:#cdd6f4;"><i class="bi bi-moon"></i></a>
-    <div class="px-3 py-2 small">
+    <a href="#" id="dark-mode-toggle"><i class="bi bi-moon"></i> <?= __('nav.dark_mode') ?></a>
+    <div class="px-3 py-2 small d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.55); border-left:3px solid transparent;">
         <i class="bi bi-translate"></i>
-        <a href="?lang=pl" class="text-light <?= \App\Helpers\Translator::getLocale() === 'pl' ? 'fw-bold' : '' ?>" style="text-decoration:none;">PL</a>
-        |
-        <a href="?lang=en" class="text-light <?= \App\Helpers\Translator::getLocale() === 'en' ? 'fw-bold' : '' ?>" style="text-decoration:none;">EN</a>
+        <a href="?lang=pl" style="color:rgba(255,255,255,0.85); text-decoration:none; <?= \App\Helpers\Translator::getLocale() === 'pl' ? 'font-weight:700;' : 'opacity:.6;' ?>">PL</a>
+        <span style="opacity:.3;">|</span>
+        <a href="?lang=en" style="color:rgba(255,255,255,0.85); text-decoration:none; <?= \App\Helpers\Translator::getLocale() === 'en' ? 'font-weight:700;' : 'opacity:.6;' ?>">EN</a>
     </div>
     <a href="<?= url('auth/logout') ?>"><i class="bi bi-box-arrow-right"></i> <?= __('nav.logout') ?></a>
 </nav>
