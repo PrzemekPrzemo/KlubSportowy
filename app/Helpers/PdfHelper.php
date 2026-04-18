@@ -19,6 +19,17 @@ class PdfHelper
     public static function renderToPdf(string $html, string $filename, string $orientation = 'P'): void
     {
         if (class_exists(\Mpdf\Mpdf::class)) {
+            $tempDir = ROOT_PATH . '/storage/tmp';
+            if (!is_dir($tempDir)) {
+                @mkdir($tempDir, 0775, true);
+            }
+            if (!is_writable($tempDir)) {
+                $tempDir = sys_get_temp_dir() . '/mpdf_' . md5(ROOT_PATH);
+                if (!is_dir($tempDir)) {
+                    mkdir($tempDir, 0775, true);
+                }
+            }
+
             $mpdf = new \Mpdf\Mpdf([
                 'mode'          => 'utf-8',
                 'format'        => 'A4',
@@ -29,7 +40,7 @@ class PdfHelper
                 'margin_bottom' => 16,
                 'margin_header' => 9,
                 'margin_footer' => 9,
-                'tempDir'       => ROOT_PATH . '/storage/tmp',
+                'tempDir'       => $tempDir,
             ]);
             $mpdf->SetTitle($filename);
             $mpdf->WriteHTML($html);
