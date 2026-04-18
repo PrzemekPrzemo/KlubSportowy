@@ -65,4 +65,28 @@ class Session
     {
         return isset($_SESSION['_flash'][$key]);
     }
+
+    /**
+     * Check session inactivity timeout.
+     * If the session has been idle longer than the configured lifetime,
+     * destroy it and redirect to login.
+     */
+    public static function checkTimeout(): void
+    {
+        $appConfig = file_exists(ROOT_PATH . '/config/app.local.php')
+            ? require ROOT_PATH . '/config/app.local.php'
+            : require ROOT_PATH . '/config/app.php';
+        $lifetime = (int)($appConfig['session_lifetime'] ?? 7200);
+
+        $lastActivity = self::get('_last_activity');
+        if ($lastActivity !== null && (time() - (int)$lastActivity) > $lifetime) {
+            self::destroy();
+            self::start();
+            self::flash('warning', 'Sesja wygasla z powodu nieaktywnosci. Zaloguj sie ponownie.');
+            header('Location: ' . (defined('BASE_URL') ? BASE_URL : '') . '/auth/login');
+            exit;
+        }
+
+        self::set('_last_activity', time());
+    }
 }

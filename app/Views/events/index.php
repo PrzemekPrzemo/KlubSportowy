@@ -47,7 +47,8 @@
                     </td>
                     <td><?= View::e($e['location'] ?? '') ?></td>
                     <td><small class="text-muted"><?= View::e($e['status']) ?></small></td>
-                    <td class="text-end">
+                    <td class="text-end d-flex gap-1 justify-content-end">
+                        <a href="<?= url('ics/event/' . (int)$e['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Pobierz .ics"><i class="bi bi-calendar-plus"></i></a>
                         <form method="POST" action="<?= url('events/' . (int)$e['id'] . '/delete') ?>"
                               onsubmit="return confirm('Usunąć?')">
                             <?= csrf_field() ?>

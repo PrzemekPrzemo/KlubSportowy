@@ -4,6 +4,7 @@
 <section class="hero-section text-center">
     <div class="container">
         <h1 class="display-4 fw-bold mb-3">Wielosportowy portal zarzadzania klubem</h1>
+        <p class="mb-2" style="font-size:1.15rem; opacity:.9; font-style:italic;">Więcej sportu, mniej papierowej roboty.</p>
         <p class="lead mb-4" style="max-width:700px; margin:0 auto;">
             Kompleksowe narzedzie do zarzadzania klubem sportowym — czlonkowie, finanse, wydarzenia,
             treningi, raporty i wiele wiecej. Wszystko w jednym miejscu.
@@ -32,7 +33,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card feature-card h-100 p-4 text-center">
                     <div class="mb-3">
-                        <i class="bi <?= $f['icon'] ?>" style="font-size: 2.5rem; color: #0d6efd;"></i>
+                        <i class="bi <?= $f['icon'] ?>" style="font-size: 2.5rem; color: #EE2C28;"></i>
                     </div>
                     <h5 class="fw-bold"><?= $f['title'] ?></h5>
                     <p class="text-muted mb-0"><?= $f['desc'] ?></p>
@@ -66,7 +67,7 @@
             foreach ($defaultSports as $sport): ?>
             <div class="col-4 col-sm-3 col-md-2 text-center">
                 <div class="p-3">
-                    <i class="bi <?= $sport['icon'] ?>" style="font-size: 2rem; color: #6610f2;"></i>
+                    <i class="bi <?= $sport['icon'] ?>" style="font-size: 2rem; color: #EE2C28;"></i>
                     <div class="small mt-1"><?= $sport['name'] ?></div>
                 </div>
             </div>
@@ -166,8 +167,8 @@
             <?php
             $faqs = [
                 [
-                    'q' => 'Co to jest KlubSportowy?',
-                    'a' => 'KlubSportowy to kompleksowa platforma SaaS do zarzadzania klubami sportowymi. Umozliwia zarzadzanie czlonkami, finansami, wydarzeniami, treningami, komunikacja i wiele wiecej — wszystko w jednym miejscu.'
+                    'q' => 'Co to jest ClubDesk?',
+                    'a' => 'ClubDesk to kompleksowa platforma SaaS do zarzadzania klubami sportowymi. Umozliwia zarzadzanie czlonkami, finansami, wydarzeniami, treningami, komunikacja i wiele wiecej — wszystko w jednym miejscu.'
                 ],
                 [
                     'q' => 'Ile kosztuje?',
@@ -175,7 +176,7 @@
                 ],
                 [
                     'q' => 'Czy moge zarzadzac wieloma sportami?',
-                    'a' => 'Tak! KlubSportowy obsluguje wiele sekcji sportowych w jednym klubie. Mozesz dodac pilke nozna, koszykowke, lekkoatletyka i dowolny inny sport — kazda sekcja ma wlasne ustawienia i modul.'
+                    'a' => 'Tak! ClubDesk obsluguje wiele sekcji sportowych w jednym klubie. Mozesz dodac pilke nozna, koszykowke, lekkoatletyka i dowolny inny sport — kazda sekcja ma wlasne ustawienia i modul.'
                 ],
                 [
                     'q' => 'Jak dziala portal zawodnika?',

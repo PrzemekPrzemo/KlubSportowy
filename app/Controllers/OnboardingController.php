@@ -242,4 +242,12 @@ class OnboardingController extends BaseController
         Session::flash('success', 'Onboarding zakończony! Witamy w systemie.');
         $this->redirect('dashboard');
     }
+
+    /** Pomiń onboarding — dokończ później. */
+    public function skip(): void
+    {
+        Session::set('skip_onboarding', true);
+        Session::flash('info', 'Onboarding pominięty. Możesz go dokończyć w dowolnym momencie.');
+        $this->redirect('dashboard');
+    }
 }

@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Helpers\Auth;
+use App\Helpers\ClubContext;
 use App\Helpers\Csrf;
+use App\Helpers\NotificationDispatcher;
 use App\Helpers\Session;
 use App\Models\MemberModel;
 use App\Models\SportModel;
@@ -52,6 +54,19 @@ class TrainingsController extends BaseController
         if ($data === null) return;
         $data['created_by'] = Auth::id();
         $id = (new TrainingModel())->insert($data);
+
+        // Notify club members about future trainings
+        if (!empty($data['start_time']) && strtotime($data['start_time']) > time()) {
+            $clubId = ClubContext::current();
+            if ($clubId) {
+                NotificationDispatcher::notifyClubMembers($clubId, 'new_training', [
+                    'training_name' => $data['name'],
+                    'training_date' => $data['start_time'],
+                    'training_location' => $data['location'] ?? '',
+                ]);
+            }
+        }
+
         Session::flash('success', 'Trening dodany.');
         $this->redirect('trainings/' . $id);
     }

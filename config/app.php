@@ -4,7 +4,7 @@
 // ============================================================
 
 return [
-    'app_name'    => 'KlubSportowy',
+    'app_name'    => 'ClubDesk',
     'app_version' => '0.1.0',
     'debug'       => false,   // set true locally, false on production
     'timezone'    => 'Europe/Warsaw',
@@ -21,4 +21,7 @@ return [
 
     // Default locale for sports module labels
     'default_federation_country' => 'PL',
+
+    // Error monitoring (Sentry DSN — leave empty to disable)
+    'sentry_dsn' => '',
 ];

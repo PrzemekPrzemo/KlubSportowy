@@ -219,7 +219,7 @@ class AdminController extends BaseController
             Session::flash('error', 'Nie znaleziono klubu.');
             $this->redirect('admin/clubs');
         }
-        \App\Helpers\Auth::setClub($clubId, 'zarzad');
+        \App\Helpers\Auth::switchToClubContext($clubId, 'zarzad');
         Session::flash('success', 'Przełączono kontekst na klub: ' . $club['name']);
         $this->redirect('dashboard');
     }

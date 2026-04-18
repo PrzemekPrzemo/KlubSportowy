@@ -12,6 +12,9 @@
     <button type="submit" class="btn btn-success w-100">
         <i class="bi bi-box-arrow-in-right"></i> Zaloguj
     </button>
+    <div class="text-center mt-2">
+        <a href="<?= url('portal/forgot-password') ?>" class="small text-muted">Zapomniałeś hasła?</a>
+    </div>
 </form>
 <hr class="my-4">
 <p class="text-center mb-0 small">

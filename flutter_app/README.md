@@ -1,6 +1,6 @@
-# KlubSportowy — Flutter App
+# ClubDesk — Flutter App
 
-Mobilny portal zawodnika dla platformy KlubSportowy.
+Mobilny portal zawodnika dla platformy ClubDesk.
 
 ## Wymagania
 
@@ -20,7 +20,7 @@ flutter pub get
 Edytuj `lib/config/api_config.dart` i ustaw `baseUrl` na adres serwera:
 
 ```dart
-static const String baseUrl = 'https://twoja-instancja.klubsportowy.pl';
+static const String baseUrl = 'https://twoja-instancja.clubdesk.pl';
 ```
 
 ## Uruchomienie

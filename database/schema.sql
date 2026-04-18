@@ -1,5 +1,5 @@
 -- ============================================================
--- KlubSportowy — Multi-Sport Club Management Portal
+-- ClubDesk — Multi-Sport Club Management Portal
 -- Database Schema (Phase 1)
 -- ============================================================
 -- Strategy: shared database, shared schema, club_id discriminator.
@@ -687,8 +687,8 @@ INSERT INTO `subscription_plans` (`code`, `name`, `max_members`, `max_sports`, `
 
 -- Global settings
 INSERT INTO `settings` (`key`, `value`, `label`, `type`) VALUES
-  ('base_domain',         '',          'Domena bazowa systemu (np. klubsportowy.pl)', 'text'),
-  ('system_name',         'KlubSportowy', 'Nazwa platformy',                            'text'),
+  ('base_domain',         '',          'Domena bazowa systemu (np. clubdesk.pl)', 'text'),
+  ('system_name',         'ClubDesk', 'Nazwa platformy',                            'text'),
   ('system_logo',         '',          'Ścieżka do logo systemu',                      'text'),
   ('alert_payment_days',  '30',        'Alert zaległości w składkach (dni)',           'number'),
   ('alert_license_days',  '60',        'Alert wygasającej licencji (dni)',             'number'),
@@ -698,13 +698,13 @@ INSERT INTO `settings` (`key`, `value`, `label`, `type`) VALUES
 
 -- Domyślny super-admin (hasło: Admin1234! — zmień po pierwszym logowaniu)
 INSERT INTO `users` (`username`, `email`, `password`, `full_name`, `is_super_admin`) VALUES
-  ('admin', 'admin@klubsportowy.pl',
+  ('admin', 'admin@clubdesk.pl',
    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
    'Administrator Systemu', 1);
 
 -- Domyślny klub demo
 INSERT INTO `clubs` (`name`, `short_name`, `city`, `email`) VALUES
-  ('Klub Demo', 'DEMO', 'Warszawa', 'demo@klubsportowy.pl');
+  ('Klub Demo', 'DEMO', 'Warszawa', 'demo@clubdesk.pl');
 
 INSERT INTO `club_customization` (`club_id`) VALUES (1);
 
@@ -1847,3 +1847,45 @@ CREATE TABLE IF NOT EXISTS `result_images` (
   FOREIGN KEY (`sport_id`) REFERENCES `sports`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`uploaded_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Migration: password resets (027)
+SET foreign_key_checks = 0;
+CREATE TABLE IF NOT EXISTS password_resets (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(120) NOT NULL,
+  token_hash VARCHAR(255) NOT NULL,
+  type ENUM('user','member') NOT NULL DEFAULT 'user',
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_pr_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SET foreign_key_checks = 1;
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `support_tickets` (
+  `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `club_id`    INT UNSIGNED NULL,
+  `user_id`    INT UNSIGNED NULL,
+  `subject`    VARCHAR(200) NOT NULL,
+  `body`       TEXT NOT NULL,
+  `priority`   ENUM('low','normal','high','urgent') NOT NULL DEFAULT 'normal',
+  `status`     ENUM('open','in_progress','waiting','closed') NOT NULL DEFAULT 'open',
+  `category`   ENUM('technical','billing','feature','bug','other') NOT NULL DEFAULT 'technical',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY `idx_st_club` (`club_id`),
+  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `support_replies` (
+  `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `ticket_id`  INT UNSIGNED NOT NULL,
+  `user_id`    INT UNSIGNED NULL,
+  `body`       TEXT NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`)   REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET foreign_key_checks = 1;

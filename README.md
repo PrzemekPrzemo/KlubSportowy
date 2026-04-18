@@ -1,4 +1,4 @@
-# KlubSportowy — Multi-Sport Club Management Portal
+# ClubDesk — Multi-Sport Club Management Portal
 
 Wielosportowy, wieloklubowy portal SaaS do zarządzania klubami sportowymi.
 
@@ -38,7 +38,7 @@ Dodanie kolejnego sportu (np. lekkoatletyka, snooker, e-sport) to:
 ## Architektura
 
 ```
-KlubSportowy/
+ClubDesk/
 ├── public/                 # document root
 │   ├── index.php           # front controller + router
 │   ├── .htaccess           # rewrite do index.php
@@ -72,7 +72,7 @@ KlubSportowy/
 Każde żądanie ma aktywny kontekst klubu w sesji (`ClubContext`). Modele
 dziedziczące z `ClubScopedModel` **automatycznie** filtrują zapytania
 po `club_id` i dodają go przy insercie. Super admin może wyłączyć scope
-przez `->withoutScope()`. Subdomena (np. `azs-warszawa.klubsportowy.pl`)
+przez `->withoutScope()`. Subdomena (np. `azs-warszawa.clubdesk.pl`)
 automatycznie przełącza kontekst klubu na podstawie
 `club_customization.subdomain`.
 
@@ -107,8 +107,8 @@ return [
 
 1. **Baza danych:**
    ```bash
-   mysql -u root -p -e "CREATE DATABASE klubsportowy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-   mysql -u root -p klubsportowy < database/schema.sql
+   mysql -u root -p -e "CREATE DATABASE clubdesk CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+   mysql -u root -p clubdesk < database/schema.sql
    ```
 
 2. **Konfiguracja:**

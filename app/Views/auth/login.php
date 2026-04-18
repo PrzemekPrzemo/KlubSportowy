@@ -12,6 +12,9 @@
     <button type="submit" class="btn btn-primary w-100">
         <i class="bi bi-box-arrow-in-right"></i> <?= __('auth.login_btn') ?>
     </button>
+    <div class="text-center mt-2">
+        <a href="<?= url('auth/forgot-password') ?>" class="small text-muted">Zapomniałeś hasła?</a>
+    </div>
 </form>
 <hr class="my-4">
 <p class="text-center mb-0">

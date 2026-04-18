@@ -1,14 +1,14 @@
 /* Dark mode — toggled via [data-theme="dark"] on <html> */
 [data-theme="dark"] {
-    --bg: #1e1e2e;
-    --text: #cdd6f4;
-    --card-bg: #313244;
-    --sidebar-bg: #11111b;
-    --border: #45475a;
-    --input-bg: #313244;
-    --input-text: #cdd6f4;
-    --muted: #6c7086;
-    --link: #89b4fa;
+    --bg: #191421;
+    --text: #F0F2F5;
+    --card-bg: #221336;
+    --sidebar-bg: #120e1a;
+    --border: #3a2d4f;
+    --input-bg: #221336;
+    --input-text: #F0F2F5;
+    --muted: #a090b8;
+    --link: #F9C6CE;
 }
 
 [data-theme="dark"] body {
@@ -37,7 +37,7 @@
 }
 
 [data-theme="dark"] .table-light {
-    --bs-table-bg: #45475a !important;
+    --bs-table-bg: #2d1f47 !important;
     color: var(--text) !important;
 }
 
@@ -91,7 +91,7 @@
 /* Auto dark mode — respects OS preference when no manual toggle */
 @media (prefers-color-scheme: dark) {
     html:not([data-theme="light"]):not([data-theme="dark"]) {
-        --bg: #1e1e2e;
-        --text: #cdd6f4;
+        --bg: #191421;
+        --text: #F0F2F5;
     }
 }

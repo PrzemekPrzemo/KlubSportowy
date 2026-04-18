@@ -2,14 +2,18 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= View::e($title ?? 'Onboarding') ?> — <?= View::e($appName ?? 'KlubSportowy') ?></title>
+    <title><?= View::e($title ?? 'Onboarding') ?> — <?= View::e($appName ?? 'ClubDesk') ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { background: #f0f2f5; min-height: 100vh; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: #f0f2f5; min-height: 100vh; font-family: 'Poppins', system-ui, -apple-system, sans-serif; font-size: 16px; color: #232232; }
         .onboarding-header { background: #fff; border-bottom: 1px solid #dee2e6; padding: 1rem 0; }
-        .onboarding-brand { font-size: 1.4rem; font-weight: 700; color: #0d6efd; text-decoration: none; }
+        .onboarding-brand { font-size: 1.4rem; font-weight: 700; color: #EE2C28; text-decoration: none; }
         .progress-steps { display: flex; justify-content: center; gap: 0; max-width: 700px; margin: 0 auto; padding: 1rem 0; }
         .progress-step { flex: 1; text-align: center; position: relative; }
         .progress-step .step-circle {
@@ -17,10 +21,10 @@
             align-items: center; justify-content: center; font-weight: 600; font-size: .85rem;
             border: 2px solid #dee2e6; background: #fff; color: #6c757d; position: relative; z-index: 1;
         }
-        .progress-step.active .step-circle { border-color: #0d6efd; background: #0d6efd; color: #fff; }
+        .progress-step.active .step-circle { border-color: #EE2C28; background: #EE2C28; color: #fff; }
         .progress-step.done .step-circle { border-color: #198754; background: #198754; color: #fff; }
         .progress-step .step-label { display: block; font-size: .72rem; color: #6c757d; margin-top: .3rem; }
-        .progress-step.active .step-label { color: #0d6efd; font-weight: 600; }
+        .progress-step.active .step-label { color: #EE2C28; font-weight: 600; }
         .progress-step.done .step-label { color: #198754; }
         .progress-step::before {
             content: ''; position: absolute; top: 18px; left: 0; right: 50%;
@@ -43,8 +47,9 @@
 <div class="onboarding-header">
     <div class="container">
         <div class="text-center">
-            <a href="<?= url('dashboard') ?>" class="onboarding-brand">
-                <i class="bi bi-trophy"></i> <?= View::e($appName ?? 'KlubSportowy') ?>
+            <a href="<?= url('dashboard') ?>" class="onboarding-brand d-inline-flex align-items-center gap-2">
+                <img src="/images/logo-cd.svg" alt="CD" style="height:36px;">
+                <span><?= View::e($appName ?? 'ClubDesk') ?></span>
             </a>
         </div>
         <?php

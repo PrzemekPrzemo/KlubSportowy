@@ -8,16 +8,17 @@ $memberName = Session::get('portal_member_name');
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0d6efd">
+    <meta name="theme-color" content="#EE2C28">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.json">
     <title><?= View::e($title ?? 'Portal zawodnika') ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { font-family: system-ui, sans-serif; background:#f0f2f5; }
-        .portal-nav { background: linear-gradient(135deg,#198754,#0d6efd); color:#fff; padding:1rem 2rem; }
+        body { font-family: 'Poppins', system-ui, sans-serif; background:#f0f2f5; }
+        .portal-nav { background: #232232; border-bottom: 3px solid #EE2C28; color:#fff; padding:1rem 2rem; }
         .portal-nav a { color:#fff; text-decoration:none; margin-right: 1.5rem; }
         .portal-nav a:hover, .portal-nav a.active { text-decoration: underline; }
         .portal-container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
@@ -27,7 +28,10 @@ $memberName = Session::get('portal_member_name');
 <nav class="portal-nav">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <strong><i class="bi bi-person-badge"></i> Portal zawodnika</strong>
+            <div class="d-flex align-items-center gap-2">
+            <img src="/images/logo-cd-white.svg" alt="CD" style="height:32px;">
+            <strong>Portal zawodnika</strong>
+        </div>
             <a href="<?= url('portal/dashboard') ?>" class="ms-4">Dashboard</a>
             <a href="<?= url('portal/profile') ?>">Mój profil</a>
             <a href="<?= url('portal/fees') ?>">Składki</a>
@@ -75,5 +79,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="<?= url('js/cookie-consent.js') ?>"></script>
 </body>
 </html>

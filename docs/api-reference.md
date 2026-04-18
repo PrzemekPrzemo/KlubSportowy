@@ -1,4 +1,4 @@
-# KlubSportowy — REST API v1 Reference
+# ClubDesk — REST API v1 Reference
 
 Base URL: `https://<your-domain>/api/v1`
 

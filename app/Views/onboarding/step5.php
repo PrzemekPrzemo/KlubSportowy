@@ -72,7 +72,8 @@
                 <button type="submit" class="btn btn-success btn-lg">
                     <i class="bi bi-rocket-takeoff"></i> Przejdź do panelu
                 </button>
-            </form>
+            <div class="text-center mt-3"><a href="<?= url('onboarding/skip') ?>" class="text-muted small">Dokończ później &rarr;</a></div>
+</form>
         </div>
     </div>
 </div>

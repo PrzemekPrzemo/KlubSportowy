@@ -23,7 +23,7 @@ class DashboardController extends BaseController
 
         $clubId = $this->currentClub();
 
-        if ((new ClubModel())->needsOnboarding($clubId)) {
+        if ((new ClubModel())->needsOnboarding($clubId) && !Session::get('skip_onboarding')) {
             $this->redirect('onboarding/step1');
         }
 

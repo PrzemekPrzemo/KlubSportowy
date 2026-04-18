@@ -1,4 +1,4 @@
-# KlubSportowy — Przewodnik użytkownika
+# ClubDesk — Przewodnik użytkownika
 
 Dokument przeznaczony dla zarządu klubu sportowego oraz osób zarządzających sekcjami.
 
