@@ -2,7 +2,7 @@
 use App\Helpers\View;
 $branding = $clubBranding ?? [];
 $primary  = $branding['primary_color'] ?? '#EE2C28';
-$navbarBg = $branding['navbar_bg']     ?? '#232323';
+$navbarBg = $branding['navbar_bg']     ?? '#232232';
 ?><!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -25,19 +25,19 @@ $navbarBg = $branding['navbar_bg']     ?? '#232323';
         }
         .sidebar {
             background: var(--app-navbar-bg);
-            color: #cdd6f4;
+            color: rgba(255,255,255,0.85);
             min-height: 100vh;
             width: 260px;
             position: fixed; left:0; top:0;
             padding: 1rem 0;
             overflow-y: auto;
         }
-        .sidebar a { color: #cdd6f4; text-decoration: none; display:block; padding: .5rem 1rem; border-left: 3px solid transparent; }
+        .sidebar a { color: rgba(255,255,255,0.85); text-decoration: none; display:block; padding: .5rem 1rem; border-left: 3px solid transparent; }
         .sidebar a:hover { background: rgba(255,255,255,.05); border-left-color: var(--app-primary); color: #fff; }
         .sidebar a.active { background: rgba(255,255,255,.08); border-left-color: var(--app-primary); color: #fff; font-weight: 600; }
         .sidebar .brand { padding: .5rem 1rem 1rem 1rem; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: .5rem; }
         .sidebar .section-label { text-transform: uppercase; font-size: .7rem; color: #7f849c; padding: 1rem 1rem .3rem 1rem; letter-spacing: .1em; }
-        .main-content { margin-left: 260px; padding: 1.5rem; min-height: 100vh; background: #F0F2F5; }
+        .main-content { margin-left: 260px; padding: 1.5rem; min-height: 100vh; background: var(--cd-slate, #F0F2F5); }
         .btn-primary, .bg-primary { background-color: var(--app-primary) !important; border-color: var(--app-primary) !important; }
         .text-primary { color: var(--app-primary) !important; }
         .card { border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
@@ -69,12 +69,12 @@ $navbarBg = $branding['navbar_bg']     ?? '#232323';
         <?php if (!empty($clubBranding['logo_path'])): ?>
             <img src="<?= url($clubBranding['logo_path']) ?>" alt="logo" style="max-width:180px; max-height:60px; margin-bottom:.5rem;">
         <?php endif; ?>
-        <h5 class="mb-0"><img src="/images/logo-cd.svg" alt="CD" style="height:28px;vertical-align:middle;margin-right:6px;"> <span style="color:#EE2C28;font-weight:700;">clubdesk.pl</span></h5>
+        <h5 class="mb-0"><img src="/images/logo-cd-white.svg" alt="CD" style="height:48px;vertical-align:middle;margin-right:8px;"> <span style="color:#EE2C28;font-weight:700;">clubdesk.pl</span></h5>
         <?php if (!empty($currentClub)): ?>
             <small class="d-block mt-1 text-muted"><?= View::e($currentClub['name']) ?></small>
         <?php endif; ?>
         <?php if (!empty($clubBranding['motto'])): ?>
-            <small class="d-block text-warning"><em><?= View::e($clubBranding['motto']) ?></em></small>
+            <small class="d-block" style="color:#F9C6CE;"><em><?= View::e($clubBranding['motto']) ?></em></small>
         <?php endif; ?>
         <?php if (!empty($activeSportKey)): ?>
             <small class="d-block text-info">sport: <?= View::e($activeSportKey) ?></small>

@@ -18,7 +18,7 @@ $memberName = Session::get('portal_member_name');
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         body { font-family: 'Poppins', system-ui, sans-serif; background:#f0f2f5; }
-        .portal-nav { background: linear-gradient(135deg,#EE2C28,#232322); color:#fff; padding:1rem 2rem; }
+        .portal-nav { background: #232232; border-bottom: 3px solid #EE2C28; color:#fff; padding:1rem 2rem; }
         .portal-nav a { color:#fff; text-decoration:none; margin-right: 1.5rem; }
         .portal-nav a:hover, .portal-nav a.active { text-decoration: underline; }
         .portal-container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
@@ -28,7 +28,10 @@ $memberName = Session::get('portal_member_name');
 <nav class="portal-nav">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <strong><i class="bi bi-person-badge"></i> Portal zawodnika</strong>
+            <div class="d-flex align-items-center gap-2">
+            <img src="/images/logo-cd-white.svg" alt="CD" style="height:32px;">
+            <strong>Portal zawodnika</strong>
+        </div>
             <a href="<?= url('portal/dashboard') ?>" class="ms-4">Dashboard</a>
             <a href="<?= url('portal/profile') ?>">Mój profil</a>
             <a href="<?= url('portal/fees') ?>">Składki</a>

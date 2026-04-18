@@ -27,6 +27,7 @@ class ClubDeskApp extends StatelessWidget {
           colorSchemeSeed: const Color(0xFFEE2C28),
           brightness: Brightness.dark,
           useMaterial3: true,
+          fontFamily: 'Poppins',
         ),
         themeMode: ThemeMode.system,
         home: Consumer<AuthService>(

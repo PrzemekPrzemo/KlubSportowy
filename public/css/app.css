@@ -43,9 +43,16 @@ code {
 :root {
     --cd-red: #EE2C28;
     --cd-pink: #F9C6CE;
-    --cd-charcoal: #232322;
+    --cd-charcoal: #232232;
     --cd-slate: #F0F2F5;
     --cd-white: #FFFFFF;
+    --cd-dark-bg: #191421;
+    --cd-dark-secondary: #221336;
+}
+
+body {
+    font-size: 16px;
+    color: var(--cd-charcoal);
 }
 
 h1, h2, h3 {
