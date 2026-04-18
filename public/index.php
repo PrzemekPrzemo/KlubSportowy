@@ -178,6 +178,7 @@ $router->get('/admin/clubs/:id/export',        [\App\Controllers\ClubExportContr
 $router->get('/admin/demos',           [\App\Controllers\DemoController::class, 'index']);
 $router->post('/admin/demos/create',   [\App\Controllers\DemoController::class, 'create']);
 $router->post('/admin/demos/cleanup',  [\App\Controllers\DemoController::class, 'cleanup']);
+$router->post('/admin/demos/:id/delete', [\App\Controllers\DemoController::class, 'delete']);
 
 // Admin: reklamy
 $router->get('/admin/ads',              [\App\Controllers\AdsController::class, 'index']);
