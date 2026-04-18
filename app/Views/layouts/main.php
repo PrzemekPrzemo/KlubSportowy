@@ -196,14 +196,18 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <div class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
             <div>
                 <i class="bi bi-person-fill-lock"></i>
-                <strong><?= __('impersonate.label') ?></strong> <?= View::e($authUser['full_name'] ?? '') ?>
-                <?php if (!empty($authUser['email'])): ?>
-                    (<?= View::e($authUser['email']) ?>)
+                <?php if (($impersonatingType ?? '') === 'club_context'): ?>
+                    <strong>Przeglądasz kontekst klubu:</strong> <?= View::e($currentClub['name'] ?? '') ?>
+                <?php else: ?>
+                    <strong><?= __('impersonate.label') ?></strong> <?= View::e($authUser['full_name'] ?? '') ?>
+                    <?php if (!empty($authUser['email'])): ?>
+                        (<?= View::e($authUser['email']) ?>)
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
             <form method="POST" action="<?= url('impersonate/stop') ?>" class="m-0">
                 <?= csrf_field() ?>
-                <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> <?= __('impersonate.back') ?></button>
+                <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> Powrót do Master Admin</button>
             </form>
         </div>
     <?php endif; ?>

@@ -35,7 +35,8 @@ abstract class BaseController
 
         $data['clubBranding']    = ClubCustomizationModel::getForCurrentClub();
         $data['isSuperAdmin']    = Auth::isSuperAdmin();
-        $data['isImpersonating'] = Auth::isImpersonating();
+        $data['isImpersonating']   = Auth::isImpersonating();
+        $data['impersonatingType'] = Session::get('impersonating');
         $data['currentClubId']   = ClubContext::current();
         $data['activeSportKey']     = SportContext::currentSportKey();
         $data['activeClubSportId']  = SportContext::currentClubSport();

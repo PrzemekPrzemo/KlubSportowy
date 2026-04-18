@@ -106,6 +106,22 @@ class Auth
         Session::destroy();
     }
 
+    // ── Club context switch (super admin browses a club without changing identity) ──
+    public static function switchToClubContext(int $clubId, string $role): void
+    {
+        Session::set('impersonation_original', [
+            'user_id'        => Session::get('user_id'),
+            'username'       => Session::get('username'),
+            'full_name'      => Session::get('full_name'),
+            'email'          => Session::get('email'),
+            'role'           => Session::get('role'),
+            'club_id'        => Session::get('club_id'),
+            'is_super_admin' => Session::get('is_super_admin'),
+        ]);
+        Session::set('impersonating', 'club_context');
+        self::setClub($clubId, $role);
+    }
+
     // ── Impersonation (super admin → user klubu) ──────────────────────────
     public static function impersonateClubUser(array $targetUser, int $clubId, string $roleInClub): void
     {
