@@ -28,11 +28,11 @@ class DemoSeeder
         ];
 
         $stmt = $db->prepare(
-            "INSERT INTO members (club_id, first_name, last_name, email, birth_date, gender, status, joined_date, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, 'aktywny', CURDATE(), NOW())"
+            "INSERT INTO members (club_id, member_number, first_name, last_name, email, birth_date, gender, status, join_date, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'aktywny', CURDATE(), NOW())"
         );
         foreach ($members as $i => $m) {
-            $stmt->execute([$clubId, $m[0], $m[1], $m[2], (1985 + ($i % 15)) . '-06-15', ($i % 2 === 0) ? 'M' : 'K']);
+            $stmt->execute([$clubId, 'DEMO-' . $clubId . '-' . ($i + 1), $m[0], $m[1], $m[2], (1985 + ($i % 15)) . '-06-15', ($i % 2 === 0) ? 'M' : 'K']);
             $memberIds[] = (int)$db->lastInsertId();
         }
 
@@ -132,18 +132,18 @@ class DemoSeeder
         ];
 
         $memberStmt = $db->prepare(
-            "INSERT INTO members (club_id, first_name, last_name, email, birth_date, gender, status, joined_date, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY), NOW())"
+            "INSERT INTO members (club_id, member_number, first_name, last_name, email, birth_date, gender, status, join_date, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY), NOW())"
         );
         $memberIds = [];
-        $statuses  = ['aktywny', 'aktywny', 'aktywny', 'aktywny', 'nieaktywny'];
+        $statuses  = ['aktywny', 'aktywny', 'aktywny', 'zawieszony', 'wykreslony'];
         for ($i = 0; $i < min($memberCount, count($memberPool)); $i++) {
             [$fn, $ln, $g] = $memberPool[$i];
             $status    = $volume === 'full' ? $statuses[$i % count($statuses)] : 'aktywny';
             $birthYear = 1980 + ($i % 20);
             $joinedAgo = 30 + ($i * 15);
             $email     = strtolower($fn . '.' . $ln) . '@demo.test';
-            $memberStmt->execute([$clubId, $fn, $ln, $email, "{$birthYear}-0" . (($i % 9) + 1) . '-15', $g, $status, $joinedAgo]);
+            $memberStmt->execute([$clubId, 'DEMO-' . $clubId . '-' . ($i + 1), $fn, $ln, $email, "{$birthYear}-0" . (($i % 9) + 1) . '-15', $g, $status, $joinedAgo]);
             $memberIds[] = (int)$db->lastInsertId();
         }
 
