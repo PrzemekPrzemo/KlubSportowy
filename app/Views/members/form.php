@@ -11,68 +11,68 @@ if (!empty($sports)) {
     <?= csrf_field() ?>
     <div class="row g-3">
         <div class="col-md-3">
-            <label class="form-label">Numer członkowski *</label>
+            <label class="form-label"><?= __('form.member_number') ?> *</label>
             <input type="text" name="member_number" value="<?= View::e($member['member_number'] ?? $nextNumber ?? '') ?>" class="form-control" required>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Imię *</label>
+            <label class="form-label"><?= __('form.first_name') ?> *</label>
             <input type="text" name="first_name" value="<?= View::e($member['first_name'] ?? '') ?>" class="form-control" required>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Nazwisko *</label>
+            <label class="form-label"><?= __('form.last_name') ?> *</label>
             <input type="text" name="last_name" value="<?= View::e($member['last_name'] ?? '') ?>" class="form-control" required>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Status</label>
+            <label class="form-label"><?= __('form.status') ?></label>
             <select name="status" class="form-select">
                 <?php foreach (['aktywny','zawieszony','wykreslony','urlop'] as $s): ?>
-                    <option value="<?= $s ?>" <?= ($member['status'] ?? 'aktywny') === $s ? 'selected' : '' ?>><?= $s ?></option>
+                    <option value="<?= $s ?>" <?= ($member['status'] ?? 'aktywny') === $s ? 'selected' : '' ?>><?= __('status.' . $s) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="col-md-3">
-            <label class="form-label">PESEL</label>
+            <label class="form-label"><?= __('form.pesel') ?></label>
             <input type="text" name="pesel" value="<?= View::e($member['pesel'] ?? '') ?>" class="form-control" maxlength="11">
         </div>
         <div class="col-md-3">
-            <label class="form-label">Data urodzenia</label>
+            <label class="form-label"><?= __('form.birth_date') ?></label>
             <input type="date" name="birth_date" value="<?= View::e($member['birth_date'] ?? '') ?>" class="form-control">
         </div>
         <div class="col-md-3">
-            <label class="form-label">Płeć</label>
+            <label class="form-label"><?= __('form.gender') ?></label>
             <select name="gender" class="form-select">
                 <option value="">—</option>
-                <option value="M" <?= ($member['gender'] ?? '') === 'M' ? 'selected' : '' ?>>M</option>
-                <option value="K" <?= ($member['gender'] ?? '') === 'K' ? 'selected' : '' ?>>K</option>
+                <option value="M" <?= ($member['gender'] ?? '') === 'M' ? 'selected' : '' ?>><?= __('form.gender_m') ?></option>
+                <option value="K" <?= ($member['gender'] ?? '') === 'K' ? 'selected' : '' ?>><?= __('form.gender_f') ?></option>
             </select>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Data wstąpienia *</label>
+            <label class="form-label"><?= __('form.join_date') ?> *</label>
             <input type="date" name="join_date" value="<?= View::e($member['join_date'] ?? date('Y-m-d')) ?>" class="form-control" required>
         </div>
         <div class="col-md-6">
-            <label class="form-label">E-mail</label>
+            <label class="form-label"><?= __('form.email') ?></label>
             <input type="email" name="email" value="<?= View::e($member['email'] ?? '') ?>" class="form-control">
         </div>
         <div class="col-md-6">
-            <label class="form-label">Telefon</label>
+            <label class="form-label"><?= __('form.phone') ?></label>
             <input type="text" name="phone" value="<?= View::e($member['phone'] ?? '') ?>" class="form-control">
         </div>
         <div class="col-md-6">
-            <label class="form-label">Ulica i numer</label>
+            <label class="form-label"><?= __('form.address_street') ?></label>
             <input type="text" name="address_street" value="<?= View::e($member['address_street'] ?? '') ?>" class="form-control">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Miasto</label>
+            <label class="form-label"><?= __('form.city') ?></label>
             <input type="text" name="address_city" value="<?= View::e($member['address_city'] ?? '') ?>" class="form-control">
         </div>
         <div class="col-md-2">
-            <label class="form-label">Kod pocztowy</label>
+            <label class="form-label"><?= __('form.address_postal') ?></label>
             <input type="text" name="address_postal" value="<?= View::e($member['address_postal'] ?? '') ?>" class="form-control">
         </div>
 
         <div class="col-12">
-            <label class="form-label">Sekcje sportowe</label>
+            <label class="form-label"><?= __('form.sports_sections') ?></label>
             <div class="d-flex flex-wrap gap-2">
                 <?php foreach (($clubSports ?? []) as $cs): ?>
                     <label class="form-check">
@@ -90,13 +90,13 @@ if (!empty($sports)) {
         </div>
 
         <div class="col-12">
-            <label class="form-label">Notatki</label>
+            <label class="form-label"><?= __('form.notes') ?></label>
             <textarea name="notes" class="form-control" rows="3"><?= View::e($member['notes'] ?? '') ?></textarea>
         </div>
     </div>
 
     <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Zapisz</button>
-        <a href="<?= url('members') ?>" class="btn btn-outline-secondary">Anuluj</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> <?= __('btn.save') ?></button>
+        <a href="<?= url('members') ?>" class="btn btn-outline-secondary"><?= __('btn.cancel') ?></a>
     </div>
 </form>
