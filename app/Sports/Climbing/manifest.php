@@ -1,0 +1,2 @@
+<?php
+return ['key'=>'climbing','name'=>'Wspinaczka sportowa','federation'=>'PZA','features'=>['results'],'routes'=>[['GET','/climbing/results',[\App\Sports\Climbing\Controllers\ResultsController::class,'index']],['POST','/climbing/results/store',[\App\Sports\Climbing\Controllers\ResultsController::class,'store']],['POST','/climbing/results/:id/delete',[\App\Sports\Climbing\Controllers\ResultsController::class,'delete']]],'nav'=>[['label'=>'Wyniki zawodów','icon'=>'bi-triangle','url'=>'climbing/results']],'migrations'=>__DIR__.'/migrations'];

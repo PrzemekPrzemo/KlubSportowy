@@ -1,0 +1,2 @@
+<?php
+return ['key'=>'taekwondo','name'=>'Taekwondo','federation'=>'PZTkd','features'=>['results'],'routes'=>[['GET','/taekwondo/results',[\App\Sports\Taekwondo\Controllers\ResultsController::class,'index']],['POST','/taekwondo/results/store',[\App\Sports\Taekwondo\Controllers\ResultsController::class,'store']],['POST','/taekwondo/results/:id/delete',[\App\Sports\Taekwondo\Controllers\ResultsController::class,'delete']]],'nav'=>[['label'=>'Wyniki zawodów','icon'=>'bi-shield-fill','url'=>'taekwondo/results']],'migrations'=>__DIR__.'/migrations'];

@@ -1,0 +1,2 @@
+<?php
+return ['key'=>'fencing','name'=>'Szermierka','federation'=>'PZSzerm','features'=>['results'],'routes'=>[['GET','/fencing/results',[\App\Sports\Fencing\Controllers\ResultsController::class,'index']],['POST','/fencing/results/store',[\App\Sports\Fencing\Controllers\ResultsController::class,'store']],['POST','/fencing/results/:id/delete',[\App\Sports\Fencing\Controllers\ResultsController::class,'delete']]],'nav'=>[['label'=>'Wyniki zawodów','icon'=>'bi-slash-lg','url'=>'fencing/results']],'migrations'=>__DIR__.'/migrations'];

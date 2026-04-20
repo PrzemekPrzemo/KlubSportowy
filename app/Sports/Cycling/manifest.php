@@ -1,0 +1,2 @@
+<?php
+return ['key'=>'cycling','name'=>'Kolarstwo','federation'=>'PZKol','features'=>['results'],'routes'=>[['GET','/cycling/results',[\App\Sports\Cycling\Controllers\ResultsController::class,'index']],['POST','/cycling/results/store',[\App\Sports\Cycling\Controllers\ResultsController::class,'store']],['POST','/cycling/results/:id/delete',[\App\Sports\Cycling\Controllers\ResultsController::class,'delete']]],'nav'=>[['label'=>'Wyniki zawodów','icon'=>'bi-bicycle','url'=>'cycling/results']],'migrations'=>__DIR__.'/migrations'];

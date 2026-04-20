@@ -1,0 +1,16 @@
+<?php
+return [
+    'key'        => 'badminton',
+    'name'       => 'Badminton',
+    'federation' => 'PZBad',
+    'features'   => ['results'],
+    'routes' => [
+        ['GET',  '/badminton/results',              [\App\Sports\Badminton\Controllers\ResultsController::class, 'index']],
+        ['POST', '/badminton/results/store',         [\App\Sports\Badminton\Controllers\ResultsController::class, 'store']],
+        ['POST', '/badminton/results/:id/delete',    [\App\Sports\Badminton\Controllers\ResultsController::class, 'delete']],
+    ],
+    'nav' => [
+        ['label' => 'Wyniki zawodów', 'icon' => 'bi-feather', 'url' => 'badminton/results'],
+    ],
+    'migrations' => __DIR__ . '/migrations',
+];

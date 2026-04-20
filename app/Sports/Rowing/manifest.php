@@ -1,0 +1,2 @@
+<?php
+return ['key'=>'rowing','name'=>'Wioślarstwo','federation'=>'PZW-Wiosl','features'=>['results'],'routes'=>[['GET','/rowing/results',[\App\Sports\Rowing\Controllers\ResultsController::class,'index']],['POST','/rowing/results/store',[\App\Sports\Rowing\Controllers\ResultsController::class,'store']],['POST','/rowing/results/:id/delete',[\App\Sports\Rowing\Controllers\ResultsController::class,'delete']]],'nav'=>[['label'=>'Wyniki zawodów','icon'=>'bi-moisture','url'=>'rowing/results']],'migrations'=>__DIR__.'/migrations'];

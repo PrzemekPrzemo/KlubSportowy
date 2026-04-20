@@ -1,0 +1,2 @@
+<?php
+return ['key'=>'table_tennis','name'=>'Tenis stołowy','federation'=>'PZTTS','features'=>['results'],'routes'=>[['GET','/table_tennis/results',[\App\Sports\TableTennis\Controllers\ResultsController::class,'index']],['POST','/table_tennis/results/store',[\App\Sports\TableTennis\Controllers\ResultsController::class,'store']],['POST','/table_tennis/results/:id/delete',[\App\Sports\TableTennis\Controllers\ResultsController::class,'delete']]],'nav'=>[['label'=>'Wyniki zawodów','icon'=>'bi-circle-half','url'=>'table_tennis/results']],'migrations'=>__DIR__.'/migrations'];
