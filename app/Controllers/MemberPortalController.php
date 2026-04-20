@@ -13,6 +13,7 @@ use App\Models\MemberIdentityModel;
 use App\Models\MemberLicenseModel;
 use App\Models\MemberModel;
 use App\Models\PaymentModel;
+use App\Models\SportHistoryModel;
 use App\Models\TrainingModel;
 
 class MemberPortalController extends BaseController
@@ -267,6 +268,20 @@ class MemberPortalController extends BaseController
             'member'   => MemberAuth::member(),
             'upcoming' => $upcoming,
             'appName'  => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    public function sportHistory(): void
+    {
+        MemberAuth::requireLogin();
+        $member  = MemberAuth::member();
+        $history = (new SportHistoryModel())->timelineForMember((int)$member['id']);
+        $this->view->setLayout('portal');
+        $this->view->render('portal/sport_history', [
+            'title'   => 'Moja historia sportowa',
+            'member'  => $member,
+            'history' => $history,
+            'appName' => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
     }
 }

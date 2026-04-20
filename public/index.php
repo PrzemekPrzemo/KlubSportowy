@@ -343,6 +343,7 @@ $router->post('/portal/profile/update',  [\App\Controllers\MemberPortalControlle
 $router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);
 $router->get('/portal/fees',             [\App\Controllers\MemberPortalController::class, 'fees']);
 $router->get('/portal/events',           [\App\Controllers\MemberPortalController::class, 'events']);
+$router->get('/portal/sport-history',    [\App\Controllers\MemberPortalController::class, 'sportHistory']);
 
 // Portal: club selection (BLOK 2B - unified member identity)
 $router->get('/portal/club-select',      [\App\Controllers\MemberPortalController::class, 'showClubSelect']);
