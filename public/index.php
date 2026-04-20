@@ -244,6 +244,14 @@ $router->get('/admin/clubs/:id/permissions',           [\App\Controllers\AdminCl
 $router->post('/admin/clubs/:id/permissions',          [\App\Controllers\AdminClubConfigController::class, 'savePermissions']);
 $router->post('/admin/clubs/:id/permissions/reset',    [\App\Controllers\AdminClubConfigController::class, 'resetPermissions']);
 
+// Admin: faktury (Batch A5)
+$router->get('/admin/invoices',              [\App\Controllers\AdminInvoicesController::class, 'index']);
+$router->get('/admin/invoices/create',       [\App\Controllers\AdminInvoicesController::class, 'create']);
+$router->post('/admin/invoices/store',       [\App\Controllers\AdminInvoicesController::class, 'store']);
+$router->get('/admin/invoices/:id',          [\App\Controllers\AdminInvoicesController::class, 'show']);
+$router->post('/admin/invoices/:id/pay',     [\App\Controllers\AdminInvoicesController::class, 'markPaid']);
+$router->post('/admin/invoices/:id/cancel',  [\App\Controllers\AdminInvoicesController::class, 'markCancelled']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
