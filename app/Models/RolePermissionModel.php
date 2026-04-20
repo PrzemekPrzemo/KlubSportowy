@@ -90,4 +90,46 @@ class RolePermissionModel extends BaseModel
              . ($clubId === null ? 'IS NULL' : '= ' . (int)$clubId);
         return $this->db->query($sql)->fetchAll();
     }
+
+    /**
+     * Remove all per-club overrides (so role falls back to global defaults).
+     */
+    public function resetForClub(int $clubId): int
+    {
+        $stmt = $this->db->prepare("DELETE FROM role_permissions WHERE club_id = ?");
+        $stmt->execute([$clubId]);
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Returns global default matrix indexed as [role][module] => ['view'=>0/1,'edit'=>0/1].
+     */
+    public function globalDefaultsMatrix(): array
+    {
+        $rows = $this->matrixForClub(null);
+        $out = [];
+        foreach ($rows as $r) {
+            $out[$r['role']][$r['module']] = [
+                'view' => (int)$r['can_view'],
+                'edit' => (int)$r['can_edit'],
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Returns per-club override matrix in same shape (empty arrays where no override).
+     */
+    public function clubOverrideMatrix(int $clubId): array
+    {
+        $rows = $this->matrixForClub($clubId);
+        $out = [];
+        foreach ($rows as $r) {
+            $out[$r['role']][$r['module']] = [
+                'view' => (int)$r['can_view'],
+                'edit' => (int)$r['can_edit'],
+            ];
+        }
+        return $out;
+    }
 }

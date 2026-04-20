@@ -239,6 +239,11 @@ $router->get('/admin/security',                 [\App\Controllers\AdminSecurityC
 $router->get('/admin/security/blocked-ips',     [\App\Controllers\AdminSecurityController::class, 'blockedIps']);
 $router->post('/admin/security/unblock/:ip',    [\App\Controllers\AdminSecurityController::class, 'unblockIp']);
 
+// Admin: uprawnienia per-klub (Batch A4)
+$router->get('/admin/clubs/:id/permissions',           [\App\Controllers\AdminClubConfigController::class, 'permissions']);
+$router->post('/admin/clubs/:id/permissions',          [\App\Controllers\AdminClubConfigController::class, 'savePermissions']);
+$router->post('/admin/clubs/:id/permissions/reset',    [\App\Controllers\AdminClubConfigController::class, 'resetPermissions']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 

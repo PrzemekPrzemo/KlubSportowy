@@ -4,8 +4,10 @@ namespace App\Controllers;
 
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Models\ActivityLogModel;
 use App\Models\ClubModel;
 use App\Models\ClubSettingsModel;
+use App\Models\RolePermissionModel;
 
 class AdminClubConfigController extends BaseController
 {
@@ -108,5 +110,72 @@ class AdminClubConfigController extends BaseController
 
         Session::flash('success', 'Feature flags zapisane.');
         $this->redirect('admin/clubs/' . $cid . '/features');
+    }
+
+    // ── Uprawnienia per-klub (Batch A4) ──────────────────────────────────────
+    private const ROLES = ['zarzad', 'trener', 'instruktor', 'sedzia', 'lekarz', 'ksiegowy'];
+    private const MODULES = [
+        'members'       => 'Zawodnicy',
+        'sports'        => 'Sporty',
+        'fees'          => 'Składki',
+        'events'        => 'Wydarzenia',
+        'trainings'     => 'Treningi',
+        'calendar'      => 'Kalendarz',
+        'medical'       => 'Medyczne',
+        'announcements' => 'Ogłoszenia',
+        'club'          => 'Klub',
+    ];
+
+    public function permissions(string $clubId): void
+    {
+        $cid  = (int)$clubId;
+        $club = (new ClubModel())->findById($cid);
+        if (!$club) {
+            Session::flash('error', 'Nie znaleziono klubu.');
+            $this->redirect('admin/clubs');
+        }
+
+        $rpm = new RolePermissionModel();
+
+        $this->render('admin/club_config/permissions', [
+            'title'     => 'Uprawnienia: ' . $club['name'],
+            'club'      => $club,
+            'roles'     => self::ROLES,
+            'modules'   => self::MODULES,
+            'defaults'  => $rpm->globalDefaultsMatrix(),
+            'overrides' => $rpm->clubOverrideMatrix($cid),
+        ]);
+    }
+
+    public function savePermissions(string $clubId): void
+    {
+        Csrf::verify();
+        $cid = (int)$clubId;
+        $rpm = new RolePermissionModel();
+
+        // Build matrix: always write override for the club (no partial overrides in UI).
+        $matrix = [];
+        $perm = $_POST['perm'] ?? [];
+        foreach (self::ROLES as $role) {
+            foreach (array_keys(self::MODULES) as $module) {
+                $view = !empty($perm[$role][$module]['view']) ? 1 : 0;
+                $edit = !empty($perm[$role][$module]['edit']) ? 1 : 0;
+                $matrix[$role][$module] = ['view' => $view, 'edit' => $edit];
+            }
+        }
+        $rpm->setAll($matrix, $cid);
+        (new ActivityLogModel())->log('club_permissions_save', 'club', $cid);
+        Session::flash('success', 'Uprawnienia klubu zapisane.');
+        $this->redirect('admin/clubs/' . $cid . '/permissions');
+    }
+
+    public function resetPermissions(string $clubId): void
+    {
+        Csrf::verify();
+        $cid = (int)$clubId;
+        $deleted = (new RolePermissionModel())->resetForClub($cid);
+        (new ActivityLogModel())->log('club_permissions_reset', 'club', $cid, "deleted={$deleted}");
+        Session::flash('success', 'Uprawnienia zresetowane do domyślnych globalnych.');
+        $this->redirect('admin/clubs/' . $cid . '/permissions');
     }
 }
