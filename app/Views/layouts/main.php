@@ -167,12 +167,22 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
         <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
         <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
+        <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
         <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> Log aktywności</a>
         <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> Kopie zapasowe</a>
+
+        <div class="section-label" style="font-size:.65rem;opacity:.6;">BEZPIECZEŃSTWO + MONITORING</div>
+        <a href="<?= url('admin/errors') ?>"><i class="bi bi-bug-fill"></i> Dziennik błędów</a>
+        <a href="<?= url('admin/security') ?>"><i class="bi bi-shield-lock-fill"></i> Dziennik bezpieczeństwa</a>
+        <a href="<?= url('admin/audit/isolation') ?>"><i class="bi bi-shield-check"></i> Audyt izolacji</a>
+        <a href="<?= url('admin/health') ?>"><i class="bi bi-heart-pulse"></i> Zdrowie systemu</a>
+        <a href="<?= url('admin/users') ?>"><i class="bi bi-shield-fill-check"></i> Super admini</a>
+
         <?php if (!empty($currentClubId)): ?>
             <div class="section-label" style="font-size:.65rem;opacity:.6;">BIEŻĄCY KLUB</div>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> Konfiguracja</a>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> Feature flags</a>
+            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/permissions') ?>"><i class="bi bi-key-fill"></i> Uprawnienia</a>
             <a href="<?= url('admin/platform/branding/' . (int)$currentClubId) ?>"><i class="bi bi-palette2"></i> Branding klubu</a>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/analytics') ?>"><i class="bi bi-bar-chart-line"></i> Analityka klubu</a>
         <?php endif; ?>
