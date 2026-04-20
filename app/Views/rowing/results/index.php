@@ -1,4 +1,4 @@
-<?php use App\Helpers\View; ?>
+<?php use App\Helpers\View; use App\Sports\Rowing\Models\RowingResultModel; ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Wyniki zawodów — Wioślarstwo</h4>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#resultModal">
@@ -8,11 +8,11 @@
 <div class="card">
     <table class="table table-hover mb-0">
         <thead class="table-light">
-            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Kat. wiekowa</th><th>Kategoria</th><th>Miejsce</th><th></th></tr>
+            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Dystans</th><th>Łódź</th><th>Kat.</th><th>Czas</th><th>Miejsce</th><th></th></tr>
         </thead>
         <tbody>
         <?php if (empty($results)): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4">Brak wyników.</td></tr>
+            <tr><td colspan="9" class="text-center text-muted py-4">Brak wyników.</td></tr>
         <?php else: ?>
             <?php foreach ($results as $r):
                 $medal = match((int)$r['placement']) { 1 => '🥇', 2 => '🥈', 3 => '🥉', default => '' };
@@ -21,8 +21,10 @@
                     <td><strong><?= View::e($r['last_name']) ?> <?= View::e($r['first_name']) ?></strong></td>
                     <td><?= View::e($r['competition_name']) ?></td>
                     <td><?= View::e($r['competition_date']) ?></td>
-                    <td><?= View::e($r['age_category'] ?? '—') ?></td>
+                    <td><?= $r['distance_m'] ? View::e($r['distance_m']).' m' : '—' ?></td>
+                    <td><?= $r['boat_type'] ? View::e($boatTypes[$r['boat_type']] ?? $r['boat_type']) : '—' ?></td>
                     <td><span class="badge bg-secondary"><?= View::e($categories[$r['category']] ?? ($r['category'] ?? '—')) ?></span></td>
+                    <td><code><?= View::e(RowingResultModel::formatTime(isset($r['time_ms']) && $r['time_ms'] !== null ? (int)$r['time_ms'] : null)) ?></code></td>
                     <td><?= $medal ?> <?= $r['placement'] ? View::e($r['placement']).'.' : '—' ?></td>
                     <td>
                         <form method="POST" action="<?= url('rowing/results/'.(int)$r['id'].'/delete') ?>"
@@ -68,6 +70,36 @@
                         <div class="col-md-6">
                             <label class="form-label">Kategoria wiekowa</label>
                             <input type="text" name="age_category" class="form-control" placeholder="np. U18, Senior">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Dystans</label>
+                            <select name="distance_m" class="form-select">
+                                <option value="">— brak —</option>
+                                <?php foreach ($distances as $d): ?>
+                                    <option value="<?= (int)$d ?>"><?= (int)$d ?> m</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Typ łodzi</label>
+                            <select name="boat_type" class="form-select">
+                                <option value="">— brak —</option>
+                                <?php foreach ($boatTypes as $key => $label): ?>
+                                    <option value="<?= View::e($key) ?>"><?= View::e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Czas (min : sek . setne)</label>
+                        <div class="input-group">
+                            <input type="number" name="time_min" class="form-control" min="0" max="99" placeholder="min">
+                            <span class="input-group-text">:</span>
+                            <input type="number" name="time_sec" class="form-control" min="0" max="59" placeholder="sek">
+                            <span class="input-group-text">.</span>
+                            <input type="number" name="time_cs" class="form-control" min="0" max="99" placeholder="setne">
                         </div>
                     </div>
                     <div class="row g-2 mb-3">

@@ -1,4 +1,4 @@
-<?php use App\Helpers\View; ?>
+<?php use App\Helpers\View; use App\Sports\Cycling\Models\CyclingResultModel; ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Wyniki zawodów — Kolarstwo</h4>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#resultModal">
@@ -8,11 +8,11 @@
 <div class="card">
     <table class="table table-hover mb-0">
         <thead class="table-light">
-            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Kat. wiekowa</th><th>Kategoria</th><th>Miejsce</th><th></th></tr>
+            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Typ</th><th>Dystans</th><th>Kat. UCI</th><th>Czas</th><th>Miejsce</th><th></th></tr>
         </thead>
         <tbody>
         <?php if (empty($results)): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4">Brak wyników.</td></tr>
+            <tr><td colspan="9" class="text-center text-muted py-4">Brak wyników.</td></tr>
         <?php else: ?>
             <?php foreach ($results as $r):
                 $medal = match((int)$r['placement']) { 1 => '🥇', 2 => '🥈', 3 => '🥉', default => '' };
@@ -21,8 +21,10 @@
                     <td><strong><?= View::e($r['last_name']) ?> <?= View::e($r['first_name']) ?></strong></td>
                     <td><?= View::e($r['competition_name']) ?></td>
                     <td><?= View::e($r['competition_date']) ?></td>
-                    <td><?= View::e($r['age_category'] ?? '—') ?></td>
-                    <td><span class="badge bg-secondary"><?= View::e($categories[$r['category']] ?? ($r['category'] ?? '—')) ?></span></td>
+                    <td><?= $r['race_type'] ? View::e($raceTypes[$r['race_type']] ?? $r['race_type']) : '—' ?></td>
+                    <td><?= $r['distance_km'] ? View::e($r['distance_km']).' km' : '—' ?></td>
+                    <td><?= $r['uci_category'] ? View::e($r['uci_category']) : '—' ?></td>
+                    <td><code><?= View::e(CyclingResultModel::formatTime(isset($r['time_seconds']) && $r['time_seconds'] !== null ? (float)$r['time_seconds'] : null)) ?></code></td>
                     <td><?= $medal ?> <?= $r['placement'] ? View::e($r['placement']).'.' : '—' ?></td>
                     <td>
                         <form method="POST" action="<?= url('cycling/results/'.(int)$r['id'].'/delete') ?>"
@@ -68,6 +70,36 @@
                         <div class="col-md-6">
                             <label class="form-label">Kategoria wiekowa</label>
                             <input type="text" name="age_category" class="form-control" placeholder="np. U18, Senior">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Typ wyścigu</label>
+                            <select name="race_type" class="form-select">
+                                <option value="">— brak —</option>
+                                <?php foreach ($raceTypes as $key => $label): ?>
+                                    <option value="<?= View::e($key) ?>"><?= View::e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Dystans (km)</label>
+                            <input type="number" name="distance_km" class="form-control" min="0" step="0.1" placeholder="np. 120.5">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Kategoria UCI</label>
+                            <select name="uci_category" class="form-select">
+                                <option value="">— brak —</option>
+                                <?php foreach ($uciCategories as $cat): ?>
+                                    <option value="<?= View::e($cat) ?>"><?= View::e($cat) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Czas (s)</label>
+                            <input type="number" name="time_seconds" class="form-control" min="0" step="0.01" placeholder="np. 3661.50">
                         </div>
                     </div>
                     <div class="row g-2 mb-3">

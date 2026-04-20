@@ -1,0 +1,5 @@
+ALTER TABLE cycling_results
+    ADD COLUMN IF NOT EXISTS time_seconds  DECIMAL(9,2) DEFAULT NULL AFTER category,
+    ADD COLUMN IF NOT EXISTS distance_km   DECIMAL(6,1) DEFAULT NULL AFTER time_seconds,
+    ADD COLUMN IF NOT EXISTS race_type     VARCHAR(20)  DEFAULT NULL AFTER distance_km,
+    ADD COLUMN IF NOT EXISTS uci_category  VARCHAR(20)  DEFAULT NULL AFTER race_type;

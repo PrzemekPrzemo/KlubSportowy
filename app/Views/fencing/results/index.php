@@ -8,21 +8,29 @@
 <div class="card">
     <table class="table table-hover mb-0">
         <thead class="table-light">
-            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Kat. wiekowa</th><th>Kategoria</th><th>Miejsce</th><th></th></tr>
+            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Broń</th><th>Runda</th><th>Ranking Δ</th><th>Miejsce</th><th></th></tr>
         </thead>
         <tbody>
         <?php if (empty($results)): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4">Brak wyników.</td></tr>
+            <tr><td colspan="8" class="text-center text-muted py-4">Brak wyników.</td></tr>
         <?php else: ?>
             <?php foreach ($results as $r):
                 $medal = match((int)$r['placement']) { 1 => '🥇', 2 => '🥈', 3 => '🥉', default => '' };
+                $weapon = $r['weapon'] ?? $r['category'] ?? null;
+                $rankDelta = '—';
+                if (isset($r['ranking_points']) && $r['ranking_points'] !== null) {
+                    $rp = (int)$r['ranking_points'];
+                    $rankDelta = ($rp >= 0 ? '+' : '').$rp;
+                }
             ?>
                 <tr>
                     <td><strong><?= View::e($r['last_name']) ?> <?= View::e($r['first_name']) ?></strong></td>
                     <td><?= View::e($r['competition_name']) ?></td>
                     <td><?= View::e($r['competition_date']) ?></td>
-                    <td><?= View::e($r['age_category'] ?? '—') ?></td>
-                    <td><span class="badge bg-secondary"><?= View::e($categories[$r['category']] ?? ($r['category'] ?? '—')) ?></span></td>
+                    <td><span class="badge bg-secondary"><?= View::e($categories[$weapon] ?? ($weapon ?? '—')) ?></span>
+                        <?php if (!empty($r['team_event'])): ?><span class="badge bg-info ms-1">Drużyna</span><?php endif; ?></td>
+                    <td><?= $r['round_reached'] ? View::e($r['round_reached']) : '—' ?></td>
+                    <td><?= View::e($rankDelta) ?></td>
                     <td><?= $medal ?> <?= $r['placement'] ? View::e($r['placement']).'.' : '—' ?></td>
                     <td>
                         <form method="POST" action="<?= url('fencing/results/'.(int)$r['id'].'/delete') ?>"
@@ -72,17 +80,38 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Kategoria</label>
-                            <select name="category" class="form-select">
-                                <option value="">— ogólna —</option>
+                            <label class="form-label">Broń</label>
+                            <select name="weapon" class="form-select">
+                                <option value="">— brak —</option>
                                 <?php foreach ($categories as $key => $label): ?>
-                                    <option value="<?= $key ?>"><?= View::e($label) ?></option>
+                                    <option value="<?= View::e($key) ?>"><?= View::e($label) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label">Runda</label>
+                            <select name="round_reached" class="form-select">
+                                <option value="">— brak —</option>
+                                <?php foreach ($rounds as $round): ?>
+                                    <option value="<?= View::e($round) ?>"><?= View::e($round) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Punkty rankingowe</label>
+                            <input type="number" name="ranking_points" class="form-control">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">Miejsce</label>
                             <input type="number" name="placement" class="form-control" min="1">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="team_event" value="1" id="teamEventCheck">
+                            <label class="form-check-label" for="teamEventCheck">Zawody drużynowe</label>
                         </div>
                     </div>
                     <div class="mb-3">
