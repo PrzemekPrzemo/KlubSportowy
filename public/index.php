@@ -517,6 +517,16 @@ $router->get('/results/:id',                 [\App\Controllers\ResultImageContro
 $router->post('/results/:id/save',           [\App\Controllers\ResultImageController::class, 'save']);
 $router->post('/results/:id/delete',         [\App\Controllers\ResultImageController::class, 'deleteImage']);
 
+// ── Licencje sportowe ─────────────────────────────────────
+$router->get('/sport-licenses',              [\App\Controllers\SportLicensesController::class, 'index']);
+$router->post('/sport-licenses/store',       [\App\Controllers\SportLicensesController::class, 'store']);
+$router->post('/sport-licenses/:id/delete',  [\App\Controllers\SportLicensesController::class, 'delete']);
+
+// ── Rankingi sportowe ─────────────────────────────────────
+$router->get('/sport-rankings',              [\App\Controllers\SportRankingsController::class, 'index']);
+$router->post('/sport-rankings/store',       [\App\Controllers\SportRankingsController::class, 'store']);
+$router->post('/sport-rankings/:id/delete',  [\App\Controllers\SportRankingsController::class, 'delete']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 
