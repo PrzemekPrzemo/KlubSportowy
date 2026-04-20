@@ -8,11 +8,11 @@
 <div class="card">
     <table class="table table-hover mb-0">
         <thead class="table-light">
-            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Kat. wiekowa</th><th>Kategoria</th><th>Miejsce</th><th></th></tr>
+            <tr><th>Zawodnik</th><th>Zawody</th><th>Data</th><th>Kat. wiekowa</th><th>Waga</th><th>Kategoria</th><th>Miejsce</th><th></th></tr>
         </thead>
         <tbody>
         <?php if (empty($results)): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4">Brak wyników.</td></tr>
+            <tr><td colspan="8" class="text-center text-muted py-4">Brak wyników.</td></tr>
         <?php else: ?>
             <?php foreach ($results as $r):
                 $medal = match((int)$r['placement']) { 1 => '🥇', 2 => '🥈', 3 => '🥉', default => '' };
@@ -22,6 +22,7 @@
                     <td><?= View::e($r['competition_name']) ?></td>
                     <td><?= View::e($r['competition_date']) ?></td>
                     <td><?= View::e($r['age_category'] ?? '—') ?></td>
+                    <td><?= View::e($r['weight_class'] ? $r['weight_class'].' kg' : '—') ?></td>
                     <td><span class="badge bg-secondary"><?= View::e($categories[$r['category']] ?? ($r['category'] ?? '—')) ?></span></td>
                     <td><?= $medal ?> <?= $r['placement'] ? View::e($r['placement']).'.' : '—' ?></td>
                     <td>
@@ -37,8 +38,9 @@
         </tbody>
     </table>
 </div>
+
 <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form method="POST" action="<?= url('taekwondo/results/store') ?>">
                 <?= csrf_field() ?>
@@ -67,11 +69,27 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Kategoria wiekowa</label>
-                            <input type="text" name="age_category" class="form-control" placeholder="np. U18, Senior">
+                            <input type="text" name="age_category" class="form-control" placeholder="np. U15, U18, Senior">
                         </div>
                     </div>
                     <div class="row g-2 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label">Kategoria wagowa</label>
+                            <select name="weight_class" class="form-select">
+                                <option value="">— dowolna —</option>
+                                <optgroup label="Mężczyźni">
+                                    <?php foreach ($weightMen as $wc): ?>
+                                        <option value="<?= $wc ?>"><?= $wc ?> kg</option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                                <optgroup label="Kobiety">
+                                    <?php foreach ($weightWomen as $wc): ?>
+                                        <option value="<?= $wc ?>"><?= $wc ?> kg</option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label">Kategoria</label>
                             <select name="category" class="form-select">
                                 <option value="">— ogólna —</option>
@@ -80,7 +98,7 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Miejsce</label>
                             <input type="number" name="placement" class="form-control" min="1">
                         </div>
