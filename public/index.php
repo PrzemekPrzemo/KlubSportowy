@@ -429,6 +429,9 @@ $router->get('/portal/tournaments',                     [\App\Controllers\Member
 $router->post('/portal/tournaments/:id/register',       [\App\Controllers\MemberPortalController::class, 'registerTournament']);
 $router->post('/portal/tournaments/:id/withdraw',       [\App\Controllers\MemberPortalController::class, 'withdrawTournament']);
 
+// Portal: widoki per sport
+$router->get('/portal/sport/:key',                      [\App\Controllers\MemberPortalController::class, 'sportDetail']);
+
 // Powiadomienia (dzwoneczek)
 $router->post('/notifications/:id/read', [\App\Controllers\NotificationsController::class, 'markRead']);
 

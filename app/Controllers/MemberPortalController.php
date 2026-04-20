@@ -656,4 +656,99 @@ class MemberPortalController extends BaseController
         Session::flash('success', 'Wycofano zgłoszenie.');
         $this->redirect('portal/tournaments');
     }
+
+    public function sportDetail(string $key): void
+    {
+        MemberAuth::requireLogin();
+        $memberId = (int)MemberAuth::id();
+        $member   = MemberAuth::member();
+        $appName  = (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy';
+        $data     = ['member' => $member, 'appName' => $appName];
+
+        switch ($key) {
+            case 'bjj':
+                $beltModel  = new \App\Sports\Bjj\Models\BjjBeltModel();
+                $resultModel= new \App\Sports\Bjj\Models\BjjResultModel();
+                $data = array_merge($data, [
+                    'title'         => 'BJJ — Mój profil',
+                    'currentBelt'   => $beltModel->currentBelt($memberId),
+                    'recentResults' => $resultModel->listForClub($memberId, null, null, 1, 10)['data']
+                                        ?? $resultModel->listForClub($memberId),
+                ]);
+                break;
+            case 'gymnastics':
+                $resModel   = new \App\Sports\Gymnastics\Models\GymnasticsResultModel();
+                $minorModel = new \App\Sports\Gymnastics\Models\GymnasticsMinorModel();
+                $data = array_merge($data, [
+                    'title'      => 'Gimnastyka — Mój profil',
+                    'myResults'  => $resModel->listForClub(null, $memberId),
+                    'consent'    => $minorModel->consentForMember($memberId),
+                ]);
+                break;
+            case 'floorball':
+                $teamModel  = new \App\Sports\Floorball\Models\FloorballTeamModel();
+                $matchModel = new \App\Sports\Floorball\Models\FloorballMatchModel();
+                $myTeam     = $teamModel->playerTeam($memberId);
+                $data = array_merge($data, [
+                    'title'    => 'Floorball — Mój profil',
+                    'myTeam'   => $myTeam,
+                    'myStats'  => $matchModel->statsForMember($memberId),
+                    'upcoming' => $myTeam ? $matchModel->schedule((int)$myTeam['id'], 'scheduled') : [],
+                ]);
+                break;
+            case 'padel':
+                $pairModel = new \App\Sports\Padel\Models\PadelPairModel();
+                $resModel  = new \App\Sports\Padel\Models\PadelReservationModel();
+                $data = array_merge($data, [
+                    'title'        => 'Padel — Mój profil',
+                    'myPairs'      => $pairModel->pairsForMember($memberId),
+                    'reservations' => $resModel->reservationsForMember($memberId),
+                ]);
+                break;
+            case 'sailing':
+                $boatModel = new \App\Sports\Sailing\Models\SailingBoatModel();
+                $raceModel = new \App\Sports\Sailing\Models\SailingRaceModel();
+                $data = array_merge($data, [
+                    'title'   => 'Żeglarstwo — Mój profil',
+                    'myBoats' => $boatModel->boatsForMember($memberId),
+                    'races'   => $raceModel->racesForMember($memberId),
+                ]);
+                break;
+            case 'triathlon':
+                $resModel = new \App\Sports\Triathlon\Models\TriathlonResultModel();
+                $data = array_merge($data, [
+                    'title'   => 'Triathlon — Mój profil',
+                    'pbs'     => $resModel->pbsForMember($memberId),
+                    'recent'  => $resModel->listForClub($memberId),
+                ]);
+                break;
+            case 'crossfit':
+                $prModel  = new \App\Sports\CrossFit\Models\CrossFitPrModel();
+                $wodModel = new \App\Sports\CrossFit\Models\CrossFitWodModel();
+                $topPrs   = $prModel->topByMember($memberId, 6);
+                $recent   = $wodModel->recentForMember($memberId, 5);
+                $leaderboard = [];
+                foreach ($recent as $s) {
+                    $board = $wodModel->leaderboard((int)$s['wod_id'], 20);
+                    $pos   = null;
+                    foreach ($board as $i => $entry) {
+                        if ((int)$entry['member_id'] === $memberId) { $pos = $i + 1; break; }
+                    }
+                    $leaderboard[] = ['wod_name' => $s['wod_name'], 'position' => $pos, 'score' => $s['score']];
+                }
+                $data = array_merge($data, [
+                    'title'               => 'CrossFit — Mój profil',
+                    'topPrs'              => $topPrs,
+                    'recentScores'        => $recent,
+                    'leaderboardPositions'=> $leaderboard,
+                ]);
+                break;
+            default:
+                Session::flash('error', 'Nieznana sekcja sportowa.');
+                $this->redirect('portal/dashboard');
+        }
+
+        $this->view->setLayout('portal');
+        $this->view->render('portal/sport_' . preg_replace('/[^a-z0-9_]/', '', $key), $data);
+    }
 }
