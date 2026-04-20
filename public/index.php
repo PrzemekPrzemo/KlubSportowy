@@ -244,6 +244,11 @@ $router->get('/admin/clubs/:id/permissions',           [\App\Controllers\AdminCl
 $router->post('/admin/clubs/:id/permissions',          [\App\Controllers\AdminClubConfigController::class, 'savePermissions']);
 $router->post('/admin/clubs/:id/permissions/reset',    [\App\Controllers\AdminClubConfigController::class, 'resetPermissions']);
 
+// Admin: sport settings per club (Batch S0)
+$router->get('/admin/clubs/:id/sports',              [\App\Controllers\AdminClubConfigController::class, 'sportSettings']);
+$router->get('/admin/clubs/:id/sports/:sport',       [\App\Controllers\AdminClubConfigController::class, 'sportSettings']);
+$router->post('/admin/clubs/:id/sports/:sport/save', [\App\Controllers\AdminClubConfigController::class, 'saveSportSettings']);
+
 // Admin: faktury (Batch A5)
 $router->get('/admin/invoices',              [\App\Controllers\AdminInvoicesController::class, 'index']);
 $router->get('/admin/invoices/create',       [\App\Controllers\AdminInvoicesController::class, 'create']);

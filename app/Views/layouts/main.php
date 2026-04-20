@@ -183,6 +183,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> Konfiguracja</a>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> Feature flags</a>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/permissions') ?>"><i class="bi bi-key-fill"></i> Uprawnienia</a>
+            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/sports') ?>"><i class="bi bi-trophy"></i> Sporty (config)</a>
             <a href="<?= url('admin/platform/branding/' . (int)$currentClubId) ?>"><i class="bi bi-palette2"></i> Branding klubu</a>
             <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/analytics') ?>"><i class="bi bi-bar-chart-line"></i> Analityka klubu</a>
         <?php endif; ?>

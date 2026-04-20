@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Helpers\Csrf;
+use App\Helpers\Database;
 use App\Helpers\Session;
+use App\Helpers\SportModuleLoader;
 use App\Models\ActivityLogModel;
 use App\Models\ClubModel;
 use App\Models\ClubSettingsModel;
@@ -177,5 +179,124 @@ class AdminClubConfigController extends BaseController
         (new ActivityLogModel())->log('club_permissions_reset', 'club', $cid, "deleted={$deleted}");
         Session::flash('success', 'Uprawnienia zresetowane do domyślnych globalnych.');
         $this->redirect('admin/clubs/' . $cid . '/permissions');
+    }
+
+    // ── Ustawienia per sport per klub (Batch S0) ──────────────────────────────
+
+    public function sportSettings(string $clubId, string $sportKey = ''): void
+    {
+        $cid  = (int)$clubId;
+        $club = (new ClubModel())->findById($cid);
+        if (!$club) {
+            Session::flash('error', 'Nie znaleziono klubu.');
+            $this->redirect('admin/clubs');
+        }
+
+        $cs = new ClubSettingsModel();
+
+        if ($sportKey === '') {
+            // Overview: all sports with their federation_id and member count
+            $allModules = SportModuleLoader::load();
+            $db = Database::pdo();
+
+            $sports = [];
+            foreach ($allModules as $key => $manifest) {
+                $federationId  = $cs->get($cid, 'sport_' . $key . '_federation_id', '');
+                $ageCategories = $cs->get($cid, 'sport_' . $key . '_age_categories', '');
+
+                // Count members in this sport section for the club
+                $stmt = $db->prepare(
+                    'SELECT COUNT(DISTINCT ms.member_id) AS cnt
+                       FROM member_sports ms
+                       JOIN club_sports cs ON cs.id = ms.club_sport_id
+                       JOIN sports s ON s.id = cs.sport_id
+                      WHERE cs.club_id = ? AND s.key = ?'
+                );
+                $stmt->execute([$cid, $key]);
+                $memberCount = (int)($stmt->fetchColumn() ?: 0);
+
+                $sports[] = [
+                    'key'            => $key,
+                    'name'           => $manifest['name'],
+                    'federation_id'  => $federationId,
+                    'age_categories' => $ageCategories,
+                    'member_count'   => $memberCount,
+                ];
+            }
+
+            $this->render('admin/club_config/sport_settings', [
+                'title'    => 'Sekcje sportowe: ' . $club['name'],
+                'club'     => $club,
+                'sports'   => $sports,
+                'sportKey' => '',
+                'manifest' => [],
+                'currentSettings' => [],
+            ]);
+            return;
+        }
+
+        $manifest = SportModuleLoader::get($sportKey);
+        if (!$manifest) {
+            Session::flash('error', 'Nieznany sport: ' . $sportKey);
+            $this->redirect('admin/clubs/' . $cid . '/sports');
+        }
+
+        $currentSettings = [
+            'federation_id'  => $cs->get($cid, 'sport_' . $sportKey . '_federation_id', ''),
+            'age_categories' => $cs->get($cid, 'sport_' . $sportKey . '_age_categories', ''),
+            'custom_fields'  => $cs->get($cid, 'sport_' . $sportKey . '_custom_fields', ''),
+        ];
+
+        $this->render('admin/club_config/sport_settings', [
+            'title'           => 'Ustawienia sportu ' . $manifest['name'] . ': ' . $club['name'],
+            'club'            => $club,
+            'sportKey'        => $sportKey,
+            'manifest'        => $manifest,
+            'currentSettings' => $currentSettings,
+            'sports'          => [],
+        ]);
+    }
+
+    public function saveSportSettings(string $clubId, string $sportKey): void
+    {
+        Csrf::verify();
+        $cid = (int)$clubId;
+
+        $manifest = SportModuleLoader::get($sportKey);
+        if (!$manifest) {
+            Session::flash('error', 'Nieznany sport.');
+            $this->redirect('admin/clubs/' . $cid . '/sports');
+        }
+
+        $cs  = new ClubSettingsModel();
+        $key = $sportKey;
+
+        $federationId  = trim($_POST['federation_id'] ?? '');
+        $ageCategories = trim($_POST['age_categories'] ?? '');
+        $customFields  = trim($_POST['custom_fields'] ?? '');
+
+        if ($federationId !== '') {
+            $cs->set($cid, 'sport_' . $key . '_federation_id', $federationId, 'text', 'ID federacyjny: ' . $manifest['name']);
+        }
+        if ($ageCategories !== '') {
+            json_decode($ageCategories);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Session::flash('error', 'Nieprawidłowy JSON w kategoriach wiekowych.');
+                $this->redirect('admin/clubs/' . $cid . '/sports/' . urlencode($key));
+            }
+            $cs->set($cid, 'sport_' . $key . '_age_categories', $ageCategories, 'json', 'Kategorie wiekowe: ' . $manifest['name']);
+        }
+        if ($customFields !== '') {
+            json_decode($customFields);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Session::flash('error', 'Nieprawidłowy JSON w polach własnych.');
+                $this->redirect('admin/clubs/' . $cid . '/sports/' . urlencode($key));
+            }
+            $cs->set($cid, 'sport_' . $key . '_custom_fields', $customFields, 'json', 'Pola własne: ' . $manifest['name']);
+        }
+
+        (new ActivityLogModel())->log('club_sport_settings_save', 'club', $cid, "sport={$key}");
+        Session::flash('success', 'Ustawienia sportu ' . $manifest['name'] . ' zapisane.');
+        $this->redirect('admin/clubs/' . $cid . '/sports/' . urlencode($key));
     }
 }
