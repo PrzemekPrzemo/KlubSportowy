@@ -2,7 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Helpers\ClubContext;
 use App\Helpers\Csrf;
+use App\Helpers\Database;
 use App\Helpers\Session;
 use App\Models\AssociationMeetingModel;
 use App\Models\AssociationVoteModel;
@@ -33,8 +35,11 @@ class AssociationController extends BaseController
 
         $this->render('association/meetings/index', [
             'title'        => 'Posiedzenia — Stowarzyszenie',
-            'meetings'     => $result['data'] ?? $result,
-            'pagination'   => $result['pagination'] ?? null,
+            'meetings'     => $result['data'] ?? [],
+            'pagination'   => [
+                'total_pages' => $result['last_page'] ?? 1,
+                'page'        => $result['current_page'] ?? $page,
+            ],
             'meetingTypes' => AssociationMeetingModel::$MEETING_TYPES,
             'filterType'   => $type,
             'filterYear'   => $year,
@@ -64,16 +69,22 @@ class AssociationController extends BaseController
     {
         $meetingId = (int)$id;
         $meeting   = $this->meetings->findWithVotes($meetingId);
-        if (!$meeting) { Session::flash('error', 'Nie znaleziono posiedzenia.'); $this->redirect('association/meetings'); }
+        if (!$meeting) {
+            Session::flash('error', 'Nie znaleziono posiedzenia.');
+            $this->redirect('association/meetings');
+        }
 
-        $votes = $this->votes->listForMeeting($meetingId);
-        $nextNum = $this->votes->nextResolutionNumber($meetingId, (int)date('Y', strtotime($meeting['meeting_date'])));
+        $votes   = $this->votes->listForMeeting($meetingId);
+        $nextNum = $this->votes->nextResolutionNumber(
+            $meetingId,
+            (int)date('Y', strtotime($meeting['meeting_date']))
+        );
 
         $this->render('association/meetings/show', [
-            'title'     => 'Posiedzenie — ' . AssociationMeetingModel::$MEETING_TYPES[$meeting['meeting_type']],
-            'meeting'   => $meeting,
-            'votes'     => $votes,
-            'nextNum'   => $nextNum,
+            'title'       => 'Posiedzenie — ' . AssociationMeetingModel::$MEETING_TYPES[$meeting['meeting_type']],
+            'meeting'     => $meeting,
+            'votes'       => $votes,
+            'nextNum'     => $nextNum,
             'voteResults' => AssociationVoteModel::$RESULTS,
         ]);
     }
@@ -81,16 +92,20 @@ class AssociationController extends BaseController
     public function addVote(string $meetingId): void
     {
         Csrf::verify();
-        $mid = (int)$meetingId;
+        $mid     = (int)$meetingId;
         $meeting = $this->meetings->findWithVotes($mid);
-        if (!$meeting) { $this->redirect('association/meetings'); }
+        if (!$meeting) {
+            $this->redirect('association/meetings');
+        }
 
         $title = trim($_POST['title'] ?? '');
-        if (!$title) { Session::flash('error', 'Podaj tytuł uchwały.'); $this->redirect('association/meetings/' . $mid); }
+        if (!$title) {
+            Session::flash('error', 'Podaj tytuł uchwały.');
+            $this->redirect('association/meetings/' . $mid);
+        }
 
-        $year = (int)date('Y', strtotime($meeting['meeting_date']));
-        $num  = trim($_POST['resolution_number'] ?? '') ?: $this->votes->nextResolutionNumber($mid, $year);
-
+        $year   = (int)date('Y', strtotime($meeting['meeting_date']));
+        $num    = trim($_POST['resolution_number'] ?? '') ?: $this->votes->nextResolutionNumber($mid, $year);
         $result = array_key_exists($_POST['result'] ?? '', AssociationVoteModel::$RESULTS)
             ? $_POST['result'] : 'przyjęta';
 
@@ -110,24 +125,24 @@ class AssociationController extends BaseController
 
     public function board(): void
     {
-        $db      = \App\Helpers\Database::pdo();
-        $stmt    = $db->prepare(
+        $db   = Database::pdo();
+        $stmt = $db->prepare(
             "SELECT bm.*, m.first_name, m.last_name, m.member_number
              FROM association_board_members bm
              JOIN members m ON m.id = bm.member_id
              WHERE bm.club_id = ?
              ORDER BY bm.active DESC, bm.role"
         );
-        $stmt->execute([\App\Helpers\ClubContext::getClubId()]);
+        $stmt->execute([ClubContext::current()]);
         $boardMembers = $stmt->fetchAll();
 
         $members = (new MemberModel())->search('', 'aktywny', null, 1, 500)['data'] ?? [];
 
         $this->render('association/board/index', [
-            'title'       => 'Skład Zarządu — Stowarzyszenie',
-            'boardMembers'=> $boardMembers,
-            'members'     => $members,
-            'boardRoles'  => [
+            'title'        => 'Skład Zarządu — Stowarzyszenie',
+            'boardMembers' => $boardMembers,
+            'members'      => $members,
+            'boardRoles'   => [
                 'prezes'             => 'Prezes',
                 'wiceprezes'         => 'Wiceprezes',
                 'sekretarz'          => 'Sekretarz',
@@ -142,19 +157,22 @@ class AssociationController extends BaseController
     public function updateBoard(): void
     {
         Csrf::verify();
-        $action = $_POST['action'] ?? '';
+        $action  = $_POST['action'] ?? '';
+        $clubId  = ClubContext::current();
 
         if ($action === 'add') {
             $memberId = (int)($_POST['member_id'] ?? 0);
             $role     = $_POST['role'] ?? '';
-            if (!$memberId || !$role) { Session::flash('error', 'Uzupełnij dane.'); $this->redirect('association/board'); }
+            if (!$memberId || !$role) {
+                Session::flash('error', 'Uzupełnij dane.');
+                $this->redirect('association/board');
+            }
 
-            $db = \App\Helpers\Database::pdo();
-            $db->prepare(
+            Database::pdo()->prepare(
                 "INSERT INTO association_board_members (club_id, member_id, role, term_start, term_end, active)
                  VALUES (?, ?, ?, ?, ?, 1)"
             )->execute([
-                \App\Helpers\ClubContext::getClubId(),
+                $clubId,
                 $memberId,
                 $role,
                 trim($_POST['term_start'] ?? '') ?: date('Y-m-d'),
@@ -163,9 +181,9 @@ class AssociationController extends BaseController
             Session::flash('success', 'Dodano do zarządu.');
         } elseif ($action === 'deactivate') {
             $bmId = (int)($_POST['board_member_id'] ?? 0);
-            \App\Helpers\Database::pdo()->prepare(
+            Database::pdo()->prepare(
                 "UPDATE association_board_members SET active = 0 WHERE id = ? AND club_id = ?"
-            )->execute([$bmId, \App\Helpers\ClubContext::getClubId()]);
+            )->execute([$bmId, $clubId]);
             Session::flash('success', 'Zakończono kadencję.');
         }
 

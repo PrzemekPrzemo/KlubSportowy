@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-use App\Helpers\ClubContext;
-
-class AssociationMeetingModel extends BaseModel
+class AssociationMeetingModel extends ClubScopedModel
 {
     protected string $table = 'association_meetings';
 
@@ -14,11 +12,6 @@ class AssociationMeetingModel extends BaseModel
         'komisja_rewizyjna' => 'Komisja Rewizyjna',
         'nadzwyczajne'      => 'Nadzwyczajne WZ',
     ];
-
-    private function clubId(): int
-    {
-        return ClubContext::getClubId();
-    }
 
     public function listForClub(?string $type = null, ?int $year = null, int $page = 1, int $perPage = 20): array
     {
@@ -50,7 +43,7 @@ class AssociationMeetingModel extends BaseModel
 
     public function createMeeting(array $data): int
     {
-        return $this->insert(array_merge($data, ['club_id' => $this->clubId()]));
+        return $this->insert($data);
     }
 
     public function addProtocol(int $id, string $path): void

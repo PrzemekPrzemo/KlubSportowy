@@ -236,8 +236,9 @@ class AdminPlatformController extends BaseController
                 "SELECT COUNT(DISTINCT cs.club_id) AS club_count,
                         COUNT(DISTINCT ms.member_id) AS member_count
                  FROM club_sports cs
+                 JOIN sports s ON s.id = cs.sport_id
                  LEFT JOIN member_sports ms ON ms.club_sport_id = cs.id
-                 WHERE cs.sport_key = ?"
+                 WHERE s.key = ?"
             );
             $stmt->execute([$key]);
             $stats = $stmt->fetch();
@@ -277,6 +278,6 @@ class AdminPlatformController extends BaseController
         }
 
         Session::flash('success', 'Status sportu zaktualizowany.');
-        $this->redirect('admin/sports');
+        $this->redirect('admin/sports/catalog');
     }
 }

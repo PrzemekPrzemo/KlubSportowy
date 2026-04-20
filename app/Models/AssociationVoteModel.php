@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-use App\Helpers\ClubContext;
-
-class AssociationVoteModel extends BaseModel
+class AssociationVoteModel extends ClubScopedModel
 {
     protected string $table = 'association_votes';
 
@@ -13,11 +11,6 @@ class AssociationVoteModel extends BaseModel
         'odrzucona'  => ['label' => 'Odrzucona',  'class' => 'danger'],
         'nieważna'   => ['label' => 'Nieważna',   'class' => 'secondary'],
     ];
-
-    private function clubId(): int
-    {
-        return ClubContext::getClubId();
-    }
 
     public function listForMeeting(int $meetingId): array
     {
@@ -30,7 +23,7 @@ class AssociationVoteModel extends BaseModel
 
     public function addVote(array $data): int
     {
-        return $this->insert(array_merge($data, ['club_id' => $this->clubId()]));
+        return $this->insert($data);
     }
 
     public function resolutionBook(int $year): array

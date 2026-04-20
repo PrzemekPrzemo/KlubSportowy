@@ -672,8 +672,7 @@ class MemberPortalController extends BaseController
                 $data = array_merge($data, [
                     'title'         => 'BJJ — Mój profil',
                     'currentBelt'   => $beltModel->currentBelt($memberId),
-                    'recentResults' => $resultModel->listForClub($memberId, null, null, 1, 10)['data']
-                                        ?? $resultModel->listForClub($memberId),
+                    'recentResults' => $resultModel->listForClub($memberId),
                 ]);
                 break;
             case 'gymnastics':
@@ -693,7 +692,7 @@ class MemberPortalController extends BaseController
                     'title'    => 'Floorball — Mój profil',
                     'myTeam'   => $myTeam,
                     'myStats'  => $matchModel->statsForMember($memberId),
-                    'upcoming' => $myTeam ? $matchModel->schedule((int)$myTeam['id'], 'scheduled') : [],
+                    'upcoming' => $myTeam ? $matchModel->schedule((int)$myTeam['id'], 'zaplanowany') : [],
                 ]);
                 break;
             case 'padel':
