@@ -256,6 +256,9 @@ $router->post('/admin/invoices/:id/cancel',  [\App\Controllers\AdminInvoicesCont
 $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController::class, 'isolation']);
 $router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController::class, 'exportReport']);
 
+// Admin: dashboard zdrowia systemu (Batch A7)
+$router->get('/admin/health', [\App\Controllers\AdminHealthController::class, 'index']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
