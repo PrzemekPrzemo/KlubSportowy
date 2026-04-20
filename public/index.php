@@ -617,6 +617,14 @@ $router->post('/tournaments/:id/delete',             [\App\Controllers\Tournamen
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 
+// ── Association management ────────────────────────────────
+$router->get('/association/meetings',                    [\App\Controllers\AssociationController::class, 'meetings']);
+$router->post('/association/meetings/create',            [\App\Controllers\AssociationController::class, 'createMeeting']);
+$router->get('/association/meetings/:id',                [\App\Controllers\AssociationController::class, 'showMeeting']);
+$router->post('/association/meetings/:id/vote',          [\App\Controllers\AssociationController::class, 'addVote']);
+$router->get('/association/board',                       [\App\Controllers\AssociationController::class, 'board']);
+$router->post('/association/board/update',               [\App\Controllers\AssociationController::class, 'updateBoard']);
+
 // ============================================================
 // Dispatch
 // ============================================================
