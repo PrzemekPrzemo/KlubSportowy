@@ -229,6 +229,11 @@ $router->post('/admin/clubs/:id/config/save',    [\App\Controllers\AdminClubConf
 $router->get('/admin/clubs/:id/features',        [\App\Controllers\AdminClubConfigController::class, 'features']);
 $router->post('/admin/clubs/:id/features/save',  [\App\Controllers\AdminClubConfigController::class, 'saveFeatures']);
 
+// Admin: dziennik błędów (Batch A1)
+$router->get('/admin/errors',          [\App\Controllers\AdminErrorController::class, 'index']);
+$router->get('/admin/errors/:id',      [\App\Controllers\AdminErrorController::class, 'show']);
+$router->post('/admin/errors/purge',   [\App\Controllers\AdminErrorController::class, 'purge']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
