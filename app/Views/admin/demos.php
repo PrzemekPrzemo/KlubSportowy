@@ -190,7 +190,12 @@
                                 <option value="7">7 dni</option>
                                 <option value="14" selected>14 dni</option>
                                 <option value="30">30 dni</option>
+                                <option value="60">60 dni (długi trial)</option>
                             </select>
+                            <div class="form-text small mt-2">
+                                <i class="bi bi-info-circle"></i>
+                                Po utworzeniu demo otrzymasz link (<code>demo/:token</code>), który można udostępnić — pozwala zalogować się bez hasła.
+                            </div>
                         </div>
                     </div>
 

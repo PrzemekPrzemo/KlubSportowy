@@ -259,6 +259,14 @@ $router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController:
 // Admin: dashboard zdrowia systemu (Batch A7)
 $router->get('/admin/health', [\App\Controllers\AdminHealthController::class, 'index']);
 
+// Admin: super admin users (Batch A8)
+$router->get('/admin/users',                       [\App\Controllers\AdminUsersController::class, 'index']);
+$router->get('/admin/users/create',                [\App\Controllers\AdminUsersController::class, 'create']);
+$router->post('/admin/users/store',                [\App\Controllers\AdminUsersController::class, 'store']);
+$router->post('/admin/users/:id/deactivate',       [\App\Controllers\AdminUsersController::class, 'deactivate']);
+$router->post('/admin/users/:id/activate',         [\App\Controllers\AdminUsersController::class, 'activate']);
+$router->post('/admin/users/:id/reset-password',   [\App\Controllers\AdminUsersController::class, 'resetPassword']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
