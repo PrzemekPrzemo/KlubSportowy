@@ -4,7 +4,7 @@ return [
     'key'        => 'football',
     'name'       => 'Piłka nożna',
     'federation' => 'PZPN',
-    'features'   => ['teams','positions','matches','cards','transfers','pzpn_license'],
+    'features'   => ['teams','positions','matches','cards','transfers','pzpn_license','leagues'],
     'routes' => [
         ['GET',  '/football/teams',              [\App\Sports\Football\Controllers\TeamsController::class, 'index']],
         ['GET',  '/football/teams/create',       [\App\Sports\Football\Controllers\TeamsController::class, 'create']],
@@ -26,11 +26,17 @@ return [
         ['GET',  '/football/transfers/create',    [\App\Sports\Football\Controllers\TransfersController::class, 'create']],
         ['POST', '/football/transfers/store',     [\App\Sports\Football\Controllers\TransfersController::class, 'store']],
         ['POST', '/football/transfers/:id/delete',[\App\Sports\Football\Controllers\TransfersController::class, 'delete']],
+        ['GET',  '/football/leagues',              [\App\Sports\Football\Controllers\LeaguesController::class, 'index']],
+        ['GET',  '/football/leagues/create',       [\App\Sports\Football\Controllers\LeaguesController::class, 'create']],
+        ['POST', '/football/leagues/store',        [\App\Sports\Football\Controllers\LeaguesController::class, 'store']],
+        ['GET',  '/football/leagues/:id',          [\App\Sports\Football\Controllers\LeaguesController::class, 'show']],
+        ['POST', '/football/leagues/:id/delete',   [\App\Sports\Football\Controllers\LeaguesController::class, 'delete']],
     ],
     'nav' => [
         ['label' => 'Drużyny',   'icon' => 'bi-people',           'url' => 'football/teams'],
         ['label' => 'Mecze',     'icon' => 'bi-flag',             'url' => 'football/matches'],
         ['label' => 'Transfery', 'icon' => 'bi-arrow-left-right', 'url' => 'football/transfers'],
+        ['label' => 'Ligi',     'icon' => 'bi-table',           'url' => 'football/leagues'],
     ],
     'migrations' => __DIR__ . '/migrations',
 ];
