@@ -67,7 +67,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Kategoria wiekowa</label>
-                            <input type="text" name="age_category" class="form-control" placeholder="np. U19, Senior">
+                            <input type="text" name="age_category" class="form-control" placeholder="np. U18, Senior">
                         </div>
                     </div>
                     <div class="row g-2 mb-3">
