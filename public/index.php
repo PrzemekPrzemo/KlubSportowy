@@ -252,6 +252,10 @@ $router->get('/admin/invoices/:id',          [\App\Controllers\AdminInvoicesCont
 $router->post('/admin/invoices/:id/pay',     [\App\Controllers\AdminInvoicesController::class, 'markPaid']);
 $router->post('/admin/invoices/:id/cancel',  [\App\Controllers\AdminInvoicesController::class, 'markCancelled']);
 
+// Admin: audyt izolacji danych (Batch A6)
+$router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController::class, 'isolation']);
+$router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController::class, 'exportReport']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 
