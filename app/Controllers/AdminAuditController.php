@@ -26,6 +26,15 @@ class AdminAuditController extends BaseController
         'club_sports', 'trainings', 'calendar_event_categories', 'calendar_events',
         'announcements', 'weapons', 'weapon_assignments', 'ammo_stock',
         'ammo_transactions', 'judge_licenses',
+        // New sport modules
+        'bjj_belts', 'bjj_results',
+        'gymnastics_results', 'gymnastics_minor_consents',
+        'floorball_teams', 'floorball_matches',
+        'padel_courts', 'padel_pairs',
+        'sailing_boats', 'sailing_races',
+        'triathlon_results',
+        'crossfit_wods', 'crossfit_scores', 'crossfit_prs',
+        'association_meetings',
     ];
 
     public function isolation(): void

@@ -161,7 +161,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <a href="<?= url('admin/dashboard') ?>"><i class="bi bi-speedometer2"></i> Pulpit admina</a>
         <a href="<?= url('admin/clubs') ?>"><i class="bi bi-building"></i> <?= __('nav.clubs') ?></a>
         <a href="<?= url('admin/demos') ?>"><i class="bi bi-rocket-takeoff"></i> Konta demo</a>
-        <a href="<?= url('admin/sports') ?>"><i class="bi bi-grid-3x3-gap"></i> Katalog sportów</a>
+        <a href="<?= url('admin/sports/catalog') ?>"><i class="bi bi-grid-3x3-gap"></i> Katalog sportów</a>
         <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> Plany</a>
         <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
         <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>

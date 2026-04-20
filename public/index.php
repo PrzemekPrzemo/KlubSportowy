@@ -158,6 +158,8 @@ $router->get('/admin/clubs/:id/edit',       [\App\Controllers\AdminController::c
 $router->post('/admin/clubs/:id/edit',      [\App\Controllers\AdminController::class, 'updateClub']);
 $router->post('/admin/switch-club/:id',     [\App\Controllers\AdminController::class, 'switchClub']);
 $router->get('/admin/sports',               [\App\Controllers\AdminController::class, 'sportsCatalog']);
+$router->get('/admin/sports/catalog',       [\App\Controllers\AdminPlatformController::class, 'sportsCatalog']);
+$router->post('/admin/sports/:key/toggle',  [\App\Controllers\AdminPlatformController::class, 'toggleSport']);
 $router->get('/admin/plans',                [\App\Controllers\AdminController::class, 'plans']);
 $router->get('/admin/activity',             [\App\Controllers\AdminController::class, 'activityLog']);
 $router->get('/admin/clubs/:id/users',      [\App\Controllers\AdminController::class, 'clubUsers']);

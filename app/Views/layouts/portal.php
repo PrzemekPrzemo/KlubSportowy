@@ -99,6 +99,19 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <a href="<?= url('portal/sport-history') ?>" class="<?= $isActive('sport-history') ?>">
                 <i class="bi bi-clock-history me-1"></i>Historia
             </a>
+            <?php
+            $sportKeys = ['bjj','gymnastics','floorball','padel','sailing','triathlon','crossfit'];
+            $sportLabels = ['bjj'=>'BJJ','gymnastics'=>'Gimnastyka','floorball'=>'Floorball',
+                            'padel'=>'Padel','sailing'=>'Żeglarstwo','triathlon'=>'Triathlon','crossfit'=>'CrossFit'];
+            foreach ($sportKeys as $sk):
+                $activeSports = $activeSports ?? [];
+                if (!empty($activeSports) && !in_array($sk, $activeSports)) continue;
+            ?>
+                <a href="<?= url('portal/sport/' . $sk) ?>"
+                   class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/portal/sport/' . $sk) !== false ? 'active' : '' ?>">
+                    <i class="bi bi-lightning-charge me-1"></i><?= $sportLabels[$sk] ?>
+                </a>
+            <?php endforeach; ?>
             <span class="text-white-50">|</span>
             <a href="<?= url('portal/fees') ?>" class="<?= $isActive('fees') ?>">
                 <i class="bi bi-receipt me-1"></i>Składki
