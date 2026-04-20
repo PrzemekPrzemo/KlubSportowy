@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
 use App\Models\MemberModel;
+use App\Helpers\BeltCertificatePdf;
 use App\Sports\Karate\Models\KarateBeltModel;
 
 class BeltsController extends BaseController
@@ -65,5 +66,13 @@ class BeltsController extends BaseController
         (new KarateBeltModel())->delete((int)$id);
         Session::flash('success', 'Usunięto.');
         $this->redirect('karate/belts');
+    }
+
+    public function printCertificate(string $id): void
+    {
+        $belt = (new KarateBeltModel())->findById((int)$id);
+        if (!$belt) { $this->redirect('karate/belts'); }
+        $member = (new \App\Models\MemberModel())->withoutScope()->findById((int)$belt['member_id']);
+        BeltCertificatePdf::generate($belt, $member, KarateBeltModel::$BELTS, 'Karate', 'PZKK');
     }
 }

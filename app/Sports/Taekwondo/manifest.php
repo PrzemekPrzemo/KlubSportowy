@@ -8,6 +8,7 @@ return [
         ['GET',  '/taekwondo/belts',               [\App\Sports\Taekwondo\Controllers\BeltsController::class,      'index']],
         ['POST', '/taekwondo/belts/store',          [\App\Sports\Taekwondo\Controllers\BeltsController::class,      'store']],
         ['POST', '/taekwondo/belts/:id/delete',     [\App\Sports\Taekwondo\Controllers\BeltsController::class,      'delete']],
+        ['GET',  '/taekwondo/belts/:id/certificate', [\App\Sports\Taekwondo\Controllers\BeltsController::class,      'printCertificate']],
         ['GET',  '/taekwondo/results',              [\App\Sports\Taekwondo\Controllers\ResultsController::class,    'index']],
         ['POST', '/taekwondo/results/store',        [\App\Sports\Taekwondo\Controllers\ResultsController::class,    'store']],
         ['POST', '/taekwondo/results/:id/delete',   [\App\Sports\Taekwondo\Controllers\ResultsController::class,    'delete']],

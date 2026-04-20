@@ -8,6 +8,7 @@ return [
         ['GET',  '/judo/belts',               [\App\Sports\Judo\Controllers\BeltsController::class,      'index']],
         ['POST', '/judo/belts/store',          [\App\Sports\Judo\Controllers\BeltsController::class,      'store']],
         ['POST', '/judo/belts/:id/delete',     [\App\Sports\Judo\Controllers\BeltsController::class,      'delete']],
+        ['GET',  '/judo/belts/:id/certificate', [\App\Sports\Judo\Controllers\BeltsController::class,      'printCertificate']],
         ['GET',  '/judo/results',              [\App\Sports\Judo\Controllers\ResultsController::class,    'index']],
         ['POST', '/judo/results/store',        [\App\Sports\Judo\Controllers\ResultsController::class,    'store']],
         ['POST', '/judo/results/:id/delete',   [\App\Sports\Judo\Controllers\ResultsController::class,    'delete']],

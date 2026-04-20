@@ -30,11 +30,14 @@
                     <td><?= View::e($b['examiner'] ?? '—') ?></td>
                     <td><?= View::e($b['location'] ?? '—') ?></td>
                     <td>
-                        <form method="POST" action="<?= url('judo/belts/'.(int)$b['id'].'/delete') ?>"
-                              onsubmit="return confirm('Usunąć wpis?')">
-                            <?= csrf_field() ?>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </form>
+                        <div class="d-flex gap-1">
+                            <a href="<?= url('judo/belts/'.(int)$b['id'].'/certificate') ?>" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-printer"></i></a>
+                            <form method="POST" action="<?= url('judo/belts/'.(int)$b['id'].'/delete') ?>"
+                                  onsubmit="return confirm('Usunąć wpis?')">
+                                <?= csrf_field() ?>
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; ?>

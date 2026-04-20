@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
 use App\Models\MemberModel;
+use App\Helpers\BeltCertificatePdf;
 use App\Sports\Taekwondo\Models\TaekwondoBeltModel;
 
 class BeltsController extends BaseController
@@ -58,5 +59,13 @@ class BeltsController extends BaseController
         (new TaekwondoBeltModel())->delete((int)$id);
         Session::flash('success', 'Usunięto.');
         $this->redirect('taekwondo/belts');
+    }
+
+    public function printCertificate(string $id): void
+    {
+        $belt = (new TaekwondoBeltModel())->findById((int)$id);
+        if (!$belt) { $this->redirect('taekwondo/belts'); }
+        $member = (new \App\Models\MemberModel())->withoutScope()->findById((int)$belt['member_id']);
+        BeltCertificatePdf::generate($belt, $member, TaekwondoBeltModel::$BELTS, 'Taekwondo', 'PZTkd');
     }
 }

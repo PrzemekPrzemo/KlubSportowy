@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
 use App\Models\MemberModel;
+use App\Helpers\BeltCertificatePdf;
 use App\Sports\Judo\Models\JudoBeltModel;
 
 class BeltsController extends BaseController
@@ -59,5 +60,13 @@ class BeltsController extends BaseController
         (new JudoBeltModel())->delete((int)$id);
         Session::flash('success', 'Usunięto.');
         $this->redirect('judo/belts');
+    }
+
+    public function printCertificate(string $id): void
+    {
+        $belt = (new JudoBeltModel())->findById((int)$id);
+        if (!$belt) { $this->redirect('judo/belts'); }
+        $member = (new \App\Models\MemberModel())->withoutScope()->findById((int)$belt['member_id']);
+        BeltCertificatePdf::generate($belt, $member, JudoBeltModel::$BELTS, 'Judo', 'PZJ');
     }
 }
