@@ -5,6 +5,7 @@ namespace App\Sports\Judo\Controllers;
 use App\Controllers\BaseController;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Models\AgeCategoryModel;
 use App\Models\MemberModel;
 use App\Sports\Judo\Models\JudoResultModel;
 
@@ -19,13 +20,15 @@ class ResultsController extends BaseController
 
     public function index(): void
     {
-        $results = (new JudoResultModel())->listForClub();
-        $members = (new MemberModel())->search('', 'aktywny', null, 1, 500)['data'] ?? [];
+        $results       = (new JudoResultModel())->listForClub();
+        $members       = (new MemberModel())->search('', 'aktywny', null, 1, 500)['data'] ?? [];
+        $ageCategories = (new AgeCategoryModel())->listAvailable(null, $this->currentClub());
         $this->render('judo/results/index', [
-            'title'        => 'Wyniki zawodów — Judo',
-            'results'      => $results,
-            'members'      => $members,
+            'title'         => 'Wyniki zawodów — Judo',
+            'results'       => $results,
+            'members'       => $members,
             'weightClasses' => JudoResultModel::$WEIGHT_CLASSES,
+            'ageCategories' => $ageCategories,
         ]);
     }
 

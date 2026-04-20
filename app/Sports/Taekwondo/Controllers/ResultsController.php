@@ -5,6 +5,7 @@ namespace App\Sports\Taekwondo\Controllers;
 use App\Controllers\BaseController;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Models\AgeCategoryModel;
 use App\Models\MemberModel;
 use App\Sports\Taekwondo\Models\TaekwondoResultModel;
 
@@ -26,6 +27,7 @@ class ResultsController extends BaseController
             'categories'    => TaekwondoResultModel::$CATEGORIES,
             'weightMen'     => TaekwondoResultModel::$WEIGHT_CLASSES_MEN,
             'weightWomen'   => TaekwondoResultModel::$WEIGHT_CLASSES_WOMEN,
+            'ageCategories' => (new AgeCategoryModel())->listAvailable(null, $this->currentClub()),
         ]);
     }
 

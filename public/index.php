@@ -527,6 +527,17 @@ $router->get('/sport-rankings',              [\App\Controllers\SportRankingsCont
 $router->post('/sport-rankings/store',       [\App\Controllers\SportRankingsController::class, 'store']);
 $router->post('/sport-rankings/:id/delete',  [\App\Controllers\SportRankingsController::class, 'delete']);
 
+// ── Turnieje ───────────────────────────────────────────────
+$router->get('/tournaments',                         [\App\Controllers\TournamentsController::class, 'index']);
+$router->get('/tournaments/create',                  [\App\Controllers\TournamentsController::class, 'create']);
+$router->post('/tournaments/store',                  [\App\Controllers\TournamentsController::class, 'store']);
+$router->get('/tournaments/:id',                     [\App\Controllers\TournamentsController::class, 'show']);
+$router->post('/tournaments/:id/participant',        [\App\Controllers\TournamentsController::class, 'addParticipant']);
+$router->post('/tournaments/:id/participant-remove', [\App\Controllers\TournamentsController::class, 'removeParticipant']);
+$router->post('/tournaments/:id/generate',           [\App\Controllers\TournamentsController::class, 'generateBracket']);
+$router->post('/tournaments/match/:matchId/result',  [\App\Controllers\TournamentsController::class, 'recordResult']);
+$router->post('/tournaments/:id/delete',             [\App\Controllers\TournamentsController::class, 'delete']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 

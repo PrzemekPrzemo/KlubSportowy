@@ -73,7 +73,12 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Kategoria wiekowa</label>
-                            <input type="text" name="age_category" class="form-control" placeholder="np. U18, Junior, Senior">
+                            <select name="age_category" class="form-select">
+                                <option value="">— brak —</option>
+                                <?php foreach ($ageCategories as $ac): ?>
+                                    <option value="<?= View::e($ac['name']) ?>"><?= View::e($ac['name']) ?> (<?= $ac['age_from'] ?>–<?= $ac['age_to'] ?> lat)</option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
                     <div class="row g-2 mb-3">
