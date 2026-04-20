@@ -234,6 +234,11 @@ $router->get('/admin/errors',          [\App\Controllers\AdminErrorController::c
 $router->get('/admin/errors/:id',      [\App\Controllers\AdminErrorController::class, 'show']);
 $router->post('/admin/errors/purge',   [\App\Controllers\AdminErrorController::class, 'purge']);
 
+// Admin: dziennik bezpieczeństwa (Batch A2)
+$router->get('/admin/security',                 [\App\Controllers\AdminSecurityController::class, 'index']);
+$router->get('/admin/security/blocked-ips',     [\App\Controllers\AdminSecurityController::class, 'blockedIps']);
+$router->post('/admin/security/unblock/:ip',    [\App\Controllers\AdminSecurityController::class, 'unblockIp']);
+
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
 

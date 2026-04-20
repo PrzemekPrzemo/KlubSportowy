@@ -50,6 +50,10 @@ class AuthController extends BaseController
 
         if ($user === null || !$user['is_active'] || !$userModel->verifyPassword($user, $password)) {
             RateLimiter::hit($ip, 'login');
+            \App\Models\SecurityEventModel::log('login_failed', [
+                'username' => $username,
+                'reason'   => $user === null ? 'user_not_found' : (!$user['is_active'] ? 'inactive' : 'bad_password'),
+            ]);
             Session::flash('error', 'Nieprawidłowy login lub hasło.');
             $this->redirect('auth/login');
         }
@@ -63,6 +67,9 @@ class AuthController extends BaseController
         RateLimiter::reset($ip, 'login');
         Auth::login($user);
         $userModel->touchLastLogin((int)$user['id']);
+        \App\Models\SecurityEventModel::log('login_success', [
+            'username' => $user['username'],
+        ]);
 
         // Po logowaniu: jeśli super admin → admin dashboard,
         // jeśli użytkownik ma 1 klub → ustaw i idź do dashboard,
@@ -86,6 +93,7 @@ class AuthController extends BaseController
 
     public function logout(): void
     {
+        \App\Models\SecurityEventModel::log('logout');
         Auth::logout();
         $this->redirect('auth/login');
     }

@@ -120,6 +120,13 @@ class Auth
         ]);
         Session::set('impersonating', 'club_context');
         self::setClub($clubId, $role);
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_start', [
+                'mode'    => 'club_context',
+                'club_id' => $clubId,
+                'role'    => $role,
+            ]);
+        }
     }
 
     // ── Impersonation (super admin → user klubu) ──────────────────────────
@@ -135,6 +142,14 @@ class Auth
             'is_super_admin' => Session::get('is_super_admin'),
         ]);
 
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_start', [
+                'mode'           => 'club_user',
+                'club_id'        => $clubId,
+                'target_user_id' => (int)$targetUser['id'],
+                'role'           => $roleInClub,
+            ]);
+        }
         Session::set('user_id',        (int)$targetUser['id']);
         Session::set('username',       $targetUser['username']);
         Session::set('full_name',      $targetUser['full_name']);
@@ -159,6 +174,13 @@ class Auth
             'is_super_admin' => Session::get('is_super_admin'),
         ]);
 
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_start', [
+                'mode'             => 'member',
+                'club_id'          => (int)$member['club_id'],
+                'target_member_id' => (int)$member['id'],
+            ]);
+        }
         Session::set('portal_member_id',    (int)$member['id']);
         Session::set('portal_member_name',  $member['first_name'] . ' ' . $member['last_name']);
         Session::set('portal_member_email', $member['email'] ?? '');
@@ -174,6 +196,12 @@ class Auth
     {
         $original = Session::get('impersonation_original');
         if (!$original) return;
+
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_stop', [
+                'mode' => Session::get('impersonating'),
+            ]);
+        }
 
         // Clean up portal member keys if impersonating member
         Session::remove('portal_member_id');

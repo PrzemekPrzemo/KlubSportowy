@@ -23,6 +23,11 @@ class Csrf
     {
         $submitted = $_POST['_csrf'] ?? '';
         if (!hash_equals(self::token(), $submitted)) {
+            if (class_exists('\\App\\Models\\SecurityEventModel')) {
+                \App\Models\SecurityEventModel::log('csrf_violation', [
+                    'method' => $_SERVER['REQUEST_METHOD'] ?? '',
+                ]);
+            }
             http_response_code(419);
             die('Nieprawidłowy token CSRF. Odśwież stronę i spróbuj ponownie.');
         }
