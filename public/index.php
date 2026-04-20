@@ -392,6 +392,38 @@ $router->get('/portal/payments',         [\App\Controllers\MemberPaymentControll
 $router->post('/portal/payments/pay',    [\App\Controllers\MemberPaymentController::class, 'pay']);
 $router->get('/portal/payments/success', [\App\Controllers\MemberPaymentController::class, 'success']);
 
+// Portal: karta zawodnika + zdjęcie
+$router->get('/portal/member-card',      [\App\Controllers\MemberPortalController::class, 'memberCard']);
+$router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalController::class, 'uploadPhoto']);
+
+// Portal: badania lekarskie + licencje
+$router->get('/portal/medical',          [\App\Controllers\MemberPortalController::class, 'medical']);
+$router->get('/portal/licenses',         [\App\Controllers\MemberPortalController::class, 'licenses']);
+
+// Portal: zgody RODO
+$router->get('/portal/consents',         [\App\Controllers\MemberPortalController::class, 'consents']);
+$router->post('/portal/consents/update', [\App\Controllers\MemberPortalController::class, 'updateConsent']);
+
+// Portal: ogłoszenia + plan treningów
+$router->get('/portal/announcements',    [\App\Controllers\MemberPortalController::class, 'announcements']);
+$router->get('/portal/schedule',         [\App\Controllers\MemberPortalController::class, 'schedule']);
+
+// Portal: frekwencja, wyniki, rankingi
+$router->get('/portal/attendance',       [\App\Controllers\MemberPortalController::class, 'attendance']);
+$router->get('/portal/results',          [\App\Controllers\MemberPortalController::class, 'results']);
+
+// Portal: pasy i stopnie
+$router->get('/portal/belts',            [\App\Controllers\MemberPortalController::class, 'belts']);
+
+// Portal: powiadomienia
+$router->get('/portal/notifications',                   [\App\Controllers\MemberPortalController::class, 'notifications']);
+$router->post('/portal/notifications/:id/read',         [\App\Controllers\MemberPortalController::class, 'markNotificationRead']);
+
+// Portal: turnieje
+$router->get('/portal/tournaments',                     [\App\Controllers\MemberPortalController::class, 'tournaments']);
+$router->post('/portal/tournaments/:id/register',       [\App\Controllers\MemberPortalController::class, 'registerTournament']);
+$router->post('/portal/tournaments/:id/withdraw',       [\App\Controllers\MemberPortalController::class, 'withdrawTournament']);
+
 // Powiadomienia (dzwoneczek)
 $router->post('/notifications/:id/read', [\App\Controllers\NotificationsController::class, 'markRead']);
 

@@ -74,4 +74,15 @@ class SportRankingModel extends ClubScopedModel
         $stmt->execute([$this->clubId(), $sportKey]);
         return array_column($stmt->fetchAll(), 'season');
     }
+
+    public function seasonsForMember(int $memberId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT DISTINCT season FROM sport_rankings
+             WHERE club_id = ? AND member_id = ?
+             ORDER BY season DESC"
+        );
+        $stmt->execute([$this->clubId(), $memberId]);
+        return array_column($stmt->fetchAll(), 'season');
+    }
 }

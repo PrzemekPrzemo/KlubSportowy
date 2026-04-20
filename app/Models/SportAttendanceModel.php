@@ -82,6 +82,58 @@ class SportAttendanceModel extends BaseModel
     }
 
     /**
+     * Recent training attendance records for a specific member (portal use).
+     */
+    public function recentForMember(int $memberId, int $limit = 20): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT ta.status, ta.registered_at,
+                   t.start_time, t.name AS training_name, t.location,
+                   s.name AS sport_name, s.color
+            FROM training_attendees ta
+            JOIN trainings t ON t.id = ta.training_id
+            JOIN club_sports cs ON cs.id = t.club_sport_id
+            JOIN sports s ON s.id = cs.sport_id
+            WHERE ta.member_id = ?
+              AND t.status IN ('zakonczony','w_trakcie')
+            ORDER BY t.start_time DESC
+            LIMIT ?
+        ");
+        $stmt->execute([$memberId, $limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Per-sport monthly attendance summary for a single member (portal use).
+     * Returns: [sport_name => [month => [attended, total]]]
+     */
+    public function memberYearlySummary(int $memberId, int $year): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT s.name AS sport_name,
+                   MONTH(t.start_time) AS month,
+                   COUNT(DISTINCT t.id) AS total_trainings,
+                   SUM(ta.status IN ('obecny','spozniony')) AS attended
+            FROM training_attendees ta
+            JOIN trainings t ON t.id = ta.training_id AND YEAR(t.start_time) = ?
+            JOIN club_sports cs ON cs.id = t.club_sport_id
+            JOIN sports s ON s.id = cs.sport_id
+            WHERE ta.member_id = ?
+            GROUP BY s.name, MONTH(t.start_time)
+            ORDER BY s.name, MONTH(t.start_time)
+        ");
+        $stmt->execute([$year, $memberId]);
+        $rows   = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = [];
+        foreach ($rows as $r) {
+            $sn = $r['sport_name'];
+            if (!isset($result[$sn])) $result[$sn] = [];
+            $result[$sn][(int)$r['month']] = ['attended' => (int)$r['attended'], 'total' => (int)$r['total_trainings']];
+        }
+        return $result;
+    }
+
+    /**
      * Returns distinct years with trainings for this sport.
      */
     public function years(string $sportKey): array

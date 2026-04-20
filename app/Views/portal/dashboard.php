@@ -1,43 +1,49 @@
-<?php use App\Helpers\View; ?>
+<?php
+use App\Helpers\MemberAuth;
+use App\Helpers\View;
+try {
+    $notifCount = (new \App\Models\MemberNotificationModel())
+        ->countUnread((int)($member['id'] ?? 0), (int)MemberAuth::clubId());
+} catch (\Throwable) { $notifCount = 0; }
+?>
 <div class="row g-3">
-    <div class="col-md-4">
-        <div class="card p-3 h-100">
-            <h6 class="text-muted">Moje składki (<?= date('Y') ?>)</h6>
-            <div class="display-6"><?= format_money($totalThisYear) ?></div>
-            <a href="<?= url('portal/fees') ?>" class="small stretched-link">Zobacz historię &rarr;</a>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 h-100 position-relative">
+            <h6 class="text-muted small"><i class="bi bi-receipt me-1"></i>Składki <?= date('Y') ?></h6>
+            <div class="fs-4 fw-bold"><?= format_money($totalThisYear) ?></div>
+            <a href="<?= url('portal/fees') ?>" class="small stretched-link text-primary">Historia składek &rarr;</a>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card p-3 h-100">
-            <h6 class="text-muted">Badanie lekarskie</h6>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 h-100 position-relative <?= ($medical && days_until($medical['valid_until']) !== null && days_until($medical['valid_until']) <= 30) ? 'border-warning' : '' ?>">
+            <h6 class="text-muted small"><i class="bi bi-heart-pulse me-1"></i>Badanie lekarskie</h6>
             <?php if ($medical): ?>
-                <div><strong>Ważne do:</strong> <?= format_date($medical['valid_until']) ?></div>
                 <?php $days = days_until($medical['valid_until']); ?>
-                <span class="badge bg-<?= alert_class($days) ?>">
-                    <?php if ($days !== null && $days < 0): ?>
-                        wygasło (<?= abs($days) ?> dni)
-                    <?php elseif ($days !== null): ?>
-                        <?= $days ?> dni
-                    <?php endif; ?>
+                <div class="fw-bold"><?= format_date($medical['valid_until']) ?></div>
+                <span class="badge bg-<?= alert_class($days) ?> mt-1">
+                    <?= $days !== null && $days < 0 ? 'Wygasłe ' . abs($days) . ' dni temu' : ($days . ' dni') ?>
                 </span>
             <?php else: ?>
-                <div class="text-muted small">Brak zarejestrowanych badań.</div>
+                <div class="text-muted small">Brak danych</div>
             <?php endif; ?>
+            <a href="<?= url('portal/medical') ?>" class="small stretched-link text-primary mt-1">Szczegóły &rarr;</a>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card p-3 h-100">
-            <h6 class="text-muted">Moje licencje</h6>
-            <?php if (empty($licenses)): ?>
-                <div class="text-muted small">Brak licencji.</div>
-            <?php else: ?>
-                <?php foreach ($licenses as $l): ?>
-                    <div class="small">
-                        <strong><?= View::e($l['license_type']) ?></strong> —
-                        ważna do <?= format_date($l['valid_until']) ?>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 h-100 position-relative">
+            <h6 class="text-muted small"><i class="bi bi-patch-check me-1"></i>Licencje</h6>
+            <?php $activeLic = array_filter($licenses ?? [], fn($l) => ($l['status'] ?? '') === 'aktywna'); ?>
+            <div class="fw-bold fs-4"><?= count($activeLic) ?></div>
+            <div class="text-muted small">aktywne</div>
+            <a href="<?= url('portal/licenses') ?>" class="small stretched-link text-primary">Szczegóły &rarr;</a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 h-100 position-relative <?= $notifCount > 0 ? 'border-primary' : '' ?>">
+            <h6 class="text-muted small"><i class="bi bi-bell me-1"></i>Powiadomienia</h6>
+            <div class="fw-bold fs-4 <?= $notifCount > 0 ? 'text-primary' : '' ?>"><?= $notifCount ?></div>
+            <div class="text-muted small">nieprzeczytane</div>
+            <a href="<?= url('portal/notifications') ?>" class="small stretched-link text-primary">Zobacz &rarr;</a>
         </div>
     </div>
 </div>
@@ -73,4 +79,25 @@
             <?php endif; ?>
         </div>
     </div>
+</div>
+
+<!-- Szybkie linki do nowych sekcji -->
+<div class="row g-2 mt-3">
+    <?php foreach ([
+        ['portal/member-card',  'bi-person-badge',   'primary',   'Karta zawodnika'],
+        ['portal/announcements','bi-megaphone',       'warning',   'Ogłoszenia'],
+        ['portal/schedule',     'bi-calendar3',       'info',      'Plan treningów'],
+        ['portal/attendance',   'bi-list-check',      'success',   'Frekwencja'],
+        ['portal/results',      'bi-bar-chart',       'danger',    'Wyniki & Rankingi'],
+        ['portal/belts',        'bi-award',           'dark',      'Pasy & Stopnie'],
+        ['portal/consents',     'bi-shield-check',    'secondary', 'Zgody RODO'],
+        ['portal/tournaments',  'bi-trophy',          'primary',   'Zawody'],
+    ] as [$link, $icon, $color, $label]): ?>
+    <div class="col-6 col-md-3">
+        <a href="<?= url($link) ?>" class="card text-decoration-none text-<?= $color ?> p-3 d-flex flex-row align-items-center gap-2">
+            <i class="bi <?= $icon ?> fs-4"></i>
+            <span class="small fw-semibold"><?= $label ?></span>
+        </a>
+    </div>
+    <?php endforeach; ?>
 </div>
