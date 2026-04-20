@@ -1,0 +1,18 @@
+<?php
+return [
+    'key'        => 'triathlon',
+    'name'       => 'Triathlon',
+    'federation' => 'PZTri',
+    'features'   => ['results', 'splits', 'age_groups', 'qualifications', 'distances'],
+    'routes' => [
+        ['GET',  '/triathlon/results',            [\App\Sports\Triathlon\Controllers\ResultsController::class,  'index']],
+        ['POST', '/triathlon/results/store',      [\App\Sports\Triathlon\Controllers\ResultsController::class,  'store']],
+        ['POST', '/triathlon/results/:id/delete', [\App\Sports\Triathlon\Controllers\ResultsController::class,  'delete']],
+        ['GET',  '/triathlon/athletes',           [\App\Sports\Triathlon\Controllers\AthletesController::class, 'index']],
+    ],
+    'nav' => [
+        ['label' => 'Wyniki',     'icon' => 'bi-stopwatch',  'url' => 'triathlon/results'],
+        ['label' => 'Zawodnicy',  'icon' => 'bi-person-badge', 'url' => 'triathlon/athletes'],
+    ],
+    'migrations' => __DIR__ . '/migrations',
+];
