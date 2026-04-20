@@ -1,0 +1,16 @@
+<?php
+return [
+    'key'        => 'wrestling',
+    'name'       => 'Zapasy',
+    'federation' => 'PZZ',
+    'features'   => ['results', 'weight_categories', 'styles'],
+    'routes' => [
+        ['GET',  '/wrestling/results',           [\App\Sports\Wrestling\Controllers\ResultsController::class, 'index']],
+        ['POST', '/wrestling/results/store',      [\App\Sports\Wrestling\Controllers\ResultsController::class, 'store']],
+        ['POST', '/wrestling/results/:id/delete', [\App\Sports\Wrestling\Controllers\ResultsController::class, 'delete']],
+    ],
+    'nav' => [
+        ['label' => 'Wyniki zawodów', 'icon' => 'bi-people-fill', 'url' => 'wrestling/results'],
+    ],
+    'migrations' => __DIR__ . '/migrations',
+];
