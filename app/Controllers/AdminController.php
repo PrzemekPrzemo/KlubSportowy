@@ -244,10 +244,24 @@ class AdminController extends BaseController
 
     public function activityLog(): void
     {
-        $recent = (new \App\Models\ActivityLogModel())->recent(100);
+        $clubId = isset($_GET['club_id']) && $_GET['club_id'] !== '' ? (int)$_GET['club_id'] : null;
+        $userId = isset($_GET['user_id']) && $_GET['user_id'] !== '' ? (int)$_GET['user_id'] : null;
+        $action = $_GET['action'] ?? null;
+        $from   = $_GET['from'] ?? null;
+        $to     = $_GET['to'] ?? null;
+        $page   = max(1, (int)($_GET['page'] ?? 1));
+
+        $model = new \App\Models\ActivityLogModel();
+        $pagination = $model->listFiltered($clubId, $userId, $action, $from, $to, $page, 50);
+
+        $clubs = (new ClubModel())->findAll('name', 'ASC');
+
         $this->render('admin/activity_log', [
-            'title'  => 'Log aktywności',
-            'recent' => $recent,
+            'title'      => 'Log aktywności',
+            'pagination' => $pagination,
+            'clubs'      => $clubs,
+            'actions'    => $model->distinctActions(50),
+            'filter'     => compact('clubId', 'userId', 'action', 'from', 'to'),
         ]);
     }
 
