@@ -51,6 +51,8 @@ class AdminAuditController extends BaseController
         'anti_doping_declarations', 'minor_consents',
         'club_equipment_items', 'club_equipment_assignments',
         'coach_certifications',
+        // Security (S1-S4)
+        'sensitive_access_log',
     ];
 
     public function isolation(): void

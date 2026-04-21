@@ -26,6 +26,8 @@ class EmergencyContactsController extends BaseController
             $this->redirect('members');
         }
 
+        \App\Models\SensitiveAccessLogModel::log('emergency_contacts', 'view', $mid);
+
         $model = new EmergencyContactModel();
         $this->render('members/emergency_contacts', [
             'title'        => 'Kontakty awaryjne — ' . $member['last_name'] . ' ' . $member['first_name'],

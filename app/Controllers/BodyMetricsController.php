@@ -26,6 +26,8 @@ class BodyMetricsController extends BaseController
             $this->redirect('members');
         }
 
+        \App\Models\SensitiveAccessLogModel::log('body_metrics', 'view', $mid);
+
         $model = new BodyMetricsModel();
         $this->render('members/body_metrics', [
             'title'   => 'Pomiary ciała — ' . $member['last_name'] . ' ' . $member['first_name'],

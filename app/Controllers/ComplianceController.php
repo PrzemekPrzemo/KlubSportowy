@@ -20,6 +20,8 @@ class ComplianceController extends BaseController
 
     public function index(): void
     {
+        \App\Models\SensitiveAccessLogModel::log('anti_doping', 'list');
+
         $ad    = new AntiDopingModel();
         $minor = new MinorConsentModel();
 

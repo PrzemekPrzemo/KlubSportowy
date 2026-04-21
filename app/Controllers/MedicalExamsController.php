@@ -22,6 +22,7 @@ class MedicalExamsController extends BaseController
     {
         $memberId = isset($_GET['member']) ? (int)$_GET['member'] : null;
         $page     = max(1, (int)($_GET['page'] ?? 1));
+        \App\Models\SensitiveAccessLogModel::log('medical', 'list', $memberId);
         $pagination = (new MedicalExamModel())->listForClub($memberId, $page, 25);
         $expiring   = (new MedicalExamModel())->expiringSoon(60);
 

@@ -429,6 +429,9 @@ $router->post('/equipment/:id/delete',              [\App\Controllers\ClubEquipm
 $router->post('/equipment/:id/assign',              [\App\Controllers\ClubEquipmentController::class, 'assign']);
 $router->post('/equipment/:id/return/:aid',         [\App\Controllers\ClubEquipmentController::class, 'returnItem']);
 
+// Admin: dziennik dostępu do danych wrażliwych (RODO art. 30) — tylko zarząd
+$router->get('/admin/sensitive-access', [\App\Controllers\AdminSensitiveAccessController::class, 'index']);
+
 // Admin: zgodność (anti-doping + zgody małoletnich)
 $router->get('/admin/compliance',                               [\App\Controllers\ComplianceController::class, 'index']);
 $router->post('/admin/compliance/declaration/store',            [\App\Controllers\ComplianceController::class, 'storeDeclaration']);
