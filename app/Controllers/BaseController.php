@@ -146,6 +146,16 @@ abstract class BaseController
     }
 
     /**
+     * Wymaga roli uprawnionej do odczytu danych wrażliwych (medyczne,
+     * anti-doping, body_metrics, emergency_contacts, minor_consents).
+     * Dozwolone: zarzad, trener, instruktor, lekarz + super admin.
+     */
+    protected function requireSensitiveAccess(): void
+    {
+        Auth::requireSensitiveAccess();
+    }
+
+    /**
      * Require that the current user's role has 'view' permission for the given module.
      * Super admins bypass the check entirely.
      */

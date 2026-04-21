@@ -14,6 +14,7 @@ class EmergencyContactsController extends BaseController
         parent::__construct();
         $this->requireLogin();
         $this->requireClubContext();
+        $this->requireSensitiveAccess();
     }
 
     public function member(string $memberId): void

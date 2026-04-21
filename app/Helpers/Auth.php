@@ -49,6 +49,35 @@ class Auth
         return (bool)Session::get('is_super_admin', false);
     }
 
+    /**
+     * Role uprawnione do odczytu i edycji danych szczególnej kategorii
+     * (medyczne, anti-doping, body_metrics, emergency_contacts, minor_consents).
+     *
+     * Zgodnie z RODO art. 9 + ustawą o sporcie dostęp do tych danych powinny
+     * mieć wyłącznie osoby realizujące zadania zarządcze lub treningowe klubu.
+     */
+    public const SENSITIVE_ROLES = ['zarzad', 'trener', 'instruktor', 'lekarz'];
+
+    /** Czy aktualnie zalogowany użytkownik może przeglądać dane wrażliwe? */
+    public static function canAccessSensitiveData(): bool
+    {
+        if (self::isSuperAdmin()) return true;
+        $role = self::role();
+        return $role !== null && in_array($role, self::SENSITIVE_ROLES, true);
+    }
+
+    /** Rzuca 403 gdy aktualny user nie ma uprawnień do danych wrażliwych. */
+    public static function requireSensitiveAccess(): void
+    {
+        self::requireLogin();
+        if (!self::canAccessSensitiveData()) {
+            http_response_code(403);
+            Session::flash('error', 'Brak uprawnień do danych medycznych i szczególnej kategorii. Skontaktuj się z zarządem klubu.');
+            header('Location: ' . url('dashboard'));
+            exit;
+        }
+    }
+
     public static function requireLogin(): void
     {
         if (!self::check()) {

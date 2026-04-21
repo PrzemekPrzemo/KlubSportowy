@@ -15,6 +15,7 @@ class MedicalExamsController extends BaseController
         parent::__construct();
         $this->requireLogin();
         $this->requireClubContext();
+        $this->requireSensitiveAccess();
     }
 
     public function index(): void

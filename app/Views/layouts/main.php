@@ -99,7 +99,10 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'trainings'     => ['url' => 'trainings',     'icon' => 'bi-stopwatch',              'label' => __('nav.trainings'),       'mod' => 'trainings'],
         'fees'          => ['url' => 'fees',          'icon' => 'bi-cash-coin',              'label' => __('nav.finances'),        'mod' => 'fees'],
         'fees_rates'    => ['url' => 'fees/rates',    'icon' => 'bi-tag',                    'label' => __('nav.fee_rates'),       'mod' => 'fees'],
-        'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',            'label' => __('nav.medical'),         'mod' => 'medical'],
+        'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',            'label' => __('nav.medical'),         'mod' => 'medical',         'sensitive' => true],
+        'compliance'    => ['url' => 'admin/compliance','icon' => 'bi-shield-check',         'label' => 'Zgodność WADA',           'mod' => 'medical',         'sensitive' => true],
+        'equipment'     => ['url' => 'equipment',     'icon' => 'bi-box-seam',               'label' => 'Sprzęt klubowy',          'mod' => null],
+        'certifications'=> ['url' => 'certifications','icon' => 'bi-patch-check',            'label' => 'Uprawnienia trenerskie',  'mod' => null],
         'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',              'label' => __('nav.announcements'),   'mod' => 'announcements'],
         'gallery'       => ['url' => 'gallery',       'icon' => 'bi-images',                 'label' => __('nav.gallery'),         'mod' => null],
         'messages'      => ['url' => 'messages',      'icon' => 'bi-chat-dots',              'label' => __('nav.messages'),        'mod' => null],
@@ -110,7 +113,10 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
     ];
     $allowed = $navModules ?? null;
+    $canSensitive = \App\Helpers\Auth::canAccessSensitiveData();
     foreach ($navItems as $item):
+        // Ukryj pozycje z danymi wrażliwymi gdy rola bez dostępu
+        if (!empty($item['sensitive']) && !$canSensitive) continue;
         if ($item['mod'] === null || $allowed === null || in_array($item['mod'], $allowed, true)):
     ?>
         <a href="<?= url($item['url']) ?>"><i class="bi <?= View::e($item['icon']) ?>"></i> <?= View::e($item['label']) ?></a>
