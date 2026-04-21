@@ -76,6 +76,33 @@ class SwimmingResultModel extends ClubScopedModel
     /**
      * Returns one record per stroke+distance combination with best (lowest) time for a member.
      */
+    /**
+     * Returns club records: best time per stroke+distance+pool_type combination across all members.
+     */
+    public function clubRecords(): array
+    {
+        $clubId = $this->clubId();
+        $sql = "SELECT sr.stroke, sr.distance_m, sr.pool_type, sr.time_ms, sr.score_date,
+                       sr.competition_name, sr.id,
+                       m.id AS member_id, m.first_name, m.last_name, m.member_number
+                FROM swimming_results sr
+                JOIN members m ON m.id = sr.member_id
+                WHERE sr.club_id = ?
+                  AND sr.time_ms = (
+                      SELECT MIN(sr2.time_ms)
+                      FROM swimming_results sr2
+                      WHERE sr2.club_id    = sr.club_id
+                        AND sr2.stroke     = sr.stroke
+                        AND sr2.distance_m = sr.distance_m
+                        AND sr2.pool_type  = sr.pool_type
+                  )
+                GROUP BY sr.stroke, sr.distance_m, sr.pool_type
+                ORDER BY sr.pool_type, sr.stroke, sr.distance_m";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$clubId]);
+        return $stmt->fetchAll();
+    }
+
     public function personalBests(int $memberId): array
     {
         $clubId = $this->clubId();

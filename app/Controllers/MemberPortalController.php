@@ -742,6 +742,15 @@ class MemberPortalController extends BaseController
                     'leaderboardPositions'=> $leaderboard,
                 ]);
                 break;
+            case 'swimming':
+                $resModel = new \App\Sports\Swimming\Models\SwimmingResultModel();
+                $all      = $resModel->listForClub($memberId);
+                $data = array_merge($data, [
+                    'title'         => 'Pływanie — Mój profil',
+                    'personalBests' => $resModel->personalBests($memberId),
+                    'recent'        => array_slice($all, 0, 15),
+                ]);
+                break;
             default:
                 Session::flash('error', 'Nieznana sekcja sportowa.');
                 $this->redirect('portal/dashboard');
