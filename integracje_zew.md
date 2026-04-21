@@ -525,3 +525,31 @@ Brokerzy (Ergo Hestia, Warta, PZU): **brak publicznego API** — kontakt bizneso
 - ✅ **Dashboard zgodności WADA + zgód opiekunów** (M4)
 - ✅ Klucze API, szyfrowanie sensytywnych pól
 - ✅ Pełne szablony RODO + customizacja stylu
+
+---
+
+## Bezpieczeństwo (batche S1-S6)
+
+System przetwarza dane szczególnej kategorii (RODO art. 9): medyczne, anti-doping,
+pomiary ciała, kontakty awaryjne, dane opiekunów. Wdrożone zabezpieczenia:
+
+| Warstwa | Mechanizm | Pliki |
+|---|---|---|
+| **Szyfrowanie DB** | AES-256-GCM na 6 tabelach medycznych/wrażliwych (trait `EncryptsFields`) | `app/Models/Traits/EncryptsFields.php` |
+| **RBAC** | Dostęp do danych wrażliwych tylko dla `zarzad/trener/instruktor/lekarz` | `Auth::requireSensitiveAccess()` |
+| **2FA zawodników** | TOTP (RFC 6238) + backup codes (bcrypt) | `MemberTwoFactorController` + `member_totp_backup_codes` |
+| **Audit log (RODO art. 30)** | Każdy odczyt medycznych danych logowany | `SensitiveAccessLogModel`, `/admin/sensitive-access` (tylko zarząd) |
+| **Izolacja klubów** | `ClubScopedModel` auto-filtr + audyt 50+ tabel | `/admin/audit/isolation` |
+| **Rate limit** | Logowanie — `RateLimiter` per IP | `app/Helpers/RateLimiter.php` |
+| **Security events** | Logi login/CSRF/impersonation | `security_events` + `/admin/security` |
+| **Conditional UI** | Tylko aktywne sporty per klub pokazywane | `SportModel::activeKeysForClub()` |
+
+Szczegółowa mapa bezpieczeństwa: patrz **[BEZPIECZENSTWO.md](./BEZPIECZENSTWO.md)**
+
+### Status per sport: strzelectwo → shotero.pl
+
+Moduł shooting w ClubDesk ma ograniczony zakres (rejestr broni, amunicja, licencje
+sędziowskie). **Pełna obsługa PZSS** (integracja system.pzss.pl, patenty, import wyników,
+rejestr zawodników) dostępna na dedykowanej platformie **[shotero.pl](https://shotero.pl)**.
+Kluby PZSS są rekomendowane do shotero.pl — nowe funkcjonalności PZSS NIE będą dodawane
+w ClubDesk. Moduł zachowany dla backward compat.
