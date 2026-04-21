@@ -413,3 +413,115 @@ Klucz szyfrowania ustawiany w zmiennej środowiskowej `APP_KEY` lub `config/app.
 | SQL fallback | Elasticsearch | SearchEngine::search() → SQL gdy ES niedostępny |
 | Rate limiting | REST API | RateLimiter per klucz (tokeny na minutę) |
 | DB error log | Sentry | ErrorMonitor → DB + Sentry (try/catch) |
+
+---
+
+## Wymagania regulacyjne vs. tabele (profile M1–M6)
+
+Po wdrożeniu batchy M1–M6 system spełnia następujące wymagania prawne:
+
+| Tabela | Regulacja / wymóg | Dotyczy sportów |
+|---|---|---|
+| `body_metrics` | IWF/UCI: waga potrzebna do Sinclair / W/kg; boks: kategoria wagowa | weightlifting, cycling, boxing, BJJ, wrestling, taekwondo |
+| `member_emergency_contacts` | RODO art. 9 + ustawa o sporcie (bezpieczeństwo) | wszystkie sporty kontaktowe |
+| `athlete_training_logs` | Wewnętrzne, opcjonalne (audyt obciążeń treningowych) | cycling, swimming, weightlifting, triathlon, climbing |
+| `anti_doping_declarations` | **Kodeks WADA 2025** + polska ustawa antydopingowa | weightlifting (IWF), boxing (PZBoks), swimming (FINA), taekwondo (WTF), cycling (UCI), wrestling, judo, athletics, gymnastics, climbing, sambo |
+| `minor_consents` | KRC art. 101 + RODO art. 8 (wiek 13+/16+) | wszystkie, gdzie są zawodnicy < 18 lat |
+| `club_equipment_items/_assignments` | Ustawa o rachunkowości art. 26 (inwentarz) + odpowiedzialność materialna | wszystkie dla sprzętu klubowego |
+| `coach_certifications` | **Ustawa o sporcie art. 41** — trener/instruktor musi mieć uprawnienia | wszystkie sekcje klubowe |
+
+---
+
+## Nowe integracje rekomendowane (do wdrożenia w przyszłości)
+
+### A. WADA ADAMS (Anti-Doping Administration System)
+
+**Status:** nie wdrożona — rekomendacja dla klubów z zawodnikami WADA-covered
+
+**Wymagane klucze** (do uzyskania przez klub):
+
+| Klucz w `club_settings` | Opis | Gdzie |
+|---|---|---|
+| `wada_adams_username` | Login do ADAMS | https://adams.wada-ama.org (wymaga konta klubu/federacji) |
+| `wada_adams_password_enc` | Hasło (auto-szyfr.) | j.w. |
+
+**Uwaga:** ADAMS API nie jest publiczne — dostęp wymaga umowy z POLADA.
+**Kontakt:** kontakt@polada.pl — potwierdzenie statusu klubu i zawodników TUE.
+
+### B. Wearable sync (Garmin, Strava, Polar, Apple HealthKit)
+
+**Status:** nie wdrożona — rekomendacja dla cyclingu, swimmingu, triathlonu
+
+**Mechanizm:** OAuth 2.0 per zawodnik — zawodnik autoryzuje import swoich treningów do `athlete_training_logs` (batch M3)
+
+**Wymagane klucze globalne** (w `settings`):
+
+| Platforma | Klucze | Gdzie |
+|---|---|---|
+| Strava | `strava_client_id`, `strava_client_secret_enc` | https://developers.strava.com |
+| Garmin Connect | `garmin_consumer_key`, `garmin_consumer_secret_enc` | https://developerportal.garmin.com |
+| Polar AccessLink | `polar_client_id`, `polar_client_secret_enc` | https://www.polar.com/accesslink-api |
+| Apple HealthKit | — | wymaga aplikacji iOS (natywna) |
+
+**Polecana kolejność:** Strava (darmowe, najszersze API) → Garmin → Polar.
+
+### C. Płatności offline (SumUp, Paynow)
+
+**Status:** nie wdrożona — uzupełnienie Stripe dla wpłat fizycznych
+
+**Wymagane klucze:**
+
+| Klucz | Opis | Gdzie |
+|---|---|---|
+| `sumup_api_key_enc` | Klucz REST API + czytnik kart Bluetooth | https://me.sumup.com/developers |
+| `paynow_api_key_enc`, `paynow_signature_enc` | Autopay/mBank Paynow | https://www.paynow.pl/ |
+
+**Use case:** zbiórka składek na imprezach klubowych, płatność za wynajem sprzętu przy wydaniu.
+
+### D. Analytics (GA4 + Matomo)
+
+**Status:** nie wdrożona — dla stron publicznych klubów
+
+**Konfiguracja (per klub w `club_settings`):**
+- `analytics_ga4_measurement_id` — np. `G-XXXXXXX` (GA4)
+- `analytics_matomo_url` + `analytics_matomo_site_id` — self-hosted
+
+**Bez nowych kluczy API** — snippet JS dołączany do stron publicznych klubu.
+
+### E. Ubezpieczenia klubowe (ręczne)
+
+**Status:** w planie M5 dodano sprzęt, ale polisy OC/NW pozostają ręczne.
+**Rekomendacja:** dodać w `club_settings`:
+- `insurance_oc_policy_number`, `insurance_oc_insurer`, `insurance_oc_valid_until`
+- `insurance_nnw_policy_number`, `insurance_nnw_insurer`, `insurance_nnw_valid_until`
+
+Brokerzy (Ergo Hestia, Warta, PZU): **brak publicznego API** — kontakt biznesowy.
+
+---
+
+## Podsumowanie — co klub ma po batchach M1-M6
+
+**Profil zawodnika (portal + admin):**
+- ✅ Pełne dane osobowe + zdjęcie + QR karta członkowska
+- ✅ Badania lekarskie generyczne + sport-specific (boxing_medicals itd.)
+- ✅ Licencje federacyjne z datami ważności i QR
+- ✅ Zgody RODO (5 typów)
+- ✅ **Pomiary ciała z historią** — waga/wzrost/BMI/BF%/HR/wingspan (M1)
+- ✅ **Kontakty w razie wypadku** — multiple, primary flag (M2)
+- ✅ **Dziennik treningowy self-log** — tygodniowa siatka + statystyki (M3)
+- ✅ **Deklaracje anti-dopingowe** — 7 typów WADA/POLADA/IWF/UCI/FINA/WTF/narodowa (M4)
+- ✅ **Zgody opiekunów** dla małoletnich — 4 kategorie + upsert (M4)
+- ✅ Pasy/stopnie (taekwondo, BJJ, judo, karate, aikido)
+- ✅ Powiadomienia, turnieje, plan treningów, obecność
+
+**Profil klubu (admin):**
+- ✅ Dane formalne + NIP/REGON/KRS + branding
+- ✅ Sekcje sportowe z federacjami
+- ✅ Facilities (boisko/sala/hala/basen/kort) + rezerwacje
+- ✅ Sport-specific: weapons (shooting), sailing_boats, tennis/padel_courts
+- ✅ Uprawnienia federacyjne: judge_licenses, member_licenses
+- ✅ **Ujednolicony inventory sprzętu klubowego** — item + assignment tracking (M5)
+- ✅ **Uprawnienia trenerskie per sport** — 12 poziomów z alertami wygasania (M6)
+- ✅ **Dashboard zgodności WADA + zgód opiekunów** (M4)
+- ✅ Klucze API, szyfrowanie sensytywnych pól
+- ✅ Pełne szablony RODO + customizacja stylu
