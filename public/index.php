@@ -475,6 +475,8 @@ $router->post('/calendar/store',       [\App\Controllers\CalendarController::cla
 $router->get('/calendar/:id/edit',     [\App\Controllers\CalendarController::class, 'edit']);
 $router->post('/calendar/:id/update',  [\App\Controllers\CalendarController::class, 'update']);
 $router->post('/calendar/:id/delete',  [\App\Controllers\CalendarController::class, 'delete']);
+$router->get('/calendar/ical',         [\App\Controllers\CalendarController::class, 'icalSubscription']);
+$router->get('/cal/:token',            [\App\Controllers\CalendarController::class, 'calendarFeed']);
 
 // Transmisje live
 $router->get('/livestream',                [\App\Controllers\LivestreamController::class, 'index']);

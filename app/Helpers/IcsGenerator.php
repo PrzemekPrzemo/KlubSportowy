@@ -80,6 +80,12 @@ class IcsGenerator
         return gmdate('Ymd\THis\Z', $ts);
     }
 
+    /** Public alias for escaping iCal values from external callers. */
+    public static function escapePublic(string $value): string
+    {
+        return self::escape($value);
+    }
+
     /**
      * Escape special characters for iCal values.
      */
