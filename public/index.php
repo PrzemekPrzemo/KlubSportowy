@@ -403,9 +403,17 @@ $router->get('/portal/payments/success', [\App\Controllers\MemberPaymentControll
 $router->get('/portal/member-card',      [\App\Controllers\MemberPortalController::class, 'memberCard']);
 $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalController::class, 'uploadPhoto']);
 
+// Portal: pomiary ciała
+$router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
+
 // Portal: badania lekarskie + licencje
 $router->get('/portal/medical',          [\App\Controllers\MemberPortalController::class, 'medical']);
 $router->get('/portal/licenses',         [\App\Controllers\MemberPortalController::class, 'licenses']);
+
+// Admin: pomiary ciała zawodnika
+$router->get('/members/:id/metrics',              [\App\Controllers\BodyMetricsController::class, 'member']);
+$router->post('/members/:id/metrics/store',       [\App\Controllers\BodyMetricsController::class, 'store']);
+$router->post('/members/:id/metrics/:mid/delete', [\App\Controllers\BodyMetricsController::class, 'delete']);
 
 // Portal: zgody RODO
 $router->get('/portal/consents',         [\App\Controllers\MemberPortalController::class, 'consents']);

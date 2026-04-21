@@ -370,6 +370,22 @@ class MemberPortalController extends BaseController
         $this->redirect('portal/member-card');
     }
 
+    public function bodyMetrics(): void
+    {
+        MemberAuth::requireLogin();
+        $memberId = (int)MemberAuth::id();
+        $model    = new \App\Models\BodyMetricsModel();
+        $this->view->setLayout('portal');
+        $this->view->render('portal/body_metrics', [
+            'title'   => 'Pomiary ciała',
+            'member'  => MemberAuth::member(),
+            'metrics' => $model->listForMember($memberId, 100),
+            'latest'  => $model->latestForMember($memberId),
+            'history' => $model->weightHistory($memberId, 12),
+            'appName' => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
     public function medical(): void
     {
         MemberAuth::requireLogin();
