@@ -100,9 +100,16 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                 <i class="bi bi-clock-history me-1"></i>Historia
             </a>
             <?php
-            $sportKeys = ['bjj','gymnastics','floorball','padel','sailing','triathlon','crossfit'];
-            $sportLabels = ['bjj'=>'BJJ','gymnastics'=>'Gimnastyka','floorball'=>'Floorball',
-                            'padel'=>'Padel','sailing'=>'Żeglarstwo','triathlon'=>'Triathlon','crossfit'=>'CrossFit'];
+            $sportKeys = ['bjj','gymnastics','floorball','padel','sailing','triathlon','crossfit',
+                          'swimming','tennis','boxing','handball','cycling','icehockey','fencing',
+                          'taekwondo','weightlifting','climbing'];
+            $sportLabels = [
+                'bjj'=>'BJJ','gymnastics'=>'Gimnastyka','floorball'=>'Floorball',
+                'padel'=>'Padel','sailing'=>'Żeglarstwo','triathlon'=>'Triathlon','crossfit'=>'CrossFit',
+                'swimming'=>'Pływanie','tennis'=>'Tenis','boxing'=>'Boks','handball'=>'P.ręczna',
+                'cycling'=>'Kolarstwo','icehockey'=>'Hokej','fencing'=>'Szermierka',
+                'taekwondo'=>'Taekwondo','weightlifting'=>'Ciężary','climbing'=>'Wspinaczka',
+            ];
             foreach ($sportKeys as $sk):
                 $activeSports = $activeSports ?? [];
                 if (!empty($activeSports) && !in_array($sk, $activeSports)) continue;

@@ -26,7 +26,7 @@ class AdminAuditController extends BaseController
         'club_sports', 'trainings', 'calendar_event_categories', 'calendar_events',
         'announcements', 'weapons', 'weapon_assignments', 'ammo_stock',
         'ammo_transactions', 'judge_licenses',
-        // New sport modules
+        // New sport modules (S1-S10)
         'bjj_belts', 'bjj_results',
         'gymnastics_results', 'gymnastics_minor_consents',
         'floorball_teams', 'floorball_matches',
@@ -35,6 +35,17 @@ class AdminAuditController extends BaseController
         'triathlon_results',
         'crossfit_wods', 'crossfit_scores', 'crossfit_prs',
         'association_meetings',
+        // Batches N1-N10 (10 polskich związków sportowych)
+        'swimming_results',
+        'tennis_matches', 'tennis_rankings', 'tennis_courts',
+        'boxing_results', 'boxing_medicals',
+        'handball_teams', 'handball_players', 'handball_matches', 'handball_events',
+        'cycling_results', 'cycling_athletes', 'cycling_ftp_tests',
+        'icehockey_teams', 'icehockey_players', 'icehockey_matches', 'icehockey_events',
+        'fencing_results', 'fencing_fencers',
+        'taekwondo_belts', 'taekwondo_results',
+        'weightlifting_results', 'weightlifting_records',
+        'climbing_results', 'climbing_routes', 'climbing_sends',
     ];
 
     public function isolation(): void

@@ -252,22 +252,35 @@ Nie wymaga zewnętrznych kluczy API — odbiorca konfiguruje swój endpoint.
 
 **Uwaga:** PZPN udostępnia API partnerom — wymaga podpisania umowy.
 
-#### Pozostałe federacje (10 federacji)
+#### Pozostałe federacje (20 federacji — obsługiwane przez ręczne linki)
 
-Aktualnie obsługiwane przez **ręczne linki** do portali federacyjnych (bez API):
+Aktualnie obsługiwane przez **ręczne linki** do portali federacyjnych (bez API). Dla każdej z nich można w przyszłości podpiąć klucz API poprzez `club_settings` klucz: `federation_{skrót}_api_key`.
 
-| Federacja | Portal | Kontakt |
-|---|---|---|
-| PZKosz | pzkosz.pl | sekretariat@pzkosz.pl |
-| PZPS (siatkówka) | pzps.pl | biuro@pzps.pl |
-| PZLA (lekkoatletyka) | pzla.pl | biuro@pzla.pl |
-| PZHokeja | pzhl.pl | biuro@pzhl.pl |
-| PZRugby | pzrugby.pl | biuro@pzrugby.pl |
-| PZTenisa | pzt.pl | biuro@pzt.pl |
-| PZPływacki | pzp.com.pl | biuro@pzp.com.pl |
-| PZWioślarstwa | rowing.org.pl | biuro@rowing.org.pl |
-| PZJudo | pzjudo.pl | biuro@pzjudo.pl |
-| PZKarate | pzkarate.pl | kontakt@pzkarate.pl |
+| Federacja | Sport | Portal | Kontakt |
+|---|---|---|---|
+| PZKosz | Koszykówka | pzkosz.pl | sekretariat@pzkosz.pl |
+| PZPS | Siatkówka | pzps.pl | biuro@pzps.pl |
+| PZLA | Lekkoatletyka | pzla.pl | biuro@pzla.pl |
+| PZRugby | Rugby | pzrugby.pl | biuro@pzrugby.pl |
+| PZJudo | Judo | pzjudo.pl | biuro@pzjudo.pl |
+| PZKarate | Karate | pzkarate.pl | kontakt@pzkarate.pl |
+| **PZP** | **Pływanie** | polswim.pl | biuro@polswim.pl |
+| **PZT** | **Tenis ziemny** | polskitenis.pl | biuro@polskitenis.pl |
+| **PZBoks** | **Boks** | pzb.pl | biuro@pzb.pl |
+| **ZPRP** | **Piłka ręczna** | zprp.pl | kontakt@zprp.pl |
+| **PZKol** | **Kolarstwo** | pzkol.pl | biuro@pzkol.pl |
+| **PZHL** | **Hokej na lodzie** | pzhl.org.pl | sekretariat@pzhl.org.pl |
+| **PZSzerm** | **Szermierka** | pzszerm.pl | biuro@pzszerm.pl |
+| **PZTkd** | **Taekwondo WTF** | pztkd.pl | biuro@pztkd.pl |
+| **PKC (PZPC)** | **Podnoszenie ciężarów** | pzpc.pl | biuro@pzpc.pl |
+| **PZA** | **Wspinaczka sportowa** | pza.org.pl | biuro@pza.org.pl |
+
+> **Pogrubione** = nowo dodane sporty w batchach N1-N10.
+
+**Konfiguracja per klub (w panelu admin → Konfiguracja klubu → Sekcje sportowe):**
+- `sport_{key}_federation_id` — ID klubu w federacji (np. kod licencji zespołowej)
+- `sport_{key}_federation_login` / `_pass` — jeśli federacja ma portal z logowaniem
+- `sport_{key}_federation_api_key` — jeśli federacja udostępnia REST API
 
 ---
 
