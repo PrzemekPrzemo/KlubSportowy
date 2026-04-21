@@ -406,6 +406,11 @@ $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalControlle
 // Portal: pomiary ciała
 $router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
 
+// Admin: uprawnienia trenerskie i sędziowskie
+$router->get('/certifications',             [\App\Controllers\CoachCertificationsController::class, 'index']);
+$router->post('/certifications/store',      [\App\Controllers\CoachCertificationsController::class, 'store']);
+$router->post('/certifications/:id/delete', [\App\Controllers\CoachCertificationsController::class, 'delete']);
+
 // Admin: sprzęt klubowy
 $router->get('/equipment',                          [\App\Controllers\ClubEquipmentController::class, 'index']);
 $router->get('/equipment/:id',                      [\App\Controllers\ClubEquipmentController::class, 'show']);
