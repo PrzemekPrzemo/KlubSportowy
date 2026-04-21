@@ -751,6 +751,17 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'handball':
+                $tModel = new \App\Sports\Handball\Models\HandballTeamModel();
+                $mModel = new \App\Sports\Handball\Models\HandballMatchModel();
+                $myTeam = $tModel->playerTeam($memberId);
+                $data = array_merge($data, [
+                    'title'    => 'Piłka ręczna — Mój profil',
+                    'myTeam'   => $myTeam,
+                    'myStats'  => $mModel->statsForMember($memberId),
+                    'upcoming' => $myTeam ? $mModel->listForClub((int)$myTeam['id'], 'zaplanowany') : [],
+                ]);
+                break;
             case 'boxing':
                 $resModel = new \App\Sports\Boxing\Models\BoxingResultModel();
                 $medModel = new \App\Sports\Boxing\Models\BoxingMedicalModel();
