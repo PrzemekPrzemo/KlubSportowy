@@ -751,6 +751,17 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'boxing':
+                $resModel = new \App\Sports\Boxing\Models\BoxingResultModel();
+                $medModel = new \App\Sports\Boxing\Models\BoxingMedicalModel();
+                $all      = $resModel->listForClub($memberId);
+                $data = array_merge($data, [
+                    'title'   => 'Boks — Mój profil',
+                    'record'  => $resModel->recordForMember($memberId),
+                    'recent'  => array_slice($all, 0, 10),
+                    'medical' => $medModel->currentForMember($memberId),
+                ]);
+                break;
             case 'tennis':
                 $matchModel   = new \App\Sports\Tennis\Models\TennisMatchModel();
                 $rankingModel = new \App\Sports\Tennis\Models\TennisRankingModel();
