@@ -188,17 +188,24 @@ class MemberPortalController extends BaseController
         $upcoming = (new EventModel())->upcomingForClub(5);
         $trainings = (new TrainingModel())->upcomingForClub(5);
 
+        // Active sport keys per klub (filtruje kafelki dashboardu + nav)
+        $clubId = MemberAuth::clubId() ?? (int)($member['club_id'] ?? 0);
+        $activeSportKeys = $clubId
+            ? (new \App\Models\SportModel())->activeKeysForClub($clubId)
+            : [];
+
         $this->view->setLayout('portal');
         $this->view->render('portal/dashboard', [
-            'title'         => 'Witaj, ' . $member['first_name'],
-            'member'        => $member,
-            'payments'      => $payments['data'] ?? [],
-            'totalThisYear' => $totalThisYear,
-            'medical'       => $medical,
-            'licenses'      => $licenses,
-            'upcoming'      => $upcoming,
-            'trainings'     => $trainings,
-            'appName'       => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+            'title'           => 'Witaj, ' . $member['first_name'],
+            'member'          => $member,
+            'payments'        => $payments['data'] ?? [],
+            'totalThisYear'   => $totalThisYear,
+            'medical'         => $medical,
+            'licenses'        => $licenses,
+            'upcoming'        => $upcoming,
+            'trainings'       => $trainings,
+            'activeSportKeys' => $activeSportKeys,
+            'appName'         => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
     }
 

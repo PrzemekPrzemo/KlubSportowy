@@ -82,17 +82,26 @@ try {
 </div>
 
 <!-- Szybkie linki do nowych sekcji -->
+<?php
+// Pasy/stopnie widoczne tylko gdy klub ma aktywny sport ze stopniami
+$beltSports = ['bjj','judo','karate','aikido','taekwondo'];
+$showBelts = !empty(array_intersect($beltSports, $activeSportKeys ?? []));
+
+$tiles = [
+    ['portal/member-card',  'bi-person-badge',   'primary',   'Karta zawodnika'],
+    ['portal/announcements','bi-megaphone',       'warning',   'Ogłoszenia'],
+    ['portal/schedule',     'bi-calendar3',       'info',      'Plan treningów'],
+    ['portal/attendance',   'bi-list-check',      'success',   'Frekwencja'],
+    ['portal/results',      'bi-bar-chart',       'danger',    'Wyniki & Rankingi'],
+];
+if ($showBelts) {
+    $tiles[] = ['portal/belts', 'bi-award', 'dark', 'Pasy & Stopnie'];
+}
+$tiles[] = ['portal/consents',     'bi-shield-check',    'secondary', 'Zgody RODO'];
+$tiles[] = ['portal/tournaments',  'bi-trophy',          'primary',   'Zawody'];
+?>
 <div class="row g-2 mt-3">
-    <?php foreach ([
-        ['portal/member-card',  'bi-person-badge',   'primary',   'Karta zawodnika'],
-        ['portal/announcements','bi-megaphone',       'warning',   'Ogłoszenia'],
-        ['portal/schedule',     'bi-calendar3',       'info',      'Plan treningów'],
-        ['portal/attendance',   'bi-list-check',      'success',   'Frekwencja'],
-        ['portal/results',      'bi-bar-chart',       'danger',    'Wyniki & Rankingi'],
-        ['portal/belts',        'bi-award',           'dark',      'Pasy & Stopnie'],
-        ['portal/consents',     'bi-shield-check',    'secondary', 'Zgody RODO'],
-        ['portal/tournaments',  'bi-trophy',          'primary',   'Zawody'],
-    ] as [$link, $icon, $color, $label]): ?>
+    <?php foreach ($tiles as [$link, $icon, $color, $label]): ?>
     <div class="col-6 col-md-3">
         <a href="<?= url($link) ?>" class="card text-decoration-none text-<?= $color ?> p-3 d-flex flex-row align-items-center gap-2">
             <i class="bi <?= $icon ?> fs-4"></i>

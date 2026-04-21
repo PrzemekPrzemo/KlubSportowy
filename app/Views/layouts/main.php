@@ -134,16 +134,27 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     <?php endif; ?>
 
     <?php if (!empty($clubSports)): ?>
-        <div class="section-label"><?= __('nav.quick_switch') ?></div>
-        <?php foreach ($clubSports as $cs): ?>
-            <form method="POST" action="<?= url('sports/activate/' . (int)$cs['club_sport_id']) ?>" class="m-0">
-                <?= csrf_field() ?>
-                <button type="submit" class="btn btn-link text-start w-100 p-2" style="color:rgba(255,255,255,0.85); text-decoration:none;">
-                    <i class="bi <?= View::e($cs['icon'] ?? 'bi-dot') ?>"></i>
-                    <?= View::e($cs['name']) ?>
-                </button>
-            </form>
-        <?php endforeach; ?>
+        <?php
+        // Filtrowanie quick-switch: tylko sporty aktywne (cs_active=1),
+        // chyba że admin widok (super admin / zarząd może zobaczyć wszystkie)
+        $canSeeInactive = \App\Helpers\Auth::isSuperAdmin() || \App\Helpers\Auth::hasRole('zarzad');
+        $visibleSports  = array_filter($clubSports, fn($cs) => $canSeeInactive || (int)($cs['cs_active'] ?? 0) === 1);
+        ?>
+        <?php if (!empty($visibleSports)): ?>
+            <div class="section-label"><?= __('nav.quick_switch') ?></div>
+            <?php foreach ($visibleSports as $cs): ?>
+                <form method="POST" action="<?= url('sports/activate/' . (int)$cs['club_sport_id']) ?>" class="m-0">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-link text-start w-100 p-2" style="color:rgba(255,255,255,0.85); text-decoration:none;">
+                        <i class="bi <?= View::e($cs['icon'] ?? 'bi-dot') ?>"></i>
+                        <?= View::e($cs['name']) ?>
+                        <?php if ((int)($cs['cs_active'] ?? 0) === 0): ?>
+                            <span class="badge bg-secondary ms-1" style="font-size:0.65rem;">wyłączony</span>
+                        <?php endif; ?>
+                    </button>
+                </form>
+            <?php endforeach; ?>
+        <?php endif; ?>
     <?php endif; ?>
 
     <?php // Club settings — only when a club is actually selected

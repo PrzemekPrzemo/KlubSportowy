@@ -3,6 +3,7 @@
 namespace App\Sports\Swimming\Controllers;
 
 use App\Controllers\BaseController;
+use App\Controllers\Traits\RequiresActiveSport;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
 use App\Models\MemberModel;
@@ -10,11 +11,14 @@ use App\Sports\Swimming\Models\SwimmingResultModel;
 
 class ResultsController extends BaseController
 {
+    use RequiresActiveSport;
+
     public function __construct()
     {
         parent::__construct();
         $this->requireLogin();
         $this->requireClubContext();
+        $this->requireSportActive('swimming');
     }
 
     public function index(): void
