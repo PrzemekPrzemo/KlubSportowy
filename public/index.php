@@ -406,6 +406,12 @@ $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalControlle
 // Portal: pomiary ciała
 $router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
 
+// Admin: zgodność (anti-doping + zgody małoletnich)
+$router->get('/admin/compliance',                               [\App\Controllers\ComplianceController::class, 'index']);
+$router->post('/admin/compliance/declaration/store',            [\App\Controllers\ComplianceController::class, 'storeDeclaration']);
+$router->post('/admin/compliance/declaration/:id/delete',       [\App\Controllers\ComplianceController::class, 'deleteDeclaration']);
+$router->post('/admin/compliance/minor-consent/:id/store',      [\App\Controllers\ComplianceController::class, 'storeMinorConsent']);
+
 // Portal: dziennik treningowy
 $router->get('/portal/training-log',            [\App\Controllers\MemberPortalController::class, 'trainingLog']);
 $router->post('/portal/training-log/store',     [\App\Controllers\MemberPortalController::class, 'storeTrainingLog']);

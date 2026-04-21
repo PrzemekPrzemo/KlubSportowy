@@ -48,6 +48,7 @@ class AdminAuditController extends BaseController
         'climbing_results', 'climbing_routes', 'climbing_sends',
         // Profile extensions (M1-M6)
         'body_metrics', 'member_emergency_contacts', 'athlete_training_logs',
+        'anti_doping_declarations', 'minor_consents',
     ];
 
     public function isolation(): void
