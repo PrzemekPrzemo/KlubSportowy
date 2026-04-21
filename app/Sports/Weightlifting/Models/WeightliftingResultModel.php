@@ -50,16 +50,42 @@ class WeightliftingResultModel extends ClubScopedModel
         return round($total * pow(10, $A * $x * $x), 4);
     }
 
-    public function listForClub(): array
+    public function listForClub(?int $memberId = null): array
     {
         $clubId = $this->clubId();
         $sql = "SELECT wr.*, m.first_name, m.last_name, m.member_number
                 FROM weightlifting_results wr
                 JOIN members m ON m.id = wr.member_id
-                WHERE wr.club_id = ?
-                ORDER BY wr.competition_date DESC, m.last_name";
+                WHERE wr.club_id = ?";
+        $params = [$clubId];
+        if ($memberId !== null) {
+            $sql .= " AND wr.member_id = ?";
+            $params[] = $memberId;
+        }
+        $sql .= " ORDER BY wr.competition_date DESC, m.last_name";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$clubId]);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Returns member's best totals per weight_class (highest total, snatch, cj).
+     */
+    public function personalBests(int $memberId): array
+    {
+        $clubId = $this->clubId();
+        $stmt = $this->db->prepare(
+            "SELECT weight_class,
+                    MAX(snatch_best)    AS best_snatch,
+                    MAX(cleanjerk_best) AS best_cj,
+                    MAX(total)          AS best_total,
+                    MAX(sinclair_coeff) AS best_sinclair
+             FROM weightlifting_results
+             WHERE club_id = ? AND member_id = ?
+             GROUP BY weight_class
+             ORDER BY weight_class"
+        );
+        $stmt->execute([$clubId, $memberId]);
         return $stmt->fetchAll();
     }
 }

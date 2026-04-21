@@ -751,6 +751,14 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'weightlifting':
+                $rModel = new \App\Sports\Weightlifting\Models\WeightliftingResultModel();
+                $data = array_merge($data, [
+                    'title'         => 'Podnoszenie ciężarów — Mój profil',
+                    'personalBests' => $rModel->personalBests($memberId),
+                    'myResults'     => $rModel->listForClub($memberId),
+                ]);
+                break;
             case 'taekwondo':
                 $bModel = new \App\Sports\Taekwondo\Models\TaekwondoBeltModel();
                 $rModel = new \App\Sports\Taekwondo\Models\TaekwondoResultModel();
