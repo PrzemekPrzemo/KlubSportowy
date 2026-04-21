@@ -751,6 +751,15 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'climbing':
+                $resModel   = new \App\Sports\Climbing\Models\ClimbingResultModel();
+                $routeModel = new \App\Sports\Climbing\Models\ClimbingRouteModel();
+                $data = array_merge($data, [
+                    'title'        => 'Wspinaczka — Mój profil',
+                    'myResults'    => array_filter($resModel->listForClub(), fn($r) => (int)$r['member_id'] === $memberId),
+                    'activeRoutes' => $routeModel->activeRoutes(),
+                ]);
+                break;
             case 'weightlifting':
                 $rModel = new \App\Sports\Weightlifting\Models\WeightliftingResultModel();
                 $data = array_merge($data, [
