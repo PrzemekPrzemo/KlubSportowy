@@ -386,6 +386,16 @@ $router->get('/portal/dashboard',        [\App\Controllers\MemberPortalControlle
 $router->get('/portal/profile',          [\App\Controllers\MemberPortalController::class, 'profile']);
 $router->post('/portal/profile/update',  [\App\Controllers\MemberPortalController::class, 'updateProfile']);
 $router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);
+
+// Portal: 2FA TOTP
+$router->get('/portal/2fa/setup',                     [\App\Controllers\MemberTwoFactorController::class, 'setup']);
+$router->post('/portal/2fa/confirm',                  [\App\Controllers\MemberTwoFactorController::class, 'confirm']);
+$router->get('/portal/2fa/verify',                    [\App\Controllers\MemberTwoFactorController::class, 'verify']);
+$router->post('/portal/2fa/verify',                   [\App\Controllers\MemberTwoFactorController::class, 'verifySubmit']);
+$router->get('/portal/2fa/backup-codes',              [\App\Controllers\MemberTwoFactorController::class, 'backupCodes']);
+$router->post('/portal/2fa/backup-codes/regenerate',  [\App\Controllers\MemberTwoFactorController::class, 'regenerateBackup']);
+$router->post('/portal/2fa/disable',                  [\App\Controllers\MemberTwoFactorController::class, 'disable']);
+
 $router->get('/portal/fees',             [\App\Controllers\MemberPortalController::class, 'fees']);
 $router->get('/portal/events',           [\App\Controllers\MemberPortalController::class, 'events']);
 $router->get('/portal/sport-history',    [\App\Controllers\MemberPortalController::class, 'sportHistory']);

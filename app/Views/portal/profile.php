@@ -59,6 +59,32 @@
                 </div>
                 <button class="btn btn-warning w-100 btn-sm"><i class="bi bi-key"></i> Zmień hasło</button>
             </form>
+
+            <hr class="my-4">
+
+            <h5><i class="bi bi-shield-lock"></i> Uwierzytelnianie dwuetapowe (2FA)</h5>
+            <?php $member = $member ?? \App\Helpers\MemberAuth::member(); $has2fa = !empty($member['totp_enabled']) && !empty($member['totp_confirmed_at']); ?>
+            <?php if ($has2fa): ?>
+                <div class="alert alert-success small mb-2">
+                    <i class="bi bi-check-circle"></i> Aktywne od <?= \App\Helpers\View::e($member['totp_confirmed_at']) ?>
+                </div>
+                <a href="<?= url('portal/2fa/backup-codes') ?>" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                    <i class="bi bi-key"></i> Kody zapasowe
+                </a>
+                <form method="POST" action="<?= url('portal/2fa/disable') ?>" onsubmit="return confirm('Wyłączyć 2FA? Twoje konto będzie mniej bezpieczne.');">
+                    <?= csrf_field() ?>
+                    <input type="password" name="password" class="form-control form-control-sm mb-2" placeholder="Wpisz hasło aby wyłączyć" required>
+                    <button class="btn btn-outline-danger btn-sm w-100"><i class="bi bi-shield-x"></i> Wyłącz 2FA</button>
+                </form>
+            <?php else: ?>
+                <div class="alert alert-warning small mb-2">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    2FA nie jest włączone. Rekomendujemy gdy konto zawiera dane medyczne.
+                </div>
+                <a href="<?= url('portal/2fa/setup') ?>" class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-shield-lock"></i> Włącz 2FA
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </div>

@@ -91,6 +91,13 @@ class MemberPortalController extends BaseController
         }
 
         RateLimiter::reset($ip, 'portal_login');
+
+        // 2FA challenge — jeśli zawodnik ma włączone, przekieruj do weryfikacji
+        if (!empty($member['totp_enabled']) && !empty($member['totp_confirmed_at'])) {
+            Session::set('portal_pending_member_id', (int)$member['id']);
+            $this->redirect('portal/2fa/verify');
+        }
+
         MemberAuth::login($member);
         $db->prepare("UPDATE members SET portal_last_login = NOW() WHERE id = ?")->execute([$member['id']]);
 
