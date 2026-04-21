@@ -1,4 +1,5 @@
 <?php use App\Helpers\View; ?>
+<?php include ROOT_PATH . '/app/Views/shooting/_shotero_banner.php'; ?>
 <?php if (!empty($expiring)): ?>
 <div class="alert alert-warning">
     <strong><i class="bi bi-exclamation-triangle"></i> <?= count($expiring) ?> licencji wymaga odnowienia w ciągu 60 dni</strong>

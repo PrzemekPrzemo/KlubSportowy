@@ -1,4 +1,5 @@
 <?php use App\Helpers\View; ?>
+<?php include ROOT_PATH . '/app/Views/shooting/_shotero_banner.php'; ?>
 <div class="mb-3 text-end">
     <a href="<?= url('shooting/weapons/create') ?>" class="btn btn-success">
         <i class="bi bi-plus"></i> Nowa broń

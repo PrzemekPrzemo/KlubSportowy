@@ -151,6 +151,9 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                         <?php if ((int)($cs['cs_active'] ?? 0) === 0): ?>
                             <span class="badge bg-secondary ms-1" style="font-size:0.65rem;">wyłączony</span>
                         <?php endif; ?>
+                        <?php if (($cs['key'] ?? '') === 'shooting'): ?>
+                            <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;" title="Użyj shotero.pl dla pełnej obsługi PZSS">shotero.pl</span>
+                        <?php endif; ?>
                     </button>
                 </form>
             <?php endforeach; ?>
