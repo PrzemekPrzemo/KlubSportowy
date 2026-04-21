@@ -751,6 +751,15 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'fencing':
+                $fModel = new \App\Sports\Fencing\Models\FencingFencerModel();
+                $rModel = new \App\Sports\Fencing\Models\FencingResultModel();
+                $data = array_merge($data, [
+                    'title'     => 'Szermierka — Mój profil',
+                    'myProfile' => $fModel->forMember($memberId),
+                    'myResults' => array_filter($rModel->listForClub(), fn($r) => (int)$r['member_id'] === $memberId),
+                ]);
+                break;
             case 'icehockey':
                 $tModel = new \App\Sports\IceHockey\Models\IceHockeyTeamModel();
                 $mModel = new \App\Sports\IceHockey\Models\IceHockeyMatchModel();
