@@ -751,6 +751,17 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'taekwondo':
+                $bModel = new \App\Sports\Taekwondo\Models\TaekwondoBeltModel();
+                $rModel = new \App\Sports\Taekwondo\Models\TaekwondoResultModel();
+                $allBelts = array_filter($bModel->listForClub(), fn($b) => (int)$b['member_id'] === $memberId);
+                $data = array_merge($data, [
+                    'title'        => 'Taekwondo — Mój profil',
+                    'currentBelt'  => $bModel->currentBelt($memberId),
+                    'beltHistory'  => array_values($allBelts),
+                    'myResults'    => array_filter($rModel->listForClub(), fn($r) => (int)$r['member_id'] === $memberId),
+                ]);
+                break;
             case 'fencing':
                 $fModel = new \App\Sports\Fencing\Models\FencingFencerModel();
                 $rModel = new \App\Sports\Fencing\Models\FencingResultModel();
