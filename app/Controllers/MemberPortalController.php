@@ -370,6 +370,69 @@ class MemberPortalController extends BaseController
         $this->redirect('portal/member-card');
     }
 
+    public function trainingLog(): void
+    {
+        MemberAuth::requireLogin();
+        $memberId  = (int)MemberAuth::id();
+        $weekStart = $_GET['week'] ?? date('Y-m-d', strtotime('monday this week'));
+        $weekStart = preg_replace('/[^0-9\-]/', '', $weekStart);
+        if (strtotime($weekStart) === false) {
+            $weekStart = date('Y-m-d', strtotime('monday this week'));
+        }
+
+        $model = new \App\Models\AthleteTrainingLogModel();
+        $this->view->setLayout('portal');
+        $this->view->render('portal/training_log', [
+            'title'     => 'Dziennik treningowy',
+            'member'    => MemberAuth::member(),
+            'weekStart' => $weekStart,
+            'weekLogs'  => $model->weekLogs($memberId, $weekStart),
+            'weekTotal' => $model->weeklyTotal($memberId, $weekStart),
+            'appName' => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    public function storeTrainingLog(): void
+    {
+        MemberAuth::requireLogin();
+        \App\Helpers\Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+
+        $sessionType = array_key_exists($_POST['session_type'] ?? '', \App\Models\AthleteTrainingLogModel::$SESSION_TYPES)
+            ? $_POST['session_type'] : 'trening';
+
+        (new \App\Models\AthleteTrainingLogModel())->insert([
+            'member_id'    => $memberId,
+            'log_date'     => trim($_POST['log_date'] ?? '') ?: date('Y-m-d'),
+            'session_type' => $sessionType,
+            'sport_key'    => trim($_POST['sport_key'] ?? '') ?: null,
+            'duration_min' => !empty($_POST['duration_min']) ? (int)$_POST['duration_min'] : null,
+            'distance_km'  => !empty($_POST['distance_km'])  ? (float)$_POST['distance_km'] : null,
+            'volume_kg'    => !empty($_POST['volume_kg'])    ? (int)$_POST['volume_kg'] : null,
+            'intensity'    => !empty($_POST['intensity'])    ? max(1, min(10, (int)$_POST['intensity'])) : null,
+            'avg_hr'       => !empty($_POST['avg_hr'])       ? (int)$_POST['avg_hr'] : null,
+            'max_hr'       => !empty($_POST['max_hr'])       ? (int)$_POST['max_hr'] : null,
+            'avg_power_w'  => !empty($_POST['avg_power_w'])  ? (int)$_POST['avg_power_w'] : null,
+            'notes'        => trim($_POST['notes'] ?? '') ?: null,
+        ]);
+        \App\Helpers\Session::flash('success', 'Sesja treningowa zapisana.');
+        $this->redirect('portal/training-log');
+    }
+
+    public function deleteTrainingLog(string $id): void
+    {
+        MemberAuth::requireLogin();
+        \App\Helpers\Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        $model = new \App\Models\AthleteTrainingLogModel();
+        $row   = $model->findById((int)$id);
+        if ($row && (int)$row['member_id'] === $memberId) {
+            $model->delete((int)$id);
+            \App\Helpers\Session::flash('success', 'Sesja usunięta.');
+        }
+        $this->redirect('portal/training-log');
+    }
+
     public function emergencyContacts(): void
     {
         MemberAuth::requireLogin();

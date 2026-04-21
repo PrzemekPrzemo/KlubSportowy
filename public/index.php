@@ -406,6 +406,11 @@ $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalControlle
 // Portal: pomiary ciała
 $router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
 
+// Portal: dziennik treningowy
+$router->get('/portal/training-log',            [\App\Controllers\MemberPortalController::class, 'trainingLog']);
+$router->post('/portal/training-log/store',     [\App\Controllers\MemberPortalController::class, 'storeTrainingLog']);
+$router->post('/portal/training-log/:id/delete',[\App\Controllers\MemberPortalController::class, 'deleteTrainingLog']);
+
 // Portal: kontakty awaryjne
 $router->get('/portal/emergency-contacts',                   [\App\Controllers\MemberPortalController::class, 'emergencyContacts']);
 $router->post('/portal/emergency-contacts/store',            [\App\Controllers\MemberPortalController::class, 'storeEmergencyContact']);
