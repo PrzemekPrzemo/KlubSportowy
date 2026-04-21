@@ -751,6 +751,21 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'tennis':
+                $matchModel   = new \App\Sports\Tennis\Models\TennisMatchModel();
+                $rankingModel = new \App\Sports\Tennis\Models\TennisRankingModel();
+                $ranking      = $rankingModel->ranking();
+                $entry        = null;
+                foreach ($ranking as $r) {
+                    if ((int)$r['member_id'] === $memberId) { $entry = $r; break; }
+                }
+                $data = array_merge($data, [
+                    'title'         => 'Tenis — Mój profil',
+                    'myMatches'     => $matchModel->listForClub($memberId),
+                    'stats'         => $matchModel->statsForMember($memberId),
+                    'rankingEntry'  => $entry,
+                ]);
+                break;
             default:
                 Session::flash('error', 'Nieznana sekcja sportowa.');
                 $this->redirect('portal/dashboard');
