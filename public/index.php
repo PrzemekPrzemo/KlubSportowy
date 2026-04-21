@@ -406,6 +406,14 @@ $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalControlle
 // Portal: pomiary ciała
 $router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
 
+// Admin: sprzęt klubowy
+$router->get('/equipment',                          [\App\Controllers\ClubEquipmentController::class, 'index']);
+$router->get('/equipment/:id',                      [\App\Controllers\ClubEquipmentController::class, 'show']);
+$router->post('/equipment/store',                   [\App\Controllers\ClubEquipmentController::class, 'store']);
+$router->post('/equipment/:id/delete',              [\App\Controllers\ClubEquipmentController::class, 'delete']);
+$router->post('/equipment/:id/assign',              [\App\Controllers\ClubEquipmentController::class, 'assign']);
+$router->post('/equipment/:id/return/:aid',         [\App\Controllers\ClubEquipmentController::class, 'returnItem']);
+
 // Admin: zgodność (anti-doping + zgody małoletnich)
 $router->get('/admin/compliance',                               [\App\Controllers\ComplianceController::class, 'index']);
 $router->post('/admin/compliance/declaration/store',            [\App\Controllers\ComplianceController::class, 'storeDeclaration']);

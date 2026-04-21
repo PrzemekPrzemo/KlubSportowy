@@ -49,6 +49,7 @@ class AdminAuditController extends BaseController
         // Profile extensions (M1-M6)
         'body_metrics', 'member_emergency_contacts', 'athlete_training_logs',
         'anti_doping_declarations', 'minor_consents',
+        'club_equipment_items', 'club_equipment_assignments',
     ];
 
     public function isolation(): void
