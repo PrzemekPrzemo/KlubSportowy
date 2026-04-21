@@ -2,9 +2,33 @@
 
 namespace App\Models;
 
+use App\Models\Traits\EncryptsFields;
+
 class MedicalExamModel extends ClubScopedModel
 {
+    use EncryptsFields;
+
     protected string $table = 'member_medical_exams';
+
+    /** Pola z danymi szczególnej kategorii (RODO art. 9). */
+    protected static array $ENCRYPTED_FIELDS = ['doctor_name', 'notes', 'document_path'];
+
+    public function insert(array $data): int
+    {
+        $data = $this->encryptFields($data);
+        return parent::insert($data);
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        $data = $this->encryptFields($data);
+        return parent::update($id, $data);
+    }
+
+    public function findById(int $id): ?array
+    {
+        return $this->decryptRow(parent::findById($id));
+    }
 
     public function listForClub(?int $memberId = null, int $page = 1, int $perPage = 25): array
     {
@@ -18,7 +42,11 @@ class MedicalExamModel extends ClubScopedModel
         if ($clubId !== null) { $sql .= " AND me.club_id = ?"; $params[] = $clubId; }
         if ($memberId !== null) { $sql .= " AND me.member_id = ?"; $params[] = $memberId; }
         $sql .= " ORDER BY me.valid_until DESC";
-        return $this->paginate($sql, $params, $page, $perPage);
+        $result = $this->paginate($sql, $params, $page, $perPage);
+        if (isset($result['data'])) {
+            $result['data'] = $this->decryptRows($result['data']);
+        }
+        return $result;
     }
 
     public function expiringSoon(int $days = 30): array
@@ -36,7 +64,7 @@ class MedicalExamModel extends ClubScopedModel
         $sql .= " ORDER BY me.valid_until ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        return $this->decryptRows($stmt->fetchAll());
     }
 
     public function latestForMember(int $memberId): ?array
@@ -46,6 +74,6 @@ class MedicalExamModel extends ClubScopedModel
         );
         $stmt->execute([$memberId]);
         $row = $stmt->fetch();
-        return $row ?: null;
+        return $this->decryptRow($row ?: null);
     }
 }

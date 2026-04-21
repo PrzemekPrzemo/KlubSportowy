@@ -2,9 +2,19 @@
 
 namespace App\Models;
 
+use App\Helpers\Encryption;
+use App\Models\Traits\EncryptsFields;
+
 class MinorConsentModel extends ClubScopedModel
 {
+    use EncryptsFields;
+
     protected string $table = 'minor_consents';
+
+    /** Dane opiekuna + PESEL = dane szczególnej kategorii. */
+    protected static array $ENCRYPTED_FIELDS = [
+        'guardian_phone', 'guardian_email', 'guardian_id_number', 'notes', 'document_path'
+    ];
 
     public function forMember(int $memberId): ?array
     {
@@ -15,7 +25,7 @@ class MinorConsentModel extends ClubScopedModel
              LIMIT 1"
         );
         $stmt->execute([$clubId, $memberId]);
-        return $stmt->fetch() ?: null;
+        return $this->decryptRow($stmt->fetch() ?: null);
     }
 
     public function upsert(int $memberId, array $data): void
@@ -23,6 +33,8 @@ class MinorConsentModel extends ClubScopedModel
         $clubId = $this->clubId();
         $data['club_id']   = $clubId;
         $data['member_id'] = $memberId;
+        // Szyfruj pola wrażliwe przed zapisem
+        $data = $this->encryptFields($data);
         $stmt = $this->db->prepare(
             "INSERT INTO minor_consents (club_id, member_id, guardian_name, guardian_id_number,
                                           guardian_phone, guardian_email, photo_consent, media_consent,

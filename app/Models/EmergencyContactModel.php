@@ -2,9 +2,30 @@
 
 namespace App\Models;
 
+use App\Models\Traits\EncryptsFields;
+
 class EmergencyContactModel extends ClubScopedModel
 {
+    use EncryptsFields;
+
     protected string $table = 'member_emergency_contacts';
+
+    protected static array $ENCRYPTED_FIELDS = ['phone', 'phone_alt', 'email', 'notes'];
+
+    public function insert(array $data): int
+    {
+        return parent::insert($this->encryptFields($data));
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        return parent::update($id, $this->encryptFields($data));
+    }
+
+    public function findById(int $id): ?array
+    {
+        return $this->decryptRow(parent::findById($id));
+    }
 
     public static array $RELATIONSHIPS = [
         'rodzic'     => 'Rodzic',
@@ -25,7 +46,7 @@ class EmergencyContactModel extends ClubScopedModel
              ORDER BY is_primary DESC, created_at ASC"
         );
         $stmt->execute([$clubId, $memberId]);
-        return $stmt->fetchAll();
+        return $this->decryptRows($stmt->fetchAll());
     }
 
     public function primaryForMember(int $memberId): ?array
@@ -37,7 +58,7 @@ class EmergencyContactModel extends ClubScopedModel
              ORDER BY id DESC LIMIT 1"
         );
         $stmt->execute([$clubId, $memberId]);
-        return $stmt->fetch() ?: null;
+        return $this->decryptRow($stmt->fetch() ?: null);
     }
 
     /**

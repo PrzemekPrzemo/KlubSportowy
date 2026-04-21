@@ -2,9 +2,30 @@
 
 namespace App\Models;
 
+use App\Models\Traits\EncryptsFields;
+
 class BodyMetricsModel extends ClubScopedModel
 {
+    use EncryptsFields;
+
     protected string $table = 'body_metrics';
+
+    protected static array $ENCRYPTED_FIELDS = ['notes', 'measured_by'];
+
+    public function insert(array $data): int
+    {
+        return parent::insert($this->encryptFields($data));
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        return parent::update($id, $this->encryptFields($data));
+    }
+
+    public function findById(int $id): ?array
+    {
+        return $this->decryptRow(parent::findById($id));
+    }
 
     public function listForMember(int $memberId, int $limit = 50): array
     {
@@ -16,7 +37,7 @@ class BodyMetricsModel extends ClubScopedModel
              LIMIT " . max(1, (int)$limit)
         );
         $stmt->execute([$clubId, $memberId]);
-        return $stmt->fetchAll();
+        return $this->decryptRows($stmt->fetchAll());
     }
 
     public function latestForMember(int $memberId): ?array
@@ -29,7 +50,7 @@ class BodyMetricsModel extends ClubScopedModel
              LIMIT 1"
         );
         $stmt->execute([$clubId, $memberId]);
-        return $stmt->fetch() ?: null;
+        return $this->decryptRow($stmt->fetch() ?: null);
     }
 
     /**
@@ -92,6 +113,6 @@ class BodyMetricsModel extends ClubScopedModel
         $sql .= " ORDER BY bm.measured_at DESC, m.last_name";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        return $this->decryptRows($stmt->fetchAll());
     }
 }

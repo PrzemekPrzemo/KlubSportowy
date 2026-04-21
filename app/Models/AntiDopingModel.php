@@ -2,9 +2,30 @@
 
 namespace App\Models;
 
+use App\Models\Traits\EncryptsFields;
+
 class AntiDopingModel extends ClubScopedModel
 {
+    use EncryptsFields;
+
     protected string $table = 'anti_doping_declarations';
+
+    protected static array $ENCRYPTED_FIELDS = ['witness', 'notes', 'document_path'];
+
+    public function insert(array $data): int
+    {
+        return parent::insert($this->encryptFields($data));
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        return parent::update($id, $this->encryptFields($data));
+    }
+
+    public function findById(int $id): ?array
+    {
+        return $this->decryptRow(parent::findById($id));
+    }
 
     public static array $DECLARATION_TYPES = [
         'WADA'     => 'WADA (World Anti-Doping Agency)',
@@ -32,7 +53,7 @@ class AntiDopingModel extends ClubScopedModel
              LIMIT 1"
         );
         $stmt->execute([$clubId, $memberId]);
-        return $stmt->fetch() ?: null;
+        return $this->decryptRow($stmt->fetch() ?: null);
     }
 
     public function listForClub(?string $dateFrom = null): array
@@ -48,7 +69,7 @@ class AntiDopingModel extends ClubScopedModel
         $sql .= " ORDER BY ad.valid_until ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        return $this->decryptRows($stmt->fetchAll());
     }
 
     public function expiringSoon(int $days = 30): array
@@ -64,7 +85,7 @@ class AntiDopingModel extends ClubScopedModel
              ORDER BY ad.valid_until ASC"
         );
         $stmt->execute([$clubId, $days]);
-        return $stmt->fetchAll();
+        return $this->decryptRows($stmt->fetchAll());
     }
 
     /**
