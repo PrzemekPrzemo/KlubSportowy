@@ -751,6 +751,16 @@ class MemberPortalController extends BaseController
                     'recent'        => array_slice($all, 0, 15),
                 ]);
                 break;
+            case 'cycling':
+                $ftpModel = new \App\Sports\Cycling\Models\CyclingFtpModel();
+                $resModel = new \App\Sports\Cycling\Models\CyclingResultModel();
+                $data = array_merge($data, [
+                    'title'      => 'Kolarstwo — Mój profil',
+                    'latestFtp'  => $ftpModel->latestForMember($memberId),
+                    'ftpHistory' => array_slice($ftpModel->listForClub($memberId), 0, 10),
+                    'results'    => array_filter($resModel->listForClub(), fn($r) => (int)$r['member_id'] === $memberId),
+                ]);
+                break;
             case 'handball':
                 $tModel = new \App\Sports\Handball\Models\HandballTeamModel();
                 $mModel = new \App\Sports\Handball\Models\HandballMatchModel();
