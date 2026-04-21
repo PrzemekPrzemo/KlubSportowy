@@ -47,7 +47,7 @@ class AdminAuditController extends BaseController
         'weightlifting_results', 'weightlifting_records',
         'climbing_results', 'climbing_routes', 'climbing_sends',
         // Profile extensions (M1-M6)
-        'body_metrics',
+        'body_metrics', 'member_emergency_contacts',
     ];
 
     public function isolation(): void

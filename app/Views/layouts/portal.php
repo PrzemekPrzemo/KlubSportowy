@@ -130,6 +130,9 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <a href="<?= url('portal/body-metrics') ?>" class="<?= $isActive('body-metrics') ?>">
                 <i class="bi bi-activity me-1"></i>Pomiary
             </a>
+            <a href="<?= url('portal/emergency-contacts') ?>" class="<?= $isActive('emergency-contacts') ?>">
+                <i class="bi bi-telephone-fill me-1"></i>Kontakt awaryjny
+            </a>
             <a href="<?= url('portal/medical') ?>" class="<?= $isActive('medical') ?>">
                 <i class="bi bi-heart-pulse me-1"></i>Badania
             </a>

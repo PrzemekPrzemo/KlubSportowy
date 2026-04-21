@@ -406,6 +406,17 @@ $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalControlle
 // Portal: pomiary ciała
 $router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
 
+// Portal: kontakty awaryjne
+$router->get('/portal/emergency-contacts',                   [\App\Controllers\MemberPortalController::class, 'emergencyContacts']);
+$router->post('/portal/emergency-contacts/store',            [\App\Controllers\MemberPortalController::class, 'storeEmergencyContact']);
+$router->post('/portal/emergency-contacts/:id/delete',       [\App\Controllers\MemberPortalController::class, 'deleteEmergencyContact']);
+
+// Admin: kontakty awaryjne zawodnika
+$router->get('/members/:id/emergency-contacts',                  [\App\Controllers\EmergencyContactsController::class, 'member']);
+$router->post('/members/:id/emergency-contacts/store',           [\App\Controllers\EmergencyContactsController::class, 'store']);
+$router->post('/members/:id/emergency-contacts/:cid/primary',    [\App\Controllers\EmergencyContactsController::class, 'makePrimary']);
+$router->post('/members/:id/emergency-contacts/:cid/delete',     [\App\Controllers\EmergencyContactsController::class, 'delete']);
+
 // Portal: badania lekarskie + licencje
 $router->get('/portal/medical',          [\App\Controllers\MemberPortalController::class, 'medical']);
 $router->get('/portal/licenses',         [\App\Controllers\MemberPortalController::class, 'licenses']);

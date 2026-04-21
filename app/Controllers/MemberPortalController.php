@@ -370,6 +370,63 @@ class MemberPortalController extends BaseController
         $this->redirect('portal/member-card');
     }
 
+    public function emergencyContacts(): void
+    {
+        MemberAuth::requireLogin();
+        $memberId = (int)MemberAuth::id();
+        $model    = new \App\Models\EmergencyContactModel();
+        $this->view->setLayout('portal');
+        $this->view->render('portal/emergency_contacts', [
+            'title'         => 'Kontakty awaryjne',
+            'member'        => MemberAuth::member(),
+            'contacts'      => $model->listForMember($memberId),
+            'relationships' => \App\Models\EmergencyContactModel::$RELATIONSHIPS,
+            'appName' => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    public function storeEmergencyContact(): void
+    {
+        MemberAuth::requireLogin();
+        \App\Helpers\Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        $name     = trim($_POST['contact_name'] ?? '');
+        $phone    = trim($_POST['phone'] ?? '');
+        if ($name === '' || $phone === '') {
+            \App\Helpers\Session::flash('error', 'Imię i telefon są wymagane.');
+            $this->redirect('portal/emergency-contacts');
+        }
+
+        $rel = array_key_exists($_POST['relationship'] ?? '', \App\Models\EmergencyContactModel::$RELATIONSHIPS)
+            ? $_POST['relationship'] : 'rodzic';
+
+        $model = new \App\Models\EmergencyContactModel();
+        $id = $model->insert([
+            'member_id'    => $memberId,
+            'contact_name' => $name,
+            'relationship' => $rel,
+            'phone'        => $phone,
+            'phone_alt'    => trim($_POST['phone_alt'] ?? '') ?: null,
+            'email'        => trim($_POST['email'] ?? '') ?: null,
+            'is_primary'   => isset($_POST['is_primary']) ? 1 : 0,
+            'notes'        => trim($_POST['notes'] ?? '') ?: null,
+        ]);
+        if (isset($_POST['is_primary'])) {
+            $model->setPrimary($memberId, (int)$id);
+        }
+        \App\Helpers\Session::flash('success', 'Kontakt dodany.');
+        $this->redirect('portal/emergency-contacts');
+    }
+
+    public function deleteEmergencyContact(string $id): void
+    {
+        MemberAuth::requireLogin();
+        \App\Helpers\Csrf::verify();
+        (new \App\Models\EmergencyContactModel())->delete((int)$id);
+        \App\Helpers\Session::flash('success', 'Kontakt usunięty.');
+        $this->redirect('portal/emergency-contacts');
+    }
+
     public function bodyMetrics(): void
     {
         MemberAuth::requireLogin();
