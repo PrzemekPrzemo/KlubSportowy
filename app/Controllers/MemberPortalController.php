@@ -892,6 +892,125 @@ class MemberPortalController extends BaseController
                     'leaderboardPositions'=> $leaderboard,
                 ]);
                 break;
+            case 'rugby':
+                $tModel = new \App\Sports\Rugby\Models\RugbyTeamModel();
+                $mModel = new \App\Sports\Rugby\Models\RugbyMatchModel();
+                $myTeam = $tModel->playerTeam($memberId);
+                $data = array_merge($data, [
+                    'title'         => 'Rugby — Mój profil',
+                    'myTeam'        => $myTeam,
+                    'myStats'       => $mModel->statsForMember($memberId),
+                    'recentMatches' => $myTeam ? array_slice($mModel->listForClub((int)$myTeam['id']), 0, 10) : [],
+                ]);
+                break;
+            case 'alpineski':
+                $rModel = new \App\Sports\AlpineSki\Models\AlpineSkiResultModel();
+                $data = array_merge($data, [
+                    'title'     => 'Narciarstwo alpejskie — Mój profil',
+                    'myResults' => $rModel->listForClub($memberId),
+                    'bestFis'   => $rModel->bestFisPoints($memberId),
+                ]);
+                break;
+            case 'xcski':
+                $rModel = new \App\Sports\XcSki\Models\XcSkiResultModel();
+                $data = array_merge($data, [
+                    'title'     => 'Narciarstwo biegowe — Mój profil',
+                    'myResults' => $rModel->listForClub($memberId),
+                    'bestFis'   => $rModel->bestFisPoints($memberId),
+                ]);
+                break;
+            case 'skijump':
+                $rModel = new \App\Sports\SkiJump\Models\SkiJumpResultModel();
+                $data = array_merge($data, [
+                    'title'     => 'Skoki narciarskie — Mój profil',
+                    'myResults' => $rModel->listForClub($memberId),
+                    'longest'   => $rModel->longestJump($memberId),
+                ]);
+                break;
+            case 'snowboard':
+                $rModel = new \App\Sports\Snowboard\Models\SnowboardResultModel();
+                $data = array_merge($data, [
+                    'title'      => 'Snowboard — Mój profil',
+                    'myResults'  => $rModel->listForClub($memberId),
+                    'bestScores' => $rModel->bestScorePerDiscipline($memberId),
+                ]);
+                break;
+            case 'figureskating':
+                $rModel = new \App\Sports\FigureSkating\Models\FigureSkatingResultModel();
+                $data = array_merge($data, [
+                    'title'     => 'Łyżwiarstwo figurowe — Mój profil',
+                    'myResults' => $rModel->listForClub($memberId),
+                    'bests'     => $rModel->bestPerDiscipline($memberId),
+                ]);
+                break;
+            case 'biathlon':
+                $rModel = new \App\Sports\Biathlon\Models\BiathlonResultModel();
+                $data = array_merge($data, [
+                    'title'     => 'Biathlon — Mój profil',
+                    'myResults' => $rModel->listForClub($memberId),
+                    'accuracy'  => $rModel->accuracyStats($memberId),
+                ]);
+                break;
+            case 'kickboxing':
+                $bModel = new \App\Sports\Kickboxing\Models\KickboxingBeltModel();
+                $rModel = new \App\Sports\Kickboxing\Models\KickboxingResultModel();
+                $data = array_merge($data, [
+                    'title'       => 'Kickboxing — Mój profil',
+                    'currentBelt' => $bModel->currentBelt($memberId),
+                    'record'      => $rModel->recordForMember($memberId),
+                    'recent'      => $rModel->listForClub($memberId),
+                ]);
+                break;
+            case 'mma':
+                $fModel = new \App\Sports\Mma\Models\MmaFighterModel();
+                $rModel = new \App\Sports\Mma\Models\MmaResultModel();
+                $data = array_merge($data, [
+                    'title'      => 'MMA — Mój profil',
+                    'fighter'    => $fModel->forMember($memberId),
+                    'record'     => $rModel->recordForMember($memberId),
+                    'winMethods' => $rModel->winMethods($memberId),
+                    'myResults'  => $rModel->listForClub($memberId),
+                ]);
+                break;
+            case 'kayaking':
+                $rModel = new \App\Sports\Kayaking\Models\KayakResultModel();
+                $data = array_merge($data, [
+                    'title'     => 'Kajakarstwo — Mój profil',
+                    'myResults' => $rModel->listForClub($memberId),
+                    'pbs'       => $rModel->personalBests($memberId),
+                ]);
+                break;
+            case 'golf':
+                $hModel = new \App\Sports\Golf\Models\GolfHandicapModel();
+                $rModel = new \App\Sports\Golf\Models\GolfRoundModel();
+                $data = array_merge($data, [
+                    'title'            => 'Golf — Mój profil',
+                    'currentHandicap'  => $hModel->currentForMember($memberId),
+                    'bestRound'        => $rModel->bestScore($memberId),
+                    'myRounds'         => $rModel->listForClub($memberId),
+                ]);
+                break;
+            case 'bridge':
+                $pModel = new \App\Sports\Bridge\Models\BridgePartnershipModel();
+                $tModel = new \App\Sports\Bridge\Models\BridgeTournamentModel();
+                $data = array_merge($data, [
+                    'title'          => 'Brydż — Mój profil',
+                    'myPartnerships' => $pModel->partnershipsForMember($memberId),
+                    'myTournaments'  => $tModel->tournamentsForMember($memberId),
+                    'totalPzbs'      => $tModel->totalPzbsPoints($memberId),
+                ]);
+                break;
+            case 'fieldhockey':
+                $tModel = new \App\Sports\FieldHockey\Models\FieldHockeyTeamModel();
+                $mModel = new \App\Sports\FieldHockey\Models\FieldHockeyMatchModel();
+                $myTeam = $tModel->playerTeam($memberId);
+                $data = array_merge($data, [
+                    'title'         => 'Hokej na trawie — Mój profil',
+                    'myTeam'        => $myTeam,
+                    'myStats'       => $mModel->statsForMember($memberId),
+                    'recentMatches' => $myTeam ? array_slice($mModel->listForClub((int)$myTeam['id']), 0, 10) : [],
+                ]);
+                break;
             case 'swimming':
                 $resModel = new \App\Sports\Swimming\Models\SwimmingResultModel();
                 $all      = $resModel->listForClub($memberId);

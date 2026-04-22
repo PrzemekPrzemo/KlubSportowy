@@ -553,3 +553,54 @@ sędziowskie). **Pełna obsługa PZSS** (integracja system.pzss.pl, patenty, imp
 rejestr zawodników) dostępna na dedykowanej platformie **[shotero.pl](https://shotero.pl)**.
 Kluby PZSS są rekomendowane do shotero.pl — nowe funkcjonalności PZSS NIE będą dodawane
 w ClubDesk. Moduł zachowany dla backward compat.
+
+---
+
+## Dodatkowe federacje (batche X1-X13) — droga do 50 sportów
+
+13 kolejnych federacji z polskich związków sportowych. **Brak publicznego API** dla klubów
+w większości przypadków — konfiguracja ręczna przez `club_settings[sport_{key}_federation_id]`
+i ewentualnie `_login/_pass` dla portali webowych.
+
+| # | Sport | Federacja | Portal | Kontakt | Potencjalne API |
+|---|---|---|---|---|---|
+| X1 | Rugby | PZRugby | pzrugby.com.pl | biuro@pzrugby.com.pl | — |
+| X2 | Narciarstwo alpejskie | PZN Alpine | pzn.pl | sekretariat@pzn.pl | **FIS data.fis-ski.com (public read-only)** |
+| X3 | Narciarstwo biegowe | PZN XC | pzn.pl | sekretariat@pzn.pl | **FIS data.fis-ski.com** |
+| X4 | Skoki narciarskie | PZN SJ | pzn.pl | sekretariat@pzn.pl | **FIS data.fis-ski.com** |
+| X5 | Snowboard | PZN SB | pzn.pl | sekretariat@pzn.pl | **FIS data.fis-ski.com** |
+| X6 | Łyżwiarstwo figurowe | PZLF | pzlf.pl | biuro@pzlf.pl | ISU data (read-only) |
+| X7 | Biathlon | PZBiathlon | pzbiathlon.pl | biuro@pzbiathlon.pl | IBU data.ibu.blue |
+| X8 | Kickboxing | PZKick | pzkickboxing.pl | kontakt@pzkickboxing.pl | — |
+| X9 | MMA | PZMMA | pzmma.pl | kontakt@pzmma.pl | — |
+| X10 | Kajakarstwo | PZKajak | pzkaj.pl | pzk@pzkaj.pl | — |
+| X11 | Golf | PZGolfa | pzgolf.pl | biuro@pzgolf.pl | **WHS handicap portal (USGA/R&A)** |
+| X12 | Brydż sportowy | PZBS | pzbs.pl | pzbs@pzbs.pl | — |
+| X13 | Hokej na trawie | PZHnT | pzhnt.pl | sekretariat@pzhnt.pl | — |
+
+### Rekomendowane integracje (po uzyskaniu kluczy)
+
+**FIS API (data.fis-ski.com)** — publiczny read-only API z punktami FIS dla:
+- narciarstwa alpejskiego (alpine_ski_results.fis_points)
+- narciarstwa biegowego (xc_ski_results.fis_points)
+- skoków narciarskich (ski_jump_results.fis_points)
+- snowboardu (snowboard_results.fis_points)
+
+Wdrożenie: helper `app/Helpers/FisClient.php` → auto-sync punktów dla zawodników z `fis_id`.
+
+**WHS Handicap** — globalny standard golfowy. Kluby z PZGA mogą synchronizować
+`golf_handicaps.whs_index` z centralnego rejestru USGA/R&A przez oficjalne API
+(wymaga kontaktu z PZGA dla dostępu).
+
+### Status wszystkich 50 sportów
+
+ClubDesk obsługuje teraz **50 sportów** z polskich związków sportowych:
+
+1-37: (wcześniejsze batche) — football, basketball, volleyball, shooting, athletics,
+karate, aikido, wrestling, sambo, chess, crossfit, powerlifting, rowing, badminton,
+archery, gymnastics, padel, table_tennis, squash, floorball, judo, bjj, sailing,
+triathlon, swimming, tennis, boxing, handball, cycling, icehockey, fencing, taekwondo,
+weightlifting, climbing, dancesport, equestrian, rollerskating
+
+38-50: (batche X1-X13) — rugby, alpineski, xcski, skijump, snowboard, figureskating,
+biathlon, kickboxing, mma, kayaking, golf, bridge, fieldhockey

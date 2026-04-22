@@ -53,6 +53,20 @@ class AdminAuditController extends BaseController
         'coach_certifications',
         // Security (S1-S4)
         'sensitive_access_log',
+        // Batches X1-X13 (13 ostatnich sportów — droga do 50)
+        'rugby_teams', 'rugby_players', 'rugby_matches', 'rugby_events',
+        'alpine_ski_results',
+        'xc_ski_results',
+        'ski_jump_results',
+        'snowboard_results',
+        'figure_skating_results',
+        'biathlon_results',
+        'kickboxing_belts', 'kickboxing_results',
+        'mma_fighters', 'mma_results',
+        'kayak_boats', 'kayak_results',
+        'golf_handicaps', 'golf_rounds',
+        'bridge_partnerships', 'bridge_tournaments',
+        'field_hockey_teams', 'field_hockey_players', 'field_hockey_matches', 'field_hockey_events',
     ];
 
     public function isolation(): void
