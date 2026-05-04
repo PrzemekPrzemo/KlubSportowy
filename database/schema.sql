@@ -831,13 +831,14 @@ SET foreign_key_checks = 1;
 SET foreign_key_checks = 0;
 
 CREATE TABLE IF NOT EXISTS `role_permissions` (
+  `id`        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `club_id`   INT UNSIGNED NULL COMMENT 'NULL = globalny domyślny',
   `role`      VARCHAR(40) NOT NULL,
   `module`    VARCHAR(40) NOT NULL,
   `can_view`  TINYINT(1)  NOT NULL DEFAULT 0,
   `can_edit`  TINYINT(1)  NOT NULL DEFAULT 0,
   `updated_at` DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`club_id`, `role`, `module`),
+  UNIQUE KEY `uq_rp` (`club_id`, `role`, `module`),
   FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Macierz uprawnień rola x modul (NULL club_id = domyślne)';

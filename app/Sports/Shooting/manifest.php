@@ -9,12 +9,20 @@ return [
     'key'        => 'shooting',
     'name'       => 'Strzelectwo',
     'federation' => 'PZSS',
+    // Zaawansowane funkcje strzelectwa (zawody, scoringi, klasyfikacje,
+    // statystyki strzałów, sloty na strzelnicach) realizujemy przez
+    // zewnętrzny system shootero.pl. ClubDesk trzyma tylko ewidencję
+    // broni klubowej, amunicji, licencji PZSS i sędziów.
+    'external'   => [
+        'name' => 'shootero.pl',
+        'url'  => 'https://shootero.pl',
+    ],
     'features'   => [
         'weapons',
         'ammo',
         'pzss_license',
         'judges',
-        'scorecards',
+        'shootero_integration',
     ],
     'routes' => [
         // Broń klubowa
@@ -51,12 +59,16 @@ return [
         ['GET',  '/shooting/judges/:id/edit',      [\App\Sports\Shooting\Controllers\JudgesController::class, 'edit']],
         ['POST', '/shooting/judges/:id/update',    [\App\Sports\Shooting\Controllers\JudgesController::class, 'update']],
         ['POST', '/shooting/judges/:id/delete',    [\App\Sports\Shooting\Controllers\JudgesController::class, 'delete']],
+
+        // Integracja shootero.pl (zewnętrzny system)
+        ['GET',  '/shooting/shootero',             [\App\Sports\Shooting\Controllers\ShooteroController::class, 'index']],
     ],
     'nav' => [
-        ['label' => 'Broń klubowa',  'icon' => 'bi-bullseye',  'url' => 'shooting/weapons'],
-        ['label' => 'Amunicja',      'icon' => 'bi-box-seam',  'url' => 'shooting/ammo'],
-        ['label' => 'Licencje PZSS', 'icon' => 'bi-patch-check','url' => 'shooting/licenses'],
-        ['label' => 'Sędziowie',     'icon' => 'bi-people-fill','url' => 'shooting/judges'],
+        ['label' => 'Broń klubowa',   'icon' => 'bi-bullseye',         'url' => 'shooting/weapons'],
+        ['label' => 'Amunicja',       'icon' => 'bi-box-seam',         'url' => 'shooting/ammo'],
+        ['label' => 'Licencje PZSS',  'icon' => 'bi-patch-check',      'url' => 'shooting/licenses'],
+        ['label' => 'Sędziowie',      'icon' => 'bi-people-fill',      'url' => 'shooting/judges'],
+        ['label' => 'shootero.pl',    'icon' => 'bi-box-arrow-up-right','url' => 'shooting/shootero'],
     ],
     'migrations' => __DIR__ . '/migrations',
 ];
