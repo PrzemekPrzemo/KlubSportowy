@@ -40,7 +40,7 @@ class DemoController extends BaseController
         $selectedSports  = array_values(array_filter((array)($_POST['sports']  ?? [])));
         $selectedModules = array_values(array_filter((array)($_POST['modules'] ?? [])));
         $volume   = in_array($_POST['volume'] ?? '', ['basic', 'standard', 'full']) ? $_POST['volume'] : 'standard';
-        $duration = in_array((int)($_POST['duration'] ?? 14), [7, 14, 30]) ? (int)$_POST['duration'] : 14;
+        $duration = in_array((int)($_POST['duration'] ?? 14), [7, 14, 30, 60]) ? (int)$_POST['duration'] : 14;
 
         $db = \App\Helpers\Database::pdo();
         $db->beginTransaction();

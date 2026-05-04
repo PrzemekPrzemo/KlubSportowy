@@ -4,9 +4,12 @@ namespace App\Controllers;
 
 use App\Helpers\Auth;
 use App\Helpers\Csrf;
+use App\Helpers\Database;
+use App\Helpers\IcsGenerator;
 use App\Helpers\Session;
 use App\Models\CalendarEventCategoryModel;
 use App\Models\CalendarEventModel;
+use App\Models\ClubSettingsModel;
 use App\Models\SportModel;
 
 class CalendarController extends BaseController
@@ -103,6 +106,149 @@ class CalendarController extends BaseController
         (new CalendarEventModel())->delete((int)$id);
         Session::flash('success', 'Wpis usunięty.');
         $this->redirect('calendar');
+    }
+
+    /**
+     * Public iCal feed: GET /cal/{token}
+     * No auth required — token acts as read-only secret.
+     */
+    public function calendarFeed(string $token): void
+    {
+        try {
+            $token = preg_replace('/[^a-f0-9]/', '', strtolower($token));
+            if (strlen($token) < 32) {
+                http_response_code(403);
+                echo 'Invalid token.';
+                exit;
+            }
+
+            $db   = Database::pdo();
+            $stmt = $db->prepare(
+                "SELECT club_id FROM club_settings WHERE `key` = 'ical_token' AND value = ? LIMIT 1"
+            );
+            $stmt->execute([$token]);
+            $row = $stmt->fetch();
+
+            if (!$row) {
+                http_response_code(403);
+                echo 'Token not found.';
+                exit;
+            }
+
+            $clubId = (int)$row['club_id'];
+
+            // Fetch club name
+            $clubStmt = $db->prepare("SELECT name FROM clubs WHERE id = ?");
+            $clubStmt->execute([$clubId]);
+            $clubName = $clubStmt->fetchColumn() ?: 'Klub';
+
+            // Fetch upcoming events (next 365 days) + past 30 days
+            $evStmt = $db->prepare(
+                "SELECT ce.*, cec.name AS category_name
+                 FROM calendar_events ce
+                 LEFT JOIN calendar_event_categories cec ON cec.id = ce.category_id
+                 WHERE ce.club_id = ?
+                   AND ce.visibility IN ('public', 'club')
+                   AND ce.start_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                   AND ce.start_at <= DATE_ADD(NOW(), INTERVAL 365 DAY)
+                 ORDER BY ce.start_at ASC
+                 LIMIT 500"
+            );
+            $evStmt->execute([$clubId]);
+            $events = $evStmt->fetchAll();
+
+            $lines = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//KlubSportowy//' . $clubName . '//PL',
+                'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH',
+                'X-WR-CALNAME:' . IcsGenerator::escapePublic($clubName),
+                'X-WR-TIMEZONE:Europe/Warsaw',
+            ];
+
+            foreach ($events as $ev) {
+                $uid     = 'cal-' . $clubId . '-' . $ev['id'] . '@klubsportowy';
+                $summary = $ev['title'] ?? 'Wydarzenie';
+                if (!empty($ev['category_name'])) {
+                    $summary = '[' . $ev['category_name'] . '] ' . $summary;
+                }
+
+                $dtstart = self::toIcalDate($ev['start_at'] ?? '', (bool)($ev['all_day'] ?? false));
+                $dtend   = !empty($ev['end_at'])
+                    ? self::toIcalDate($ev['end_at'], (bool)($ev['all_day'] ?? false))
+                    : $dtstart;
+
+                $now = gmdate('Ymd\THis\Z');
+
+                $lines[] = 'BEGIN:VEVENT';
+                $lines[] = 'UID:' . $uid;
+                $lines[] = 'DTSTAMP:' . $now;
+
+                if ($ev['all_day'] ?? false) {
+                    $lines[] = 'DTSTART;VALUE=DATE:' . $dtstart;
+                    $lines[] = 'DTEND;VALUE=DATE:' . $dtend;
+                } else {
+                    $lines[] = 'DTSTART:' . $dtstart;
+                    $lines[] = 'DTEND:' . $dtend;
+                }
+
+                $lines[] = 'SUMMARY:' . IcsGenerator::escapePublic($summary);
+                if (!empty($ev['location'])) {
+                    $lines[] = 'LOCATION:' . IcsGenerator::escapePublic($ev['location']);
+                }
+                if (!empty($ev['description'])) {
+                    $lines[] = 'DESCRIPTION:' . IcsGenerator::escapePublic($ev['description']);
+                }
+                $lines[] = 'END:VEVENT';
+            }
+
+            $lines[] = 'END:VCALENDAR';
+            $ics = implode("\r\n", $lines) . "\r\n";
+
+            header('Content-Type: text/calendar; charset=utf-8');
+            header('Content-Disposition: inline; filename="kalendarz.ics"');
+            header('Cache-Control: no-cache, must-revalidate');
+            header('Content-Length: ' . strlen($ics));
+            echo $ics;
+            exit;
+
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo 'Calendar feed error.';
+            exit;
+        }
+    }
+
+    /**
+     * Show iCal subscription URL for the current club (authenticated).
+     */
+    public function icalSubscription(): void
+    {
+        $clubId   = $this->currentClub();
+        $settings = new ClubSettingsModel();
+        $token    = $settings->get($clubId, 'ical_token', '');
+
+        if ($token === '') {
+            $token = bin2hex(random_bytes(24));
+            $settings->set($clubId, 'ical_token', $token, 'text', 'iCal token');
+        }
+
+        $appCfg  = require ROOT_PATH . '/config/app.php';
+        $baseUrl = rtrim($appCfg['base_url'] ?? ('https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')), '/');
+        $url     = $baseUrl . '/cal/' . $token;
+
+        $this->render('calendar/ical_subscription', [
+            'title'    => 'Subskrypcja kalendarza (iCal)',
+            'icalUrl'  => $url,
+        ]);
+    }
+
+    private static function toIcalDate(string $datetime, bool $allDay): string
+    {
+        $ts = strtotime($datetime);
+        if ($ts === false) $ts = time();
+        return $allDay ? gmdate('Ymd', $ts) : gmdate('Ymd\THis\Z', $ts);
     }
 
     private function parsePost(): ?array

@@ -15,21 +15,21 @@ if (!empty($training['end_time'])) {
     <?= csrf_field() ?>
     <div class="row g-3">
         <div class="col-md-8">
-            <label class="form-label">Nazwa *</label>
+            <label class="form-label"><?= __('form.name') ?> *</label>
             <input type="text" name="name" value="<?= View::e($training['name'] ?? '') ?>" class="form-control" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Status</label>
+            <label class="form-label"><?= __('form.status') ?></label>
             <select name="status" class="form-select">
                 <?php foreach (['zaplanowany','w_trakcie','zakonczony','odwolany'] as $s): ?>
-                    <option value="<?= $s ?>" <?= ($training['status'] ?? 'zaplanowany') === $s ? 'selected' : '' ?>><?= $s ?></option>
+                    <option value="<?= $s ?>" <?= ($training['status'] ?? 'zaplanowany') === $s ? 'selected' : '' ?>><?= __('training.status_' . $s) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="col-md-6">
-            <label class="form-label">Sekcja sportowa</label>
+            <label class="form-label"><?= __('form.sports_section') ?></label>
             <select name="club_sport_id" class="form-select">
-                <option value="">— ogólnoklubowy —</option>
+                <option value=""><?= __('form.club_wide_m') ?></option>
                 <?php foreach ($sports as $cs): ?>
                     <option value="<?= (int)$cs['club_sport_id'] ?>"
                             data-sport="<?= (int)$cs['id'] ?>"
@@ -41,29 +41,29 @@ if (!empty($training['end_time'])) {
             <input type="hidden" name="sport_id" id="sportIdHidden" value="<?= (int)($training['sport_id'] ?? 0) ?>">
         </div>
         <div class="col-md-3">
-            <label class="form-label">Start *</label>
+            <label class="form-label"><?= __('form.start_time') ?> *</label>
             <input type="datetime-local" name="start_time" value="<?= View::e($startTime) ?>" class="form-control" required>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Koniec</label>
+            <label class="form-label"><?= __('form.end_time') ?></label>
             <input type="datetime-local" name="end_time" value="<?= View::e($endTime) ?>" class="form-control">
         </div>
         <div class="col-md-8">
-            <label class="form-label">Miejsce</label>
+            <label class="form-label"><?= __('form.location') ?></label>
             <input type="text" name="location" value="<?= View::e($training['location'] ?? '') ?>" class="form-control">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Max uczestników</label>
+            <label class="form-label"><?= __('form.max_participants') ?></label>
             <input type="number" min="1" name="max_participants" value="<?= View::e($training['max_participants'] ?? '') ?>" class="form-control">
         </div>
         <div class="col-12">
-            <label class="form-label">Opis</label>
+            <label class="form-label"><?= __('form.description') ?></label>
             <textarea name="description" class="form-control" rows="3"><?= View::e($training['description'] ?? '') ?></textarea>
         </div>
     </div>
     <div class="mt-4 d-flex gap-2">
-        <button class="btn btn-primary"><i class="bi bi-check2"></i> Zapisz</button>
-        <a href="<?= url('trainings') ?>" class="btn btn-outline-secondary">Anuluj</a>
+        <button class="btn btn-primary"><i class="bi bi-check2"></i> <?= __('btn.save') ?></button>
+        <a href="<?= url('trainings') ?>" class="btn btn-outline-secondary"><?= __('btn.cancel') ?></a>
     </div>
 </form>
 <script>

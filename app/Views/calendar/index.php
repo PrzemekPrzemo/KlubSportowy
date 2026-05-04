@@ -31,7 +31,10 @@ $firstDow = (int)date('N', strtotime(sprintf('%04d-%02d-01', $year, $month))); /
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </div>
-            <div class="d-flex justify-content-end mb-2">
+            <div class="d-flex justify-content-end mb-2 gap-2">
+                <a href="<?= url('calendar/ical') ?>" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-calendar-check"></i> Subskrypcja iCal
+                </a>
                 <a href="<?= url('calendar/create') ?>" class="btn btn-sm btn-success">
                     <i class="bi bi-plus"></i> Nowy wpis
                 </a>

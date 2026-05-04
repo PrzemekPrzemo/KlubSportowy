@@ -49,6 +49,35 @@ class Auth
         return (bool)Session::get('is_super_admin', false);
     }
 
+    /**
+     * Role uprawnione do odczytu i edycji danych szczególnej kategorii
+     * (medyczne, anti-doping, body_metrics, emergency_contacts, minor_consents).
+     *
+     * Zgodnie z RODO art. 9 + ustawą o sporcie dostęp do tych danych powinny
+     * mieć wyłącznie osoby realizujące zadania zarządcze lub treningowe klubu.
+     */
+    public const SENSITIVE_ROLES = ['zarzad', 'trener', 'instruktor', 'lekarz'];
+
+    /** Czy aktualnie zalogowany użytkownik może przeglądać dane wrażliwe? */
+    public static function canAccessSensitiveData(): bool
+    {
+        if (self::isSuperAdmin()) return true;
+        $role = self::role();
+        return $role !== null && in_array($role, self::SENSITIVE_ROLES, true);
+    }
+
+    /** Rzuca 403 gdy aktualny user nie ma uprawnień do danych wrażliwych. */
+    public static function requireSensitiveAccess(): void
+    {
+        self::requireLogin();
+        if (!self::canAccessSensitiveData()) {
+            http_response_code(403);
+            Session::flash('error', 'Brak uprawnień do danych medycznych i szczególnej kategorii. Skontaktuj się z zarządem klubu.');
+            header('Location: ' . url('dashboard'));
+            exit;
+        }
+    }
+
     public static function requireLogin(): void
     {
         if (!self::check()) {
@@ -120,6 +149,13 @@ class Auth
         ]);
         Session::set('impersonating', 'club_context');
         self::setClub($clubId, $role);
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_start', [
+                'mode'    => 'club_context',
+                'club_id' => $clubId,
+                'role'    => $role,
+            ]);
+        }
     }
 
     // ── Impersonation (super admin → user klubu) ──────────────────────────
@@ -135,6 +171,14 @@ class Auth
             'is_super_admin' => Session::get('is_super_admin'),
         ]);
 
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_start', [
+                'mode'           => 'club_user',
+                'club_id'        => $clubId,
+                'target_user_id' => (int)$targetUser['id'],
+                'role'           => $roleInClub,
+            ]);
+        }
         Session::set('user_id',        (int)$targetUser['id']);
         Session::set('username',       $targetUser['username']);
         Session::set('full_name',      $targetUser['full_name']);
@@ -159,6 +203,13 @@ class Auth
             'is_super_admin' => Session::get('is_super_admin'),
         ]);
 
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_start', [
+                'mode'             => 'member',
+                'club_id'          => (int)$member['club_id'],
+                'target_member_id' => (int)$member['id'],
+            ]);
+        }
         Session::set('portal_member_id',    (int)$member['id']);
         Session::set('portal_member_name',  $member['first_name'] . ' ' . $member['last_name']);
         Session::set('portal_member_email', $member['email'] ?? '');
@@ -174,6 +225,12 @@ class Auth
     {
         $original = Session::get('impersonation_original');
         if (!$original) return;
+
+        if (class_exists('\\App\\Models\\SecurityEventModel')) {
+            \App\Models\SecurityEventModel::log('impersonation_stop', [
+                'mode' => Session::get('impersonating'),
+            ]);
+        }
 
         // Clean up portal member keys if impersonating member
         Session::remove('portal_member_id');

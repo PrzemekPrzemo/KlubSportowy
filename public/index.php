@@ -158,6 +158,8 @@ $router->get('/admin/clubs/:id/edit',       [\App\Controllers\AdminController::c
 $router->post('/admin/clubs/:id/edit',      [\App\Controllers\AdminController::class, 'updateClub']);
 $router->post('/admin/switch-club/:id',     [\App\Controllers\AdminController::class, 'switchClub']);
 $router->get('/admin/sports',               [\App\Controllers\AdminController::class, 'sportsCatalog']);
+$router->get('/admin/sports/catalog',       [\App\Controllers\AdminPlatformController::class, 'sportsCatalog']);
+$router->post('/admin/sports/:key/toggle',  [\App\Controllers\AdminPlatformController::class, 'toggleSport']);
 $router->get('/admin/plans',                [\App\Controllers\AdminController::class, 'plans']);
 $router->get('/admin/activity',             [\App\Controllers\AdminController::class, 'activityLog']);
 $router->get('/admin/clubs/:id/users',      [\App\Controllers\AdminController::class, 'clubUsers']);
@@ -228,6 +230,49 @@ $router->get('/admin/clubs/:id/config',          [\App\Controllers\AdminClubConf
 $router->post('/admin/clubs/:id/config/save',    [\App\Controllers\AdminClubConfigController::class, 'saveSettings']);
 $router->get('/admin/clubs/:id/features',        [\App\Controllers\AdminClubConfigController::class, 'features']);
 $router->post('/admin/clubs/:id/features/save',  [\App\Controllers\AdminClubConfigController::class, 'saveFeatures']);
+
+// Admin: dziennik błędów (Batch A1)
+$router->get('/admin/errors',          [\App\Controllers\AdminErrorController::class, 'index']);
+$router->get('/admin/errors/:id',      [\App\Controllers\AdminErrorController::class, 'show']);
+$router->post('/admin/errors/purge',   [\App\Controllers\AdminErrorController::class, 'purge']);
+
+// Admin: dziennik bezpieczeństwa (Batch A2)
+$router->get('/admin/security',                 [\App\Controllers\AdminSecurityController::class, 'index']);
+$router->get('/admin/security/blocked-ips',     [\App\Controllers\AdminSecurityController::class, 'blockedIps']);
+$router->post('/admin/security/unblock/:ip',    [\App\Controllers\AdminSecurityController::class, 'unblockIp']);
+
+// Admin: uprawnienia per-klub (Batch A4)
+$router->get('/admin/clubs/:id/permissions',           [\App\Controllers\AdminClubConfigController::class, 'permissions']);
+$router->post('/admin/clubs/:id/permissions',          [\App\Controllers\AdminClubConfigController::class, 'savePermissions']);
+$router->post('/admin/clubs/:id/permissions/reset',    [\App\Controllers\AdminClubConfigController::class, 'resetPermissions']);
+
+// Admin: sport settings per club (Batch S0)
+$router->get('/admin/clubs/:id/sports',              [\App\Controllers\AdminClubConfigController::class, 'sportSettings']);
+$router->get('/admin/clubs/:id/sports/:sport',       [\App\Controllers\AdminClubConfigController::class, 'sportSettings']);
+$router->post('/admin/clubs/:id/sports/:sport/save', [\App\Controllers\AdminClubConfigController::class, 'saveSportSettings']);
+
+// Admin: faktury (Batch A5)
+$router->get('/admin/invoices',              [\App\Controllers\AdminInvoicesController::class, 'index']);
+$router->get('/admin/invoices/create',       [\App\Controllers\AdminInvoicesController::class, 'create']);
+$router->post('/admin/invoices/store',       [\App\Controllers\AdminInvoicesController::class, 'store']);
+$router->get('/admin/invoices/:id',          [\App\Controllers\AdminInvoicesController::class, 'show']);
+$router->post('/admin/invoices/:id/pay',     [\App\Controllers\AdminInvoicesController::class, 'markPaid']);
+$router->post('/admin/invoices/:id/cancel',  [\App\Controllers\AdminInvoicesController::class, 'markCancelled']);
+
+// Admin: audyt izolacji danych (Batch A6)
+$router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController::class, 'isolation']);
+$router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController::class, 'exportReport']);
+
+// Admin: dashboard zdrowia systemu (Batch A7)
+$router->get('/admin/health', [\App\Controllers\AdminHealthController::class, 'index']);
+
+// Admin: super admin users (Batch A8)
+$router->get('/admin/users',                       [\App\Controllers\AdminUsersController::class, 'index']);
+$router->get('/admin/users/create',                [\App\Controllers\AdminUsersController::class, 'create']);
+$router->post('/admin/users/store',                [\App\Controllers\AdminUsersController::class, 'store']);
+$router->post('/admin/users/:id/deactivate',       [\App\Controllers\AdminUsersController::class, 'deactivate']);
+$router->post('/admin/users/:id/activate',         [\App\Controllers\AdminUsersController::class, 'activate']);
+$router->post('/admin/users/:id/reset-password',   [\App\Controllers\AdminUsersController::class, 'resetPassword']);
 
 // Impersonacja — zakończenie (dla zalogowanego impersonującego, nie wymaga super-admin)
 $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::class, 'stop']);
@@ -341,8 +386,19 @@ $router->get('/portal/dashboard',        [\App\Controllers\MemberPortalControlle
 $router->get('/portal/profile',          [\App\Controllers\MemberPortalController::class, 'profile']);
 $router->post('/portal/profile/update',  [\App\Controllers\MemberPortalController::class, 'updateProfile']);
 $router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);
+
+// Portal: 2FA TOTP
+$router->get('/portal/2fa/setup',                     [\App\Controllers\MemberTwoFactorController::class, 'setup']);
+$router->post('/portal/2fa/confirm',                  [\App\Controllers\MemberTwoFactorController::class, 'confirm']);
+$router->get('/portal/2fa/verify',                    [\App\Controllers\MemberTwoFactorController::class, 'verify']);
+$router->post('/portal/2fa/verify',                   [\App\Controllers\MemberTwoFactorController::class, 'verifySubmit']);
+$router->get('/portal/2fa/backup-codes',              [\App\Controllers\MemberTwoFactorController::class, 'backupCodes']);
+$router->post('/portal/2fa/backup-codes/regenerate',  [\App\Controllers\MemberTwoFactorController::class, 'regenerateBackup']);
+$router->post('/portal/2fa/disable',                  [\App\Controllers\MemberTwoFactorController::class, 'disable']);
+
 $router->get('/portal/fees',             [\App\Controllers\MemberPortalController::class, 'fees']);
 $router->get('/portal/events',           [\App\Controllers\MemberPortalController::class, 'events']);
+$router->get('/portal/sport-history',    [\App\Controllers\MemberPortalController::class, 'sportHistory']);
 
 // Portal: club selection (BLOK 2B - unified member identity)
 $router->get('/portal/club-select',      [\App\Controllers\MemberPortalController::class, 'showClubSelect']);
@@ -352,6 +408,87 @@ $router->post('/portal/club-select/:id', [\App\Controllers\MemberPortalControlle
 $router->get('/portal/payments',         [\App\Controllers\MemberPaymentController::class, 'index']);
 $router->post('/portal/payments/pay',    [\App\Controllers\MemberPaymentController::class, 'pay']);
 $router->get('/portal/payments/success', [\App\Controllers\MemberPaymentController::class, 'success']);
+
+// Portal: karta zawodnika + zdjęcie
+$router->get('/portal/member-card',      [\App\Controllers\MemberPortalController::class, 'memberCard']);
+$router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalController::class, 'uploadPhoto']);
+
+// Portal: pomiary ciała
+$router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
+
+// Admin: uprawnienia trenerskie i sędziowskie
+$router->get('/certifications',             [\App\Controllers\CoachCertificationsController::class, 'index']);
+$router->post('/certifications/store',      [\App\Controllers\CoachCertificationsController::class, 'store']);
+$router->post('/certifications/:id/delete', [\App\Controllers\CoachCertificationsController::class, 'delete']);
+
+// Admin: sprzęt klubowy
+$router->get('/equipment',                          [\App\Controllers\ClubEquipmentController::class, 'index']);
+$router->get('/equipment/:id',                      [\App\Controllers\ClubEquipmentController::class, 'show']);
+$router->post('/equipment/store',                   [\App\Controllers\ClubEquipmentController::class, 'store']);
+$router->post('/equipment/:id/delete',              [\App\Controllers\ClubEquipmentController::class, 'delete']);
+$router->post('/equipment/:id/assign',              [\App\Controllers\ClubEquipmentController::class, 'assign']);
+$router->post('/equipment/:id/return/:aid',         [\App\Controllers\ClubEquipmentController::class, 'returnItem']);
+
+// Admin: dziennik dostępu do danych wrażliwych (RODO art. 30) — tylko zarząd
+$router->get('/admin/sensitive-access', [\App\Controllers\AdminSensitiveAccessController::class, 'index']);
+
+// Admin: zgodność (anti-doping + zgody małoletnich)
+$router->get('/admin/compliance',                               [\App\Controllers\ComplianceController::class, 'index']);
+$router->post('/admin/compliance/declaration/store',            [\App\Controllers\ComplianceController::class, 'storeDeclaration']);
+$router->post('/admin/compliance/declaration/:id/delete',       [\App\Controllers\ComplianceController::class, 'deleteDeclaration']);
+$router->post('/admin/compliance/minor-consent/:id/store',      [\App\Controllers\ComplianceController::class, 'storeMinorConsent']);
+
+// Portal: dziennik treningowy
+$router->get('/portal/training-log',            [\App\Controllers\MemberPortalController::class, 'trainingLog']);
+$router->post('/portal/training-log/store',     [\App\Controllers\MemberPortalController::class, 'storeTrainingLog']);
+$router->post('/portal/training-log/:id/delete',[\App\Controllers\MemberPortalController::class, 'deleteTrainingLog']);
+
+// Portal: kontakty awaryjne
+$router->get('/portal/emergency-contacts',                   [\App\Controllers\MemberPortalController::class, 'emergencyContacts']);
+$router->post('/portal/emergency-contacts/store',            [\App\Controllers\MemberPortalController::class, 'storeEmergencyContact']);
+$router->post('/portal/emergency-contacts/:id/delete',       [\App\Controllers\MemberPortalController::class, 'deleteEmergencyContact']);
+
+// Admin: kontakty awaryjne zawodnika
+$router->get('/members/:id/emergency-contacts',                  [\App\Controllers\EmergencyContactsController::class, 'member']);
+$router->post('/members/:id/emergency-contacts/store',           [\App\Controllers\EmergencyContactsController::class, 'store']);
+$router->post('/members/:id/emergency-contacts/:cid/primary',    [\App\Controllers\EmergencyContactsController::class, 'makePrimary']);
+$router->post('/members/:id/emergency-contacts/:cid/delete',     [\App\Controllers\EmergencyContactsController::class, 'delete']);
+
+// Portal: badania lekarskie + licencje
+$router->get('/portal/medical',          [\App\Controllers\MemberPortalController::class, 'medical']);
+$router->get('/portal/licenses',         [\App\Controllers\MemberPortalController::class, 'licenses']);
+
+// Admin: pomiary ciała zawodnika
+$router->get('/members/:id/metrics',              [\App\Controllers\BodyMetricsController::class, 'member']);
+$router->post('/members/:id/metrics/store',       [\App\Controllers\BodyMetricsController::class, 'store']);
+$router->post('/members/:id/metrics/:mid/delete', [\App\Controllers\BodyMetricsController::class, 'delete']);
+
+// Portal: zgody RODO
+$router->get('/portal/consents',         [\App\Controllers\MemberPortalController::class, 'consents']);
+$router->post('/portal/consents/update', [\App\Controllers\MemberPortalController::class, 'updateConsent']);
+
+// Portal: ogłoszenia + plan treningów
+$router->get('/portal/announcements',    [\App\Controllers\MemberPortalController::class, 'announcements']);
+$router->get('/portal/schedule',         [\App\Controllers\MemberPortalController::class, 'schedule']);
+
+// Portal: frekwencja, wyniki, rankingi
+$router->get('/portal/attendance',       [\App\Controllers\MemberPortalController::class, 'attendance']);
+$router->get('/portal/results',          [\App\Controllers\MemberPortalController::class, 'results']);
+
+// Portal: pasy i stopnie
+$router->get('/portal/belts',            [\App\Controllers\MemberPortalController::class, 'belts']);
+
+// Portal: powiadomienia
+$router->get('/portal/notifications',                   [\App\Controllers\MemberPortalController::class, 'notifications']);
+$router->post('/portal/notifications/:id/read',         [\App\Controllers\MemberPortalController::class, 'markNotificationRead']);
+
+// Portal: turnieje
+$router->get('/portal/tournaments',                     [\App\Controllers\MemberPortalController::class, 'tournaments']);
+$router->post('/portal/tournaments/:id/register',       [\App\Controllers\MemberPortalController::class, 'registerTournament']);
+$router->post('/portal/tournaments/:id/withdraw',       [\App\Controllers\MemberPortalController::class, 'withdrawTournament']);
+
+// Portal: widoki per sport
+$router->get('/portal/sport/:key',                      [\App\Controllers\MemberPortalController::class, 'sportDetail']);
 
 // Powiadomienia (dzwoneczek)
 $router->post('/notifications/:id/read', [\App\Controllers\NotificationsController::class, 'markRead']);
@@ -394,6 +531,8 @@ $router->post('/calendar/store',       [\App\Controllers\CalendarController::cla
 $router->get('/calendar/:id/edit',     [\App\Controllers\CalendarController::class, 'edit']);
 $router->post('/calendar/:id/update',  [\App\Controllers\CalendarController::class, 'update']);
 $router->post('/calendar/:id/delete',  [\App\Controllers\CalendarController::class, 'delete']);
+$router->get('/calendar/ical',         [\App\Controllers\CalendarController::class, 'icalSubscription']);
+$router->get('/cal/:token',            [\App\Controllers\CalendarController::class, 'calendarFeed']);
 
 // Transmisje live
 $router->get('/livestream',                [\App\Controllers\LivestreamController::class, 'index']);
@@ -517,8 +656,37 @@ $router->get('/results/:id',                 [\App\Controllers\ResultImageContro
 $router->post('/results/:id/save',           [\App\Controllers\ResultImageController::class, 'save']);
 $router->post('/results/:id/delete',         [\App\Controllers\ResultImageController::class, 'deleteImage']);
 
+// ── Licencje sportowe ─────────────────────────────────────
+$router->get('/sport-licenses',              [\App\Controllers\SportLicensesController::class, 'index']);
+$router->post('/sport-licenses/store',       [\App\Controllers\SportLicensesController::class, 'store']);
+$router->post('/sport-licenses/:id/delete',  [\App\Controllers\SportLicensesController::class, 'delete']);
+
+// ── Rankingi sportowe ─────────────────────────────────────
+$router->get('/sport-rankings',              [\App\Controllers\SportRankingsController::class, 'index']);
+$router->post('/sport-rankings/store',       [\App\Controllers\SportRankingsController::class, 'store']);
+$router->post('/sport-rankings/:id/delete',  [\App\Controllers\SportRankingsController::class, 'delete']);
+
+// ── Turnieje ───────────────────────────────────────────────
+$router->get('/tournaments',                         [\App\Controllers\TournamentsController::class, 'index']);
+$router->get('/tournaments/create',                  [\App\Controllers\TournamentsController::class, 'create']);
+$router->post('/tournaments/store',                  [\App\Controllers\TournamentsController::class, 'store']);
+$router->get('/tournaments/:id',                     [\App\Controllers\TournamentsController::class, 'show']);
+$router->post('/tournaments/:id/participant',        [\App\Controllers\TournamentsController::class, 'addParticipant']);
+$router->post('/tournaments/:id/participant-remove', [\App\Controllers\TournamentsController::class, 'removeParticipant']);
+$router->post('/tournaments/:id/generate',           [\App\Controllers\TournamentsController::class, 'generateBracket']);
+$router->post('/tournaments/match/:matchId/result',  [\App\Controllers\TournamentsController::class, 'recordResult']);
+$router->post('/tournaments/:id/delete',             [\App\Controllers\TournamentsController::class, 'delete']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
+
+// ── Association management ────────────────────────────────
+$router->get('/association/meetings',                    [\App\Controllers\AssociationController::class, 'meetings']);
+$router->post('/association/meetings/create',            [\App\Controllers\AssociationController::class, 'createMeeting']);
+$router->get('/association/meetings/:id',                [\App\Controllers\AssociationController::class, 'showMeeting']);
+$router->post('/association/meetings/:id/vote',          [\App\Controllers\AssociationController::class, 'addVote']);
+$router->get('/association/board',                       [\App\Controllers\AssociationController::class, 'board']);
+$router->post('/association/board/update',               [\App\Controllers\AssociationController::class, 'updateBoard']);
 
 // ============================================================
 // Dispatch

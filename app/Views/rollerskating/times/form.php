@@ -1,4 +1,5 @@
-<?php use App\Helpers\View; ?>
+<?php use App\Helpers\View;
+use App\Sports\Rollerskating\Models\RollerskatingTimeModel; ?>
 <form method="POST" action="<?= url('rollerskating/times/store') ?>" class="card p-4">
     <?= csrf_field() ?>
     <div class="row g-3">
@@ -9,6 +10,15 @@
                     <option value="<?= (int)$m['id'] ?>"><?= View::e($m['last_name']) ?> <?= View::e($m['first_name']) ?></option>
                 <?php endforeach; ?>
             </select></div>
+        <div class="col-md-3"><label class="form-label">Styl / dyscyplina</label>
+            <select name="skating_style" class="form-select">
+                <option value="">— dowolny —</option>
+                <?php foreach (RollerskatingTimeModel::$SKATING_STYLES as $k => $label): ?>
+                    <option value="<?= $k ?>"><?= View::e($label) ?></option>
+                <?php endforeach; ?>
+            </select></div>
+        <div class="col-md-3"><label class="form-label">Szczegół dyscypliny</label>
+            <input type="text" name="discipline_detail" class="form-control" placeholder="np. 500m Sprint"></div>
         <div class="col-md-3"><label class="form-label">Dystans</label>
             <input type="text" name="distance" class="form-control" placeholder="np. 500m, 1000m"></div>
         <div class="col-md-3"><label class="form-label">Data *</label>

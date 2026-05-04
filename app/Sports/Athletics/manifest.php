@@ -3,12 +3,15 @@ return [
     'key'        => 'athletics',
     'name'       => 'Lekka atletyka',
     'federation' => 'PZLA',
-    'features'   => ['disciplines','records','competitions','times','pzla_license'],
+    'features'   => ['disciplines','records','competitions','results','times','pzla_license'],
     'routes' => [
         ['GET',  '/athletics/records',             [\App\Sports\Athletics\Controllers\RecordsController::class, 'index']],
         ['GET',  '/athletics/records/create',      [\App\Sports\Athletics\Controllers\RecordsController::class, 'create']],
         ['POST', '/athletics/records/store',       [\App\Sports\Athletics\Controllers\RecordsController::class, 'store']],
         ['POST', '/athletics/records/:id/delete',  [\App\Sports\Athletics\Controllers\RecordsController::class, 'delete']],
+        ['GET',  '/athletics/results',             [\App\Sports\Athletics\Controllers\ResultsController::class, 'index']],
+        ['POST', '/athletics/results/store',       [\App\Sports\Athletics\Controllers\ResultsController::class, 'store']],
+        ['POST', '/athletics/results/:id/delete',  [\App\Sports\Athletics\Controllers\ResultsController::class, 'delete']],
         ['GET',  '/athletics/competitions',             [\App\Sports\Athletics\Controllers\CompetitionsController::class, 'index']],
         ['GET',  '/athletics/competitions/create',      [\App\Sports\Athletics\Controllers\CompetitionsController::class, 'create']],
         ['POST', '/athletics/competitions/store',       [\App\Sports\Athletics\Controllers\CompetitionsController::class, 'store']],
@@ -18,8 +21,9 @@ return [
         ['POST', '/athletics/competitions/:id/delete',  [\App\Sports\Athletics\Controllers\CompetitionsController::class, 'delete']],
     ],
     'nav' => [
-        ['label' => 'Rekordy', 'icon' => 'bi-trophy', 'url' => 'athletics/records'],
-        ['label' => 'Zawody',  'icon' => 'bi-flag',   'url' => 'athletics/competitions'],
+        ['label' => 'Rekordy',        'icon' => 'bi-trophy', 'url' => 'athletics/records'],
+        ['label' => 'Wyniki zawodów', 'icon' => 'bi-flag',   'url' => 'athletics/results'],
+        ['label' => 'Zawody',         'icon' => 'bi-calendar-event', 'url' => 'athletics/competitions'],
     ],
     'migrations' => __DIR__ . '/migrations',
 ];

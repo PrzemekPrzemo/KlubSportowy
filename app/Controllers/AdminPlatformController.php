@@ -221,4 +221,63 @@ class AdminPlatformController extends BaseController
         Session::flash('success', 'Zgłoszenie zamknięte.');
         $this->redirect('admin/platform/support');
     }
+
+    // ── Sports catalog ──────────────────────────────────────
+
+    public function sportsCatalog(): void
+    {
+        $manifests = \App\Helpers\SportModuleLoader::load();
+        $db        = Database::pdo();
+        $sports    = [];
+
+        foreach ($manifests as $manifest) {
+            $key  = $manifest['key'];
+            $stmt = $db->prepare(
+                "SELECT COUNT(DISTINCT cs.club_id) AS club_count,
+                        COUNT(DISTINCT ms.member_id) AS member_count
+                 FROM club_sports cs
+                 JOIN sports s ON s.id = cs.sport_id
+                 LEFT JOIN member_sports ms ON ms.club_sport_id = cs.id
+                 WHERE s.key = ?"
+            );
+            $stmt->execute([$key]);
+            $stats = $stmt->fetch();
+
+            $sports[$key] = [
+                'manifest'     => $manifest,
+                'club_count'   => (int)($stats['club_count'] ?? 0),
+                'member_count' => (int)($stats['member_count'] ?? 0),
+                'deprecated'   => $key === 'shooting',
+            ];
+        }
+
+        $this->render('admin/sports_catalog', [
+            'title'  => 'Katalog sportów',
+            'sports' => $sports,
+        ]);
+    }
+
+    public function toggleSport(string $key): void
+    {
+        Csrf::verify();
+        if ($key === 'shooting') {
+            Session::flash('error', 'Moduł shooting jest obsługiwany przez shotero.pl — nie można go wyłączyć globalnie.');
+            $this->redirect('admin/sports');
+        }
+
+        $db    = Database::pdo();
+        $stmt  = $db->prepare("SELECT is_globally_active FROM sport_module_flags WHERE sport_key = ?");
+        $stmt->execute([$key]);
+        $row   = $stmt->fetch();
+
+        if ($row) {
+            $newVal = $row['is_globally_active'] ? 0 : 1;
+            $db->prepare("UPDATE sport_module_flags SET is_globally_active = ? WHERE sport_key = ?")->execute([$newVal, $key]);
+        } else {
+            $db->prepare("INSERT INTO sport_module_flags (sport_key, is_globally_active) VALUES (?, 0)")->execute([$key]);
+        }
+
+        Session::flash('success', 'Status sportu zaktualizowany.');
+        $this->redirect('admin/sports/catalog');
+    }
 }

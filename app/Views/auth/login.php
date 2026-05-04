@@ -13,7 +13,7 @@
         <i class="bi bi-box-arrow-in-right"></i> <?= __('auth.login_btn') ?>
     </button>
     <div class="text-center mt-2">
-        <a href="<?= url('auth/forgot-password') ?>" class="small text-muted">Zapomniałeś hasła?</a>
+        <a href="<?= url('auth/forgot-password') ?>" class="small text-muted"><?= __('auth.forgot_password') ?></a>
     </div>
 </form>
 <hr class="my-4">

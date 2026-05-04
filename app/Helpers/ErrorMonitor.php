@@ -49,6 +49,11 @@ class ErrorMonitor
             FILE_APPEND | LOCK_EX
         );
 
+        // Persist to DB (never break on failure — e.g. DB down, schema missing)
+        self::logToDb('error', $e->getMessage(), [
+            'class' => get_class($e),
+        ], $e->getFile(), $e->getLine(), $e->getTraceAsString());
+
         // Send to external monitoring if configured
         if (self::$dsn !== null && self::$dsn !== '') {
             self::sendToSentry($e);
@@ -72,9 +77,60 @@ class ErrorMonitor
             FILE_APPEND | LOCK_EX
         );
 
+        self::logToDb(self::normalizeLevel($level), $message);
+
         if (self::$dsn !== null && self::$dsn !== '') {
             self::sendMessageToSentry($message, $level);
         }
+    }
+
+    /**
+     * Persist error/message to error_log table.
+     * Never throws — failure is swallowed to avoid breaking the app.
+     */
+    public static function logToDb(
+        string $level,
+        string $message,
+        ?array $context = null,
+        ?string $file = null,
+        ?int $line = null,
+        ?string $trace = null
+    ): void {
+        try {
+            $pdo = \App\Helpers\Database::pdo();
+            $userId = null;
+            $clubId = null;
+            if (class_exists('\\App\\Helpers\\Session')) {
+                $userId = \App\Helpers\Session::get('user_id');
+                $clubId = \App\Helpers\Session::get('club_id');
+            }
+
+            $stmt = $pdo->prepare(
+                "INSERT INTO error_log (level, message, context, file, line, trace, ip_address, user_id, club_id, url)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+            $stmt->execute([
+                self::normalizeLevel($level),
+                mb_substr($message, 0, 4000),
+                $context !== null ? json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
+                $file ? mb_substr($file, 0, 500) : null,
+                $line,
+                $trace,
+                $_SERVER['REMOTE_ADDR'] ?? null,
+                $userId !== null ? (int)$userId : null,
+                $clubId !== null ? (int)$clubId : null,
+                isset($_SERVER['REQUEST_URI']) ? mb_substr($_SERVER['REQUEST_URI'], 0, 1000) : null,
+            ]);
+        } catch (\Throwable) {
+            // Silent — we never want logging to crash the app
+        }
+    }
+
+    private static function normalizeLevel(string $level): string
+    {
+        $valid = ['debug', 'info', 'warning', 'error', 'critical'];
+        $lvl = strtolower($level);
+        return in_array($lvl, $valid, true) ? $lvl : 'info';
     }
 
     /**

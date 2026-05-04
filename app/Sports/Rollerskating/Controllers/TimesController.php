@@ -39,14 +39,18 @@ class TimesController extends BaseController
             Session::flash('error', 'Nieprawidłowy format czasu (użyj m:ss.mmm lub ss.mmm).');
             $this->redirect('rollerskating/times/create');
         }
+        $style = array_key_exists($_POST['skating_style'] ?? '', RollerskatingTimeModel::$SKATING_STYLES)
+                    ? $_POST['skating_style'] : null;
         $data = [
-            'member_id'       => (int)($_POST['member_id'] ?? 0),
-            'distance'        => trim($_POST['distance'] ?? '') ?: null,
-            'time_ms'         => $timeMs,
-            'record_date'     => trim($_POST['record_date'] ?? date('Y-m-d')),
-            'is_personal_best'=> isset($_POST['is_personal_best']) ? 1 : 0,
-            'discipline_id'   => !empty($_POST['discipline_id']) ? (int)$_POST['discipline_id'] : null,
-            'notes'           => trim($_POST['notes'] ?? '') ?: null,
+            'member_id'         => (int)($_POST['member_id'] ?? 0),
+            'distance'          => trim($_POST['distance'] ?? '') ?: null,
+            'skating_style'     => $style,
+            'discipline_detail' => trim($_POST['discipline_detail'] ?? '') ?: null,
+            'time_ms'           => $timeMs,
+            'record_date'       => trim($_POST['record_date'] ?? date('Y-m-d')),
+            'is_personal_best'  => isset($_POST['is_personal_best']) ? 1 : 0,
+            'discipline_id'     => !empty($_POST['discipline_id']) ? (int)$_POST['discipline_id'] : null,
+            'notes'             => trim($_POST['notes'] ?? '') ?: null,
         ];
         if ($data['member_id'] <= 0) { Session::flash('error', 'Wybierz zawodnika.'); $this->redirect('rollerskating/times/create'); }
         (new RollerskatingTimeModel())->insert($data);

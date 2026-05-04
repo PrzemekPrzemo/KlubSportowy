@@ -5,19 +5,19 @@
         <strong>Suma wpływów:</strong> <?= format_money($total) ?>
     </div>
     <div>
-        <a href="<?= url('fees/new') ?>" class="btn btn-success"><i class="bi bi-plus"></i> Nowa opłata</a>
-        <a href="<?= url('fees/rates') ?>" class="btn btn-outline-primary"><i class="bi bi-tag"></i> Stawki</a>
+        <a href="<?= url('fees/new') ?>" class="btn btn-success"><i class="bi bi-plus"></i> <?= __('fee.new_payment') ?></a>
+        <a href="<?= url('fees/rates') ?>" class="btn btn-outline-primary"><i class="bi bi-tag"></i> <?= __('fee.rates_btn') ?></a>
     </div>
 </div>
 
 <div class="card">
     <table class="table table-hover mb-0">
         <thead class="table-light">
-            <tr><th>Data</th><th>Zawodnik</th><th>Opłata</th><th>Sport</th><th>Okres</th><th>Metoda</th><th class="text-end">Kwota</th></tr>
+            <tr><th><?= __('fee.col_date') ?></th><th><?= __('fee.col_member') ?></th><th><?= __('fee.col_fee') ?></th><th><?= __('fee.col_sport') ?></th><th><?= __('fee.col_period') ?></th><th><?= __('fee.col_method') ?></th><th class="text-end"><?= __('fee.col_amount') ?></th></tr>
         </thead>
         <tbody>
         <?php if (empty($pagination['data'])): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4">Brak wpłat w wybranym okresie.</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4"><?= __('fee.no_payments') ?></td></tr>
         <?php else: ?>
             <?php foreach ($pagination['data'] as $p): ?>
                 <tr>

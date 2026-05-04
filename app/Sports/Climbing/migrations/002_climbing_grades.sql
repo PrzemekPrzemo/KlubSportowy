@@ -1,0 +1,5 @@
+ALTER TABLE climbing_results
+    ADD COLUMN IF NOT EXISTS difficulty_grade VARCHAR(10) DEFAULT NULL AFTER category,
+    ADD COLUMN IF NOT EXISTS time_seconds     DECIMAL(7,2) DEFAULT NULL AFTER difficulty_grade,
+    ADD COLUMN IF NOT EXISTS score_tops       TINYINT UNSIGNED DEFAULT NULL AFTER time_seconds,
+    ADD COLUMN IF NOT EXISTS score_zones      TINYINT UNSIGNED DEFAULT NULL AFTER score_tops;

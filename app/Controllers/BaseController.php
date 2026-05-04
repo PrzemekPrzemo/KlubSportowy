@@ -43,11 +43,15 @@ abstract class BaseController
         $data['sportNav']           = SportModuleLoader::navForActiveSport();
 
         if ($data['currentClubId']) {
+            $sportModel = new \App\Models\SportModel();
             $data['currentClub'] = (new \App\Models\ClubModel())->findById((int)$data['currentClubId']);
-            $data['clubSports']  = (new \App\Models\SportModel())->listForClub((int)$data['currentClubId']);
+            $data['clubSports']  = $sportModel->listForClub((int)$data['currentClubId']);
+            // Only active sports (is_active=1) — do filtrowania linków w UI
+            $data['activeSportKeys'] = $sportModel->activeKeysForClub((int)$data['currentClubId']);
         } else {
-            $data['currentClub'] = null;
-            $data['clubSports']  = [];
+            $data['currentClub']     = null;
+            $data['clubSports']      = [];
+            $data['activeSportKeys'] = [];
         }
 
         // Filtr nawigacji wg uprawnień roli (null = super admin / brak filtra)
@@ -143,6 +147,16 @@ abstract class BaseController
     protected function requireSuperAdmin(): void
     {
         Auth::requireSuperAdmin();
+    }
+
+    /**
+     * Wymaga roli uprawnionej do odczytu danych wrażliwych (medyczne,
+     * anti-doping, body_metrics, emergency_contacts, minor_consents).
+     * Dozwolone: zarzad, trener, instruktor, lekarz + super admin.
+     */
+    protected function requireSensitiveAccess(): void
+    {
+        Auth::requireSensitiveAccess();
     }
 
     /**

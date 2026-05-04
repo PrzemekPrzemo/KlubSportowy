@@ -28,36 +28,40 @@ class DemoSeeder
         ];
 
         $stmt = $db->prepare(
-            "INSERT INTO members (club_id, first_name, last_name, email, birth_date, gender, status, joined_date, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, 'aktywny', CURDATE(), NOW())"
+            "INSERT INTO members (club_id, member_number, first_name, last_name, email, birth_date, gender, status, join_date, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'aktywny', CURDATE(), NOW())"
         );
         foreach ($members as $i => $m) {
-            $stmt->execute([$clubId, $m[0], $m[1], $m[2], (1985 + ($i % 15)) . '-06-15', ($i % 2 === 0) ? 'M' : 'K']);
+            $stmt->execute([$clubId, 'DEMO-' . $clubId . '-' . ($i + 1), $m[0], $m[1], $m[2], (1985 + ($i % 15)) . '-06-15', ($i % 2 === 0) ? 'M' : 'K']);
             $memberIds[] = (int)$db->lastInsertId();
         }
 
         if (count($memberIds) >= 3) {
             $payStmt = $db->prepare(
-                "INSERT INTO payments (club_id, member_id, amount, payment_date, method, status, description, created_at)
-                 VALUES (?, ?, ?, CURDATE(), 'przelew', 'oplacone', ?, NOW())"
+                "INSERT INTO payments (club_id, member_id, amount, payment_date, period_year, period_month, method, notes, created_at)
+                 VALUES (?, ?, ?, CURDATE(), YEAR(CURDATE()), MONTH(CURDATE()), 'przelew', ?, NOW())"
             );
-            $payStmt->execute([$clubId, $memberIds[0], 150.00, 'Skladka demo - styczen']);
-            $payStmt->execute([$clubId, $memberIds[1], 150.00, 'Skladka demo - styczen']);
-            $payStmt->execute([$clubId, $memberIds[2], 200.00, 'Skladka demo - luty']);
+            $payStmt->execute([$clubId, $memberIds[0], 150.00, 'Składka demo - styczeń']);
+            $payStmt->execute([$clubId, $memberIds[1], 150.00, 'Składka demo - styczeń']);
+            $payStmt->execute([$clubId, $memberIds[2], 200.00, 'Składka demo - luty']);
         }
 
         $trainStmt = $db->prepare(
-            "INSERT INTO trainings (club_id, title, training_date, start_time, end_time, location, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, NOW())"
-        );
-        $trainStmt->execute([$clubId, 'Trening ogolnorozwojowy', date('Y-m-d', strtotime('next monday')), '17:00:00', '19:00:00', 'Hala sportowa']);
-        $trainStmt->execute([$clubId, 'Trening specjalistyczny', date('Y-m-d', strtotime('next wednesday')), '18:00:00', '20:00:00', 'Boisko glowne']);
-
-        $eventStmt = $db->prepare(
-            "INSERT INTO events (club_id, title, event_date, location, description, created_at)
+            "INSERT INTO trainings (club_id, name, location, start_time, end_time, created_at)
              VALUES (?, ?, ?, ?, ?, NOW())"
         );
-        $eventStmt->execute([$clubId, 'Turniej demonstracyjny', date('Y-m-d', strtotime('next saturday')), 'Stadion Miejski', 'Przykladowe wydarzenie wygenerowane automatycznie dla demo.']);
+        $trainStmt->execute([$clubId, 'Trening ogólnorozwojowy', 'Hala sportowa',
+            date('Y-m-d', strtotime('next monday')) . ' 17:00:00',
+            date('Y-m-d', strtotime('next monday')) . ' 19:00:00']);
+        $trainStmt->execute([$clubId, 'Trening specjalistyczny', 'Boisko główne',
+            date('Y-m-d', strtotime('next wednesday')) . ' 18:00:00',
+            date('Y-m-d', strtotime('next wednesday')) . ' 20:00:00']);
+
+        $eventStmt = $db->prepare(
+            "INSERT INTO events (club_id, name, event_date, location, description, created_at)
+             VALUES (?, ?, ?, ?, ?, NOW())"
+        );
+        $eventStmt->execute([$clubId, 'Turniej demonstracyjny', date('Y-m-d', strtotime('next saturday')) . ' 10:00:00', 'Stadion Miejski', 'Przykładowe wydarzenie wygenerowane automatycznie dla demo.']);
     }
 
     /**
@@ -132,18 +136,18 @@ class DemoSeeder
         ];
 
         $memberStmt = $db->prepare(
-            "INSERT INTO members (club_id, first_name, last_name, email, birth_date, gender, status, joined_date, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY), NOW())"
+            "INSERT INTO members (club_id, member_number, first_name, last_name, email, birth_date, gender, status, join_date, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY), NOW())"
         );
         $memberIds = [];
-        $statuses  = ['aktywny', 'aktywny', 'aktywny', 'aktywny', 'nieaktywny'];
+        $statuses  = ['aktywny', 'aktywny', 'aktywny', 'zawieszony', 'wykreslony'];
         for ($i = 0; $i < min($memberCount, count($memberPool)); $i++) {
             [$fn, $ln, $g] = $memberPool[$i];
             $status    = $volume === 'full' ? $statuses[$i % count($statuses)] : 'aktywny';
             $birthYear = 1980 + ($i % 20);
             $joinedAgo = 30 + ($i * 15);
             $email     = strtolower($fn . '.' . $ln) . '@demo.test';
-            $memberStmt->execute([$clubId, $fn, $ln, $email, "{$birthYear}-0" . (($i % 9) + 1) . '-15', $g, $status, $joinedAgo]);
+            $memberStmt->execute([$clubId, 'DEMO-' . $clubId . '-' . ($i + 1), $fn, $ln, $email, "{$birthYear}-0" . (($i % 9) + 1) . '-15', $g, $status, $joinedAgo]);
             $memberIds[] = (int)$db->lastInsertId();
         }
 
@@ -163,51 +167,49 @@ class DemoSeeder
         // ── 6. Payments ───────────────────────────────────────────────────
         if (!empty($memberIds)) {
             $payStmt = $db->prepare(
-                "INSERT INTO payments (club_id, member_id, amount, payment_date, method, status, description, created_at)
-                 VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY), 'przelew', 'oplacone', ?, NOW())"
+                "INSERT INTO payments (club_id, member_id, amount, payment_date, period_year, period_month, method, notes, created_at)
+                 VALUES (?, ?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY), YEAR(DATE_SUB(CURDATE(), INTERVAL ? DAY)), MONTH(DATE_SUB(CURDATE(), INTERVAL ? DAY)), 'przelew', ?, NOW())"
             );
-            $months = ['styczen', 'luty', 'marzec', 'kwiecien', 'maj', 'czerwiec', 'lipiec', 'sierpien', 'wrzesien', 'pazdziernik'];
+            $months = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik'];
             for ($i = 0; $i < min($payCount, count($memberIds) * 2); $i++) {
-                $mid = $memberIds[$i % count($memberIds)];
-                $payStmt->execute([$clubId, $mid, 120.00, $i * 3, 'Składka demo - ' . $months[$i % count($months)]]);
+                $mid     = $memberIds[$i % count($memberIds)];
+                $daysAgo = $i * 30;
+                $payStmt->execute([$clubId, $mid, 120.00, $daysAgo, $daysAgo, $daysAgo, 'Składka demo - ' . $months[$i % count($months)]]);
             }
         }
 
         // ── 7. Trainings ──────────────────────────────────────────────────
         $trainStmt = $db->prepare(
-            "INSERT INTO trainings (club_id, title, training_date, start_time, end_time, location, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, NOW())"
+            "INSERT INTO trainings (club_id, name, location, start_time, end_time, created_at)
+             VALUES (?, ?, ?, ?, ?, NOW())"
         );
-        $trainTitles   = ['Trening ogólnorozwojowy', 'Trening techniczny', 'Trening siłowy', 'Trening taktyczny', 'Trening kondycyjny', 'Trening regeneracyjny', 'Trening szybkościowy', 'Trening wytrzymałościowy', 'Trening grupowy', 'Trening indywidualny'];
-        $trainHours    = ['07:00:00', '10:00:00', '15:00:00', '17:00:00', '18:00:00', '19:00:00'];
+        $trainNames    = ['Trening ogólnorozwojowy', 'Trening techniczny', 'Trening siłowy', 'Trening taktyczny', 'Trening kondycyjny', 'Trening regeneracyjny', 'Trening szybkościowy', 'Trening wytrzymałościowy', 'Trening grupowy', 'Trening indywidualny'];
+        $trainHours    = [7, 10, 15, 17, 18, 19];
         $trainLocations = ['Hala sportowa', 'Boisko główne', 'Sala gimnastyczna', 'Stadion miejski', 'Centrum sportowe'];
         for ($i = 0; $i < $trainCount; $i++) {
-            $daysOffset = ($i % 2 === 0) ? ($i + 1) : -($i);
-            $trainDate  = date('Y-m-d', strtotime("+{$daysOffset} days"));
-            $startH     = $trainHours[$i % count($trainHours)];
-            [$hh, $mm]  = explode(':', $startH);
-            $endH       = sprintf('%02d:%s:00', (int)$hh + 2, $mm);
+            $daysOffset = ($i % 2 === 0) ? ($i + 1) : -$i;
+            $dateStr    = date('Y-m-d', strtotime("{$daysOffset} days"));
+            $startHour  = $trainHours[$i % count($trainHours)];
             $trainStmt->execute([
                 $clubId,
-                $trainTitles[$i % count($trainTitles)],
-                $trainDate,
-                $startH,
-                $endH,
+                $trainNames[$i % count($trainNames)],
                 $trainLocations[$i % count($trainLocations)],
+                $dateStr . sprintf(' %02d:00:00', $startHour),
+                $dateStr . sprintf(' %02d:00:00', $startHour + 2),
             ]);
         }
 
         // ── 8. Events ─────────────────────────────────────────────────────
         $eventStmt = $db->prepare(
-            "INSERT INTO events (club_id, title, event_date, location, description, created_at)
-             VALUES (?, ?, DATE_ADD(CURDATE(), INTERVAL ? DAY), ?, ?, NOW())"
+            "INSERT INTO events (club_id, name, event_date, location, description, created_at)
+             VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? DAY), ?, ?, NOW())"
         );
-        $eventTitles = ['Turniej demonstracyjny', 'Zawody regionalne', 'Dzień sportu', 'Mecz towarzyski', 'Gala sportowca'];
-        $eventLocs   = ['Stadion Miejski', 'Hala sportowa', 'Centrum sportowe', 'Obiekt zewnętrzny', 'Boisko główne'];
+        $eventNames = ['Turniej demonstracyjny', 'Zawody regionalne', 'Dzień sportu', 'Mecz towarzyski', 'Gala sportowca'];
+        $eventLocs  = ['Stadion Miejski', 'Hala sportowa', 'Centrum sportowe', 'Obiekt zewnętrzny', 'Boisko główne'];
         for ($i = 0; $i < $eventCount; $i++) {
             $eventStmt->execute([
                 $clubId,
-                $eventTitles[$i % count($eventTitles)],
+                $eventNames[$i % count($eventNames)],
                 7 + ($i * 14),
                 $eventLocs[$i % count($eventLocs)],
                 'Przykładowe wydarzenie wygenerowane automatycznie dla prezentacji systemu ClubDesk.',

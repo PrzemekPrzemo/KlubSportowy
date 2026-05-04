@@ -24,8 +24,8 @@ class SportModel extends BaseModel
         return $row ?: null;
     }
 
-    /** Sporty zapięte do klubu (z JOIN club_sports). */
-    public function listForClub(int $clubId): array
+    /** Sporty zapięte do klubu (z JOIN club_sports). $onlyActive=true → tylko is_active=1. */
+    public function listForClub(int $clubId, bool $onlyActive = false): array
     {
         $sql = "SELECT cs.id AS club_sport_id, cs.is_active AS cs_active, cs.name AS cs_name,
                        cs.federation_club_id,
@@ -34,11 +34,26 @@ class SportModel extends BaseModel
                 FROM club_sports cs
                 JOIN sports s ON s.id = cs.sport_id
                 LEFT JOIN federations f ON f.id = s.federation_id
-                WHERE cs.club_id = ?
-                ORDER BY s.sort_order, s.name";
+                WHERE cs.club_id = ?";
+        if ($onlyActive) {
+            $sql .= " AND cs.is_active = 1";
+        }
+        $sql .= " ORDER BY s.sort_order, s.name";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$clubId]);
         return $stmt->fetchAll();
+    }
+
+    /** Skrót — aktywne sporty klubu (keys only) do filtrowania UI/routingu. */
+    public function activeKeysForClub(int $clubId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT s.`key` FROM club_sports cs
+             JOIN sports s ON s.id = cs.sport_id
+             WHERE cs.club_id = ? AND cs.is_active = 1"
+        );
+        $stmt->execute([$clubId]);
+        return array_column($stmt->fetchAll(), 'key');
     }
 
     /** Sporty NIE zapięte do danego klubu (do dodania). */

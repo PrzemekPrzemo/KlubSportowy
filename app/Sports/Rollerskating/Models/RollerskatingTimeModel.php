@@ -8,6 +8,16 @@ class RollerskatingTimeModel extends ClubScopedModel
 {
     protected string $table = 'rollerskating_times';
 
+    public static array $SKATING_STYLES = [
+        'short_track'      => 'Short track',
+        'long_track'       => 'Long track',
+        'inline_speed'     => 'Inline speed',
+        'inline_freestyle' => 'Inline freestyle',
+        'artistic'         => 'Jazda artystyczna',
+        'hockey'           => 'Hokej na wrotkach',
+        'other'            => 'Inne',
+    ];
+
     public function listForClub(?string $distance = null, int $page = 1, int $perPage = 25): array
     {
         $clubId = $this->clubId();
