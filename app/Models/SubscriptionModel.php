@@ -41,6 +41,38 @@ class SubscriptionModel extends BaseModel
         return $count >= (int)$sub['max_members'];
     }
 
+    public function isOverSportLimit(int $clubId): bool
+    {
+        $sub = $this->findForClub($clubId);
+        if ($sub === null || $sub['max_sports'] === null) return false;
+
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM club_sports WHERE club_id = ? AND is_active = 1"
+        );
+        $stmt->execute([$clubId]);
+        $count = (int)$stmt->fetchColumn();
+        return $count >= (int)$sub['max_sports'];
+    }
+
+    public function sportLimitInfo(int $clubId): array
+    {
+        $sub = $this->findForClub($clubId);
+        if ($sub === null) {
+            return ['limit' => null, 'used' => 0, 'remaining' => null];
+        }
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM club_sports WHERE club_id = ? AND is_active = 1"
+        );
+        $stmt->execute([$clubId]);
+        $used  = (int)$stmt->fetchColumn();
+        $limit = $sub['max_sports'] !== null ? (int)$sub['max_sports'] : null;
+        return [
+            'limit'     => $limit,
+            'used'      => $used,
+            'remaining' => $limit !== null ? max(0, $limit - $used) : null,
+        ];
+    }
+
     public function listPlans(): array
     {
         $stmt = $this->db->query(
