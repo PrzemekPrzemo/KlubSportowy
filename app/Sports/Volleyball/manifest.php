@@ -13,6 +13,7 @@ return [
         'matches',
         'sets',           // statystyki per set
         'player_stats',   // ataki, bloki, serwisy, asy
+        'transfers',
         'pzps_license',
     ],
     'routes' => [
@@ -31,11 +32,16 @@ return [
         ['POST', '/volleyball/matches/:id/delete', [\App\Sports\Volleyball\Controllers\MatchesController::class, 'delete']],
         ['POST', '/volleyball/matches/:id/stats',  [\App\Sports\Volleyball\Controllers\MatchesController::class, 'addStats']],
         ['GET',  '/volleyball/stats',              [\App\Sports\Volleyball\Controllers\StatsController::class, 'index']],
+        ['GET',  '/volleyball/transfers',           [\App\Sports\Volleyball\Controllers\TransfersController::class, 'index']],
+        ['GET',  '/volleyball/transfers/create',    [\App\Sports\Volleyball\Controllers\TransfersController::class, 'create']],
+        ['POST', '/volleyball/transfers/store',     [\App\Sports\Volleyball\Controllers\TransfersController::class, 'store']],
+        ['POST', '/volleyball/transfers/:id/delete',[\App\Sports\Volleyball\Controllers\TransfersController::class, 'delete']],
     ],
     'nav' => [
-        ['label' => 'Drużyny',    'icon' => 'bi-people',    'url' => 'volleyball/teams'],
-        ['label' => 'Mecze',      'icon' => 'bi-circle',    'url' => 'volleyball/matches'],
-        ['label' => 'Statystyki', 'icon' => 'bi-bar-chart', 'url' => 'volleyball/stats'],
+        ['label' => 'Drużyny',    'icon' => 'bi-people',           'url' => 'volleyball/teams'],
+        ['label' => 'Mecze',      'icon' => 'bi-circle',           'url' => 'volleyball/matches'],
+        ['label' => 'Transfery',  'icon' => 'bi-arrow-left-right', 'url' => 'volleyball/transfers'],
+        ['label' => 'Statystyki', 'icon' => 'bi-bar-chart',        'url' => 'volleyball/stats'],
     ],
     'migrations' => __DIR__ . '/migrations',
 ];

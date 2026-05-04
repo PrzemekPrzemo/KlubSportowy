@@ -13,6 +13,7 @@ return [
         'matches',
         'player_stats',   // punkty, asysty, zbiórki, bloki
         'fouls',          // faule + kary
+        'transfers',
         'pzkosz_license',
     ],
     'routes' => [
@@ -31,11 +32,16 @@ return [
         ['POST', '/basketball/matches/:id/delete', [\App\Sports\Basketball\Controllers\MatchesController::class, 'delete']],
         ['POST', '/basketball/matches/:id/stats',  [\App\Sports\Basketball\Controllers\MatchesController::class, 'addStats']],
         ['GET',  '/basketball/stats',              [\App\Sports\Basketball\Controllers\StatsController::class, 'index']],
+        ['GET',  '/basketball/transfers',           [\App\Sports\Basketball\Controllers\TransfersController::class, 'index']],
+        ['GET',  '/basketball/transfers/create',    [\App\Sports\Basketball\Controllers\TransfersController::class, 'create']],
+        ['POST', '/basketball/transfers/store',     [\App\Sports\Basketball\Controllers\TransfersController::class, 'store']],
+        ['POST', '/basketball/transfers/:id/delete',[\App\Sports\Basketball\Controllers\TransfersController::class, 'delete']],
     ],
     'nav' => [
-        ['label' => 'Drużyny',    'icon' => 'bi-people',          'url' => 'basketball/teams'],
-        ['label' => 'Mecze',      'icon' => 'bi-record-circle',   'url' => 'basketball/matches'],
-        ['label' => 'Statystyki', 'icon' => 'bi-bar-chart',       'url' => 'basketball/stats'],
+        ['label' => 'Drużyny',    'icon' => 'bi-people',           'url' => 'basketball/teams'],
+        ['label' => 'Mecze',      'icon' => 'bi-record-circle',    'url' => 'basketball/matches'],
+        ['label' => 'Transfery',  'icon' => 'bi-arrow-left-right', 'url' => 'basketball/transfers'],
+        ['label' => 'Statystyki', 'icon' => 'bi-bar-chart',        'url' => 'basketball/stats'],
     ],
     'migrations' => __DIR__ . '/migrations',
 ];

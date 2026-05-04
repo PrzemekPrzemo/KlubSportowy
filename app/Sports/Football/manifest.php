@@ -4,7 +4,7 @@ return [
     'key'        => 'football',
     'name'       => 'Piłka nożna',
     'federation' => 'PZPN',
-    'features'   => ['teams','positions','matches','cards','transfers','pzpn_license','leagues'],
+    'features'   => ['teams','positions','matches','cards','transfers','stats','leagues','pzpn_license'],
     'routes' => [
         ['GET',  '/football/teams',              [\App\Sports\Football\Controllers\TeamsController::class, 'index']],
         ['GET',  '/football/teams/create',       [\App\Sports\Football\Controllers\TeamsController::class, 'create']],
@@ -31,12 +31,14 @@ return [
         ['POST', '/football/leagues/store',        [\App\Sports\Football\Controllers\LeaguesController::class, 'store']],
         ['GET',  '/football/leagues/:id',          [\App\Sports\Football\Controllers\LeaguesController::class, 'show']],
         ['POST', '/football/leagues/:id/delete',   [\App\Sports\Football\Controllers\LeaguesController::class, 'delete']],
+        ['GET',  '/football/stats',                [\App\Sports\Football\Controllers\StatsController::class, 'index']],
     ],
     'nav' => [
-        ['label' => 'Drużyny',   'icon' => 'bi-people',           'url' => 'football/teams'],
-        ['label' => 'Mecze',     'icon' => 'bi-flag',             'url' => 'football/matches'],
-        ['label' => 'Transfery', 'icon' => 'bi-arrow-left-right', 'url' => 'football/transfers'],
-        ['label' => 'Ligi',     'icon' => 'bi-table',           'url' => 'football/leagues'],
+        ['label' => 'Drużyny',    'icon' => 'bi-people',           'url' => 'football/teams'],
+        ['label' => 'Mecze',      'icon' => 'bi-flag',             'url' => 'football/matches'],
+        ['label' => 'Transfery',  'icon' => 'bi-arrow-left-right', 'url' => 'football/transfers'],
+        ['label' => 'Ligi',       'icon' => 'bi-table',            'url' => 'football/leagues'],
+        ['label' => 'Statystyki', 'icon' => 'bi-bar-chart',        'url' => 'football/stats'],
     ],
     'migrations' => __DIR__ . '/migrations',
 ];
