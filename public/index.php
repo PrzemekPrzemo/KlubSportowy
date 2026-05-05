@@ -467,6 +467,8 @@ $router->post('/members/:id/metrics/:mid/delete', [\App\Controllers\BodyMetricsC
 // Portal: zgody RODO
 $router->get('/portal/consents',         [\App\Controllers\MemberPortalController::class, 'consents']);
 $router->post('/portal/consents/update', [\App\Controllers\MemberPortalController::class, 'updateConsent']);
+$router->get('/portal/anti-doping',      [\App\Controllers\MemberPortalController::class, 'antiDoping']);
+$router->post('/portal/anti-doping',     [\App\Controllers\MemberPortalController::class, 'storeAntiDoping']);
 
 // Portal: ogłoszenia + plan treningów
 $router->get('/portal/announcements',    [\App\Controllers\MemberPortalController::class, 'announcements']);
