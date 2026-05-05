@@ -18,12 +18,12 @@ class SportModuleLoaderTest extends TestCase
         $this->assertIsArray($modules);
     }
 
-    public function testShootingManifestLoaded(): void
+    public function testShootingPluginRemoved(): void
     {
+        // Strzelectwo jest obsługiwane przez zewnętrzny system shootero.pl,
+        // wewnętrzny plugin został usunięty.
         $modules = SportModuleLoader::load();
-        $this->assertArrayHasKey('shooting', $modules);
-        $this->assertEquals('Strzelectwo', $modules['shooting']['name']);
-        $this->assertEquals('PZSS', $modules['shooting']['federation']);
+        $this->assertArrayNotHasKey('shooting', $modules);
     }
 
     public function testFootballManifestLoaded(): void
@@ -59,9 +59,9 @@ class SportModuleLoaderTest extends TestCase
 
     public function testGetReturnsManifest(): void
     {
-        $m = SportModuleLoader::get('shooting');
+        $m = SportModuleLoader::get('football');
         $this->assertNotNull($m);
-        $this->assertEquals('shooting', $m['key']);
+        $this->assertEquals('football', $m['key']);
         $this->assertArrayHasKey('routes', $m);
         $this->assertArrayHasKey('nav', $m);
         $this->assertArrayHasKey('features', $m);
