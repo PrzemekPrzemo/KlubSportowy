@@ -38,12 +38,14 @@ class GatewayFactoryTest extends TestCase
         $this->assertNull(GatewayFactory::forProvider('foobar', []));
     }
 
-    public function testForProviderReturnsNullForUnimplementedAdapters(): void
+    public function testAllAdaptersImplemented(): void
     {
-        // T.4 (Tpay) jeszcze nie zaimplementowane — factory zwraca null.
-        // T.1 Przelewy24 (PR #75) i T.2 PayU dostępne.
-        $config = ['api_key' => 'test'];
-        $this->assertNull(GatewayFactory::forProvider('tpay', $config));
+        // Po T.0-T.4 wszystkie 4 adaptery PL+Stripe dostępne.
+        $config = ['api_key' => 'test', 'api_secret' => 'test', 'merchant_id' => '1'];
+        $this->assertNotNull(GatewayFactory::forProvider('stripe',     $config));
+        $this->assertNotNull(GatewayFactory::forProvider('przelewy24', array_merge($config, ['crc_key' => 'crc'])));
+        $this->assertNotNull(GatewayFactory::forProvider('payu',       $config));
+        $this->assertNotNull(GatewayFactory::forProvider('tpay',       $config));
     }
 
     public function testCheckoutRequestIsImmutable(): void
