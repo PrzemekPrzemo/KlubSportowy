@@ -3,7 +3,8 @@ return [
     'key'        => 'crossfit',
     'name'       => 'CrossFit / Trening funkcjonalny',
     'federation' => 'CrossFit Inc.',
-    'features'   => ['wods', 'scores', 'personal_records', 'leaderboard', 'open_competition'],
+    'archetype'  => \App\Sports\CrossFit\CrossFitArchetype::class,
+    'features'   => ['wods', 'scores', 'personal_records', 'leaderboard', 'open_competition', 'demo-ready'],
     'routes' => [
         ['GET',  '/crossfit/wods',              [\App\Sports\CrossFit\Controllers\WodsController::class,            'index']],
         ['POST', '/crossfit/wods/store',        [\App\Sports\CrossFit\Controllers\WodsController::class,            'store']],

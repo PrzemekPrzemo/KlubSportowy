@@ -3,7 +3,8 @@ return [
     'key'        => 'sailing',
     'name'       => 'Żeglarstwo',
     'federation' => 'PZŻ',
-    'features'   => ['boats', 'crew', 'races', 'licenses', 'handicap'],
+    'archetype'  => \App\Sports\Sailing\SailingArchetype::class,
+    'features'   => ['boats', 'crew', 'races', 'licenses', 'handicap', 'demo-ready'],
     'routes' => [
         ['GET',  '/sailing/boats',              [\App\Sports\Sailing\Controllers\BoatsController::class, 'index']],
         ['POST', '/sailing/boats/store',        [\App\Sports\Sailing\Controllers\BoatsController::class, 'store']],

@@ -3,7 +3,8 @@ return [
     'key'        => 'bridge',
     'name'       => 'Brydż sportowy',
     'federation' => 'PZBS',
-    'features'   => ['partnerships', 'tournaments', 'imp_mp', 'pzbs_points'],
+    'archetype'  => \App\Sports\Bridge\BridgeArchetype::class,
+    'features'   => ['partnerships', 'tournaments', 'imp_mp', 'pzbs_points', 'demo-ready'],
     'routes' => [
         ['GET',  '/bridge/partnerships',            [\App\Sports\Bridge\Controllers\PartnershipsController::class, 'index']],
         ['POST', '/bridge/partnerships/store',      [\App\Sports\Bridge\Controllers\PartnershipsController::class, 'store']],
