@@ -3,7 +3,8 @@ return [
     'key'        => 'fieldhockey',
     'name'       => 'Hokej na trawie',
     'federation' => 'PZHnT',
-    'features'   => ['teams', 'players', 'matches', 'events'],
+    'archetype'  => \App\Sports\FieldHockey\FieldHockeyArchetype::class,
+    'features'   => ['teams', 'players', 'matches', 'events', 'demo-ready'],
     'routes' => [
         ['GET',  '/fieldhockey/teams',              [\App\Sports\FieldHockey\Controllers\TeamsController::class,   'index']],
         ['POST', '/fieldhockey/teams/store',        [\App\Sports\FieldHockey\Controllers\TeamsController::class,   'store']],

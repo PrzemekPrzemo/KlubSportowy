@@ -3,7 +3,8 @@ return [
     'key'        => 'rugby',
     'name'       => 'Rugby',
     'federation' => 'PZRugby',
-    'features'   => ['teams', 'players', 'matches', 'events', 'formats_15_7'],
+    'archetype'  => \App\Sports\Rugby\RugbyArchetype::class,
+    'features'   => ['teams', 'players', 'matches', 'events', 'formats_15_7', 'demo-ready'],
     'routes' => [
         ['GET',  '/rugby/teams',              [\App\Sports\Rugby\Controllers\TeamsController::class,   'index']],
         ['POST', '/rugby/teams/store',        [\App\Sports\Rugby\Controllers\TeamsController::class,   'store']],

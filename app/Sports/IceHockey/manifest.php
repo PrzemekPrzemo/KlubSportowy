@@ -3,7 +3,8 @@ return [
     'key'        => 'icehockey',
     'name'       => 'Hokej na lodzie',
     'federation' => 'PZHL',
-    'features'   => ['teams', 'players', 'matches', 'periods', 'penalties', 'plus_minus'],
+    'archetype'  => \App\Sports\IceHockey\IceHockeyArchetype::class,
+    'features'   => ['teams', 'players', 'matches', 'periods', 'penalties', 'plus_minus', 'demo-ready'],
     'routes' => [
         ['GET',  '/icehockey/teams',              [\App\Sports\IceHockey\Controllers\TeamsController::class,   'index']],
         ['POST', '/icehockey/teams/store',        [\App\Sports\IceHockey\Controllers\TeamsController::class,   'store']],
