@@ -41,6 +41,18 @@ class SportsController extends BaseController
             $this->redirect('sports');
         }
 
+        // Strzelectwo: nie aktywujemy w ClubDesk — kierujemy do shootero.pl.
+        // Defensywne: w starszych instalacjach klucz 'shooting' moze nadal
+        // istniec w katalogu sports zanim C3 oznaczy go deprecated.
+        $sport = (new SportModel())->findById($sportId);
+        if ($sport !== null && ($sport['key'] ?? '') === 'shooting') {
+            Session::flash('info',
+                'Strzelectwo obslugujemy przez shootero.pl - przejdz na https://shootero.pl, aby utworzyc sekcje strzelecka.'
+            );
+            $this->redirect('sports');
+            return;
+        }
+
         $clubId = $this->currentClub();
 
         $subscription = new SubscriptionModel();
