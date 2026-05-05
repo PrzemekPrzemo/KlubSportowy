@@ -6,8 +6,10 @@ use App\Helpers\Csrf;
 use App\Helpers\MemberAuth;
 use App\Helpers\PaymentGateway;
 use App\Helpers\Session;
+use App\Models\ClubPaymentGatewayModel;
 use App\Models\FeeRateModel;
 use App\Models\OnlinePaymentModel;
+use App\Models\PaymentDueModel;
 
 /**
  * Płatności online z portalu zawodnika.
@@ -107,5 +109,75 @@ class MemberPaymentController extends BaseController
             }
         }
         $this->redirect('portal/payments');
+    }
+
+    /**
+     * Faza P.6 — opłać konkretną należność (payment_due).
+     * Tworzy online_payment z due_id ref + redirect do bramki klubu (P.5).
+     */
+    public function payDue(string $id): void
+    {
+        MemberAuth::requireLogin();
+        Csrf::verify();
+
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+        $dueId    = (int)$id;
+
+        // Pobierz due — sprawdź własność (member_id musi się zgadzać)
+        $due = (new PaymentDueModel())->findById($dueId);
+        if (!$due || (int)$due['member_id'] !== $memberId) {
+            Session::flash('error', 'Nieprawidłowa należność.');
+            $this->redirect('portal/dues');
+        }
+        $remaining = (float)$due['net_amount'] - (float)$due['paid_amount'];
+        if ($remaining <= 0) {
+            Session::flash('info', 'Należność jest już opłacona.');
+            $this->redirect('portal/dues');
+        }
+
+        // Sprawdź czy klub ma aktywną bramkę
+        $gateway = (new ClubPaymentGatewayModel())->activeGateway();
+        if (!$gateway || $gateway['provider'] === 'manual') {
+            Session::flash('info', 'Klub nie udostępnia płatności online. Wpłać przelewem na konto klubu.');
+            $this->redirect('portal/dues');
+        }
+
+        // Utwórz online_payment z referencją do due
+        $opModel = new OnlinePaymentModel();
+        $opId    = $opModel->createPayment([
+            'club_id'      => $clubId,
+            'member_id'    => $memberId,
+            'fee_rate_id'  => $due['fee_rate_id'] ?: null,
+            'amount'       => $remaining,
+            'description'  => 'Należność #' . $dueId . ' (' . ($due['period_year'] ?? '') . ')',
+            'period_year'  => (int)($due['period_year'] ?? date('Y')),
+            'period_month' => $due['period_month'] ? (int)$due['period_month'] : null,
+            'provider'     => $gateway['provider'],
+            'status'       => 'pending',
+            'ip_address'   => $_SERVER['REMOTE_ADDR'] ?? null,
+        ]);
+
+        $successUrl = url('portal/payments/success?op_id=' . $opId);
+        $cancelUrl  = url('portal/dues?cancelled=1');
+
+        // Stripe-only obecnie — w przyszłości routing per gateway provider
+        $checkoutUrl = PaymentGateway::createCheckoutSession(
+            $clubId, $remaining,
+            'Należność klubowa #' . $dueId,
+            $successUrl, $cancelUrl
+        );
+
+        if ($checkoutUrl) {
+            $opModel->update($opId, ['checkout_url' => $checkoutUrl]);
+            header('Location: ' . $checkoutUrl);
+            exit;
+        }
+
+        // Fallback: manual
+        $opModel->update($opId, ['provider' => 'manual']);
+        Session::flash('info',
+            'Płatność online nie jest aktualnie dostępna. Skontaktuj się z klubem aby ustalić sposób przelewu (ref: online#' . $opId . ').');
+        $this->redirect('portal/dues');
     }
 }

@@ -17,6 +17,9 @@ use App\Models\MemberIdentityModel;
 use App\Models\MemberLicenseModel;
 use App\Models\MemberModel;
 use App\Models\MemberNotificationModel;
+use App\Models\ClubPaymentGatewayModel;
+use App\Models\MemberFeeAssignmentModel;
+use App\Models\PaymentDueModel;
 use App\Models\PaymentModel;
 use App\Models\SportAttendanceModel;
 use App\Models\SportHistoryModel;
@@ -310,6 +313,64 @@ class MemberPortalController extends BaseController
             'payments' => $pagination['data'] ?? [],
             'year'     => $year,
             'appName'  => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    /**
+     * Faza P.6 — moje należności (payment_dues) + zniżki + button "Zapłać teraz".
+     *
+     * Pokazuje:
+     *   - aktywne subskrypcje opłat zawodnika z przypisanymi zniżkami
+     *   - listę payment_dues (oczekujące, częściowe, przeterminowane, opłacone)
+     *   - sumaryczne saldo zaległości
+     *   - czy klub ma aktywną bramkę płatności (z P.5) — wpływa na widoczność "Zapłać teraz"
+     */
+    public function dues(): void
+    {
+        MemberAuth::requireLogin();
+        $memberId = (int)MemberAuth::id();
+        $today    = date('Y-m-d');
+
+        // Należności (payment_dues)
+        $dueModel = new PaymentDueModel();
+        $dues     = $dueModel->forMember($memberId);
+
+        // Aktywne subskrypcje + ich zniżki
+        $assignModel  = new MemberFeeAssignmentModel();
+        $assignments  = $assignModel->activeForMember($memberId, $today);
+        $assignmentDiscounts = [];
+        foreach ($assignments as $a) {
+            $assignmentDiscounts[(int)$a['id']] = $assignModel->discountsForAssignment((int)$a['id']);
+        }
+
+        // Saldo: tylko dla bieżącego zawodnika (filtruj manualnie)
+        $totalOutstanding = 0.0;
+        $totalOverdue     = 0.0;
+        foreach ($dues as $d) {
+            $remaining = (float)$d['net_amount'] - (float)$d['paid_amount'];
+            if (in_array($d['status'], ['pending', 'partial', 'overdue'], true)) {
+                $totalOutstanding += $remaining;
+                if ($d['status'] === 'overdue' || (in_array($d['status'], ['pending','partial']) && $d['due_date'] < $today)) {
+                    $totalOverdue += $remaining;
+                }
+            }
+        }
+
+        // Czy klub ma aktywną bramkę online?
+        $hasActiveGateway = (new ClubPaymentGatewayModel())->activeGateway() !== null;
+
+        $this->view->setLayout('portal');
+        $this->view->render('portal/dues', [
+            'title'             => 'Moje należności',
+            'member'            => MemberAuth::member(),
+            'dues'              => $dues,
+            'assignments'       => $assignments,
+            'assignmentDiscounts' => $assignmentDiscounts,
+            'totalOutstanding'  => $totalOutstanding,
+            'totalOverdue'      => $totalOverdue,
+            'hasActiveGateway'  => $hasActiveGateway,
+            'statuses'          => PaymentDueModel::$STATUSES,
+            'appName'           => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
     }
 

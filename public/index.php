@@ -457,6 +457,10 @@ $router->get('/portal/payments',         [\App\Controllers\MemberPaymentControll
 $router->post('/portal/payments/pay',    [\App\Controllers\MemberPaymentController::class, 'pay']);
 $router->get('/portal/payments/success', [\App\Controllers\MemberPaymentController::class, 'success']);
 
+// Portal — należności (Faza P.6)
+$router->get('/portal/dues',             [\App\Controllers\MemberPortalController::class, 'dues']);
+$router->post('/portal/dues/:id/pay',    [\App\Controllers\MemberPaymentController::class, 'payDue']);
+
 // Portal: karta zawodnika + zdjęcie
 $router->get('/portal/member-card',      [\App\Controllers\MemberPortalController::class, 'memberCard']);
 $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalController::class, 'uploadPhoto']);

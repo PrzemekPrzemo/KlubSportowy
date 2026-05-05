@@ -11,7 +11,11 @@ try {
         <div class="card p-3 h-100 position-relative">
             <h6 class="text-muted small"><i class="bi bi-receipt me-1"></i>Składki <?= date('Y') ?></h6>
             <div class="fs-4 fw-bold"><?= format_money($totalThisYear) ?></div>
-            <a href="<?= url('portal/fees') ?>" class="small stretched-link text-primary">Historia składek &rarr;</a>
+            <div class="d-flex gap-2 small">
+                <a href="<?= url('portal/dues') ?>" class="text-primary">Należności</a>
+                <span class="text-muted">·</span>
+                <a href="<?= url('portal/fees') ?>" class="text-primary">Historia</a>
+            </div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
