@@ -9,6 +9,7 @@ use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Models\AntiDopingModel;
 use App\Models\EventModel;
+use App\Models\IdentitySportMembershipModel;
 use App\Models\MedicalExamModel;
 use App\Models\MemberBeltModel;
 use App\Models\MemberConsentModel;
@@ -142,6 +143,38 @@ class MemberPortalController extends BaseController
             'flashSuccess' => Session::getFlash('success'),
             'appName'      => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
+    }
+
+    /**
+     * POST: Switch active sport section for the logged identity.
+     * Verifies the membership belongs to the identity and updates session.
+     */
+    public function switchSection(string $id): void
+    {
+        Csrf::verify();
+        MemberAuth::requireLogin();
+
+        $identityId = MemberAuth::identityId();
+        if ($identityId === null) {
+            Session::flash('error', 'Switcher sekcji wymaga konta z tozsamoscia (member_identity).');
+            $this->redirect('portal/dashboard');
+            return;
+        }
+
+        $membership = (new IdentitySportMembershipModel())->findActive((int)$id);
+        if ($membership === null || (int)$membership['identity_id'] !== $identityId) {
+            Session::flash('error', 'Wybrana sekcja nie nalezy do Twojego konta.');
+            $this->redirect('portal/dashboard');
+            return;
+        }
+
+        MemberAuth::setActiveMembership($membership);
+        Session::flash('success', sprintf(
+            'Aktywna sekcja: %s w klubie %s.',
+            $membership['sport_name'] ?? $membership['sport_key'],
+            $membership['club_name']
+        ));
+        $this->redirect('portal/dashboard');
     }
 
     /**

@@ -191,7 +191,31 @@ class MemberAuth
         Session::remove('portal_club_id');
         Session::remove('portal_identity_id');
         Session::remove('portal_multi_club');
+        Session::remove('portal_active_membership_id');
         ClubContext::clear();
+    }
+
+    /**
+     * Aktualnie wybrana przynaleznosc sportowa zawodnika (sport × klub).
+     * Zwraca null jesli nie ma jeszcze wybranej (np. legacy login bez identity).
+     */
+    public static function activeMembershipId(): ?int
+    {
+        $val = Session::get('portal_active_membership_id');
+        return $val !== null ? (int)$val : null;
+    }
+
+    /**
+     * Ustawia aktualna sekcje sportowa w sesji oraz synchronizuje
+     * portal_club_id i portal_member_id z wybranym wpisem ISM.
+     * Caller musi zwerifikowac, ze membership nalezy do zalogowanej tozsamosci.
+     */
+    public static function setActiveMembership(array $membership): void
+    {
+        Session::set('portal_active_membership_id', (int)$membership['id']);
+        Session::set('portal_club_id',  (int)$membership['club_id']);
+        Session::set('portal_member_id', (int)$membership['member_id']);
+        ClubContext::set((int)$membership['club_id']);
     }
 
     public static function requireLogin(): void
