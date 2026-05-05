@@ -110,3 +110,25 @@ $tiles[] = ['portal/tournaments',  'bi-trophy',          'primary',   'Zawody'];
     </div>
     <?php endforeach; ?>
 </div>
+
+<?php if (!empty($activeSportKeys)): ?>
+<div class="card mt-3 p-3">
+    <h5 class="mb-3"><i class="bi bi-trophy me-1"></i> Moje sekcje sportowe</h5>
+    <div class="row g-2">
+        <?php foreach ($activeSportKeys as $sportKey):
+            $manifest = \App\Helpers\SportModuleLoader::get($sportKey);
+            if (!$manifest) continue;
+            $label = $manifest['name'] ?? ucfirst($sportKey);
+            $icon  = $manifest['icon']  ?? 'bi-trophy';
+        ?>
+            <div class="col-6 col-md-3">
+                <a href="<?= url('portal/sport/' . $sportKey) ?>"
+                   class="card text-decoration-none text-dark p-2 d-flex flex-row align-items-center gap-2 h-100 hover-shadow">
+                    <i class="bi <?= View::e($icon) ?> fs-5 text-primary"></i>
+                    <span class="small fw-semibold"><?= View::e($label) ?></span>
+                </a>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>

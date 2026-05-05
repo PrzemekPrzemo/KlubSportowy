@@ -1272,8 +1272,25 @@ class MemberPortalController extends BaseController
                 ]);
                 break;
             default:
-                Session::flash('error', 'Nieznana sekcja sportowa.');
-                $this->redirect('portal/dashboard');
+                // Generic fallback dla sportow bez dedykowanego case-u —
+                // uzywa archetypu (z manifestu) i introspekcji INFORMATION_SCHEMA
+                // do auto-detekcji co pokazac. Pokrywa wszystkie sporty z
+                // archetypem (49/49 po wdrozeniu Fazy I).
+                $manifest = \App\Helpers\SportModuleLoader::get($key);
+                $archetypeFqcn = $manifest['archetype'] ?? null;
+                if (!$archetypeFqcn || !class_exists($archetypeFqcn)) {
+                    Session::flash('error', 'Sekcja sportowa nie ma jeszcze widoku w portalu.');
+                    $this->redirect('portal/dashboard');
+                    return;
+                }
+                $archetype = new $archetypeFqcn();
+                $adapter   = new \App\Helpers\SportPortalAdapter(Database::pdo());
+                $clubId    = MemberAuth::clubId();
+                $payload   = $adapter->loadForMember($archetype, $memberId, $clubId);
+                $data = array_merge($data, $payload);
+                $this->view->setLayout('portal');
+                $this->view->render('portal/sport_generic', $data);
+                return;
         }
 
         $this->view->setLayout('portal');
