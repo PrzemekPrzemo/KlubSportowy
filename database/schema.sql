@@ -583,7 +583,6 @@ INSERT INTO `sports` (`key`, `name`, `federation_id`, `icon`, `color`, `team_spo
   ('football',      'Piłka nożna',       1,  'bi-dribbble',      '#28a745', 1, 10),
   ('basketball',    'Koszykówka',        2,  'bi-record-circle', '#fd7e14', 1, 20),
   ('volleyball',    'Siatkówka',         3,  'bi-circle',        '#ffc107', 1, 30),
-  ('shooting',      'Strzelectwo',       4,  'bi-bullseye',      '#dc3545', 0, 40),
   ('athletics',     'Lekka atletyka',    5,  'bi-stopwatch',     '#0dcaf0', 0, 50),
   ('icehockey',     'Hokej na lodzie',   6,  'bi-snow',          '#0d6efd', 1, 60),
   ('handball',      'Piłka ręczna',      7,  'bi-hand-index',    '#6f42c1', 1, 70),
@@ -611,13 +610,8 @@ INSERT INTO `disciplines` (`sport_id`, `name`, `short_code`) VALUES
   ((SELECT id FROM sports WHERE `key`='volleyball'), 'Halowa',   'VHAL'),
   ((SELECT id FROM sports WHERE `key`='volleyball'), 'Plażowa',  'VPLA');
 
--- Strzelectwo
-INSERT INTO `disciplines` (`sport_id`, `name`, `short_code`) VALUES
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'Pistolet sportowy',     'PS'),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'Karabin sportowy',      'KS'),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'Strzelanie dynamiczne', 'SD'),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'Trap',                  'TR'),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'Skeet',                 'SK');
+-- Strzelectwo: obsługiwane przez zewnętrzny system shootero.pl,
+-- nie seedujemy w ClubDesk.
 
 -- Lekka atletyka
 INSERT INTO `disciplines` (`sport_id`, `name`, `short_code`) VALUES
@@ -635,12 +629,7 @@ INSERT INTO `disciplines` (`sport_id`, `name`, `short_code`) VALUES
   ((SELECT id FROM sports WHERE `key`='rollerskating'), 'Roller derby',   'DERB');
 
 -- Member classes per sport
-INSERT INTO `member_classes` (`sport_id`, `name`, `short_code`, `sort_order`) VALUES
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'Master', 'M',  1),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'A',      'A',  2),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'B',      'B',  3),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'C',      'C',  4),
-  ((SELECT id FROM sports WHERE `key`='shooting'), 'D',      'D',  5);
+-- (klasy strzeleckie usunięte — strzelectwo obsługiwane przez shootero.pl)
 
 INSERT INTO `member_classes` (`sport_id`, `name`, `short_code`, `sort_order`) VALUES
   ((SELECT id FROM sports WHERE `key`='football'), 'Senior',      'SR', 1),
