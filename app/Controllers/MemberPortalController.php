@@ -7,6 +7,7 @@ use App\Helpers\Database;
 use App\Helpers\MemberAuth;
 use App\Helpers\RateLimiter;
 use App\Helpers\Session;
+use App\Models\AntiDopingModel;
 use App\Models\EventModel;
 use App\Models\MedicalExamModel;
 use App\Models\MemberBeltModel;
@@ -634,6 +635,70 @@ class MemberPortalController extends BaseController
         (new MemberConsentModel())->setConsent($memberId, $clubId, $type, $granted, $ip);
         Session::flash('success', $granted ? 'Zgoda udzielona.' : 'Zgoda wycofana.');
         $this->redirect('portal/consents');
+    }
+
+    /**
+     * Anti-doping consent declaration (B3) — zawodnik akceptuje regulamin
+     * WADA / POLADA i deklaruje zgode na obowiazujace zasady. Prawnie
+     * deklaracja musi byc opatrzona data i adresem IP. Dla maloletnich
+     * (separate flow przez minor_consents) - opiekun podpisuje na miejscu.
+     */
+    public function antiDoping(): void
+    {
+        MemberAuth::requireLogin();
+        $memberId = (int)MemberAuth::id();
+        $current  = (new AntiDopingModel())->forMember($memberId);
+
+        $this->view->setLayout('portal');
+        $this->view->render('portal/anti_doping', [
+            'title'            => 'Deklaracja anti-doping (WADA)',
+            'member'           => MemberAuth::member(),
+            'current'          => $current,
+            'declarationTypes' => AntiDopingModel::$DECLARATION_TYPES,
+            'appName'          => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    public function storeAntiDoping(): void
+    {
+        Csrf::verify();
+        MemberAuth::requireLogin();
+
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+
+        if (empty($_POST['confirm_read']) || empty($_POST['confirm_truthful'])) {
+            Session::flash('error', 'Musisz potwierdzic zapoznanie sie z regulaminem oraz prawdziwosc oswiadczen.');
+            $this->redirect('portal/anti-doping');
+            return;
+        }
+
+        $type = $_POST['declaration_type'] ?? 'WADA';
+        if (!array_key_exists($type, AntiDopingModel::$DECLARATION_TYPES)) {
+            $type = 'WADA';
+        }
+
+        $signedDate = date('Y-m-d');
+        $validUntil = date('Y-m-d', strtotime('+1 year'));
+        $ip         = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        (new AntiDopingModel())->insert([
+            'club_id'          => $clubId,
+            'member_id'        => $memberId,
+            'declaration_type' => $type,
+            'signed_date'      => $signedDate,
+            'valid_until'      => $validUntil,
+            'signed_ip'        => $ip,
+            'witness'          => 'self', // zawodnik podpisal samodzielnie
+            'notes'            => 'Podpisana w portalu zawodnika.',
+        ]);
+
+        Session::flash('success', sprintf(
+            'Deklaracja %s zlozona. Wazna do %s.',
+            $type,
+            $validUntil
+        ));
+        $this->redirect('portal/anti-doping');
     }
 
     public function announcements(): void
