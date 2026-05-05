@@ -333,6 +333,15 @@ $router->get('/fees',                      [\App\Controllers\FeesController::cla
 $router->get('/fees/rates',                [\App\Controllers\FeesController::class, 'rates']);
 $router->post('/fees/rates/store',         [\App\Controllers\FeesController::class, 'storeRate']);
 $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::class, 'deleteRate']);
+
+// Zniżki klubowe (Faza P.2)
+$router->get('/fees/discounts',                [\App\Controllers\DiscountsController::class, 'index']);
+$router->get('/fees/discounts/new',            [\App\Controllers\DiscountsController::class, 'create']);
+$router->post('/fees/discounts/store',         [\App\Controllers\DiscountsController::class, 'store']);
+$router->get('/fees/discounts/:id/edit',       [\App\Controllers\DiscountsController::class, 'edit']);
+$router->post('/fees/discounts/:id/update',    [\App\Controllers\DiscountsController::class, 'update']);
+$router->post('/fees/discounts/:id/toggle',    [\App\Controllers\DiscountsController::class, 'toggleActive']);
+$router->post('/fees/discounts/:id/delete',    [\App\Controllers\DiscountsController::class, 'delete']);
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
