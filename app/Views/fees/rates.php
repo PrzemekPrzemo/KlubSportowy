@@ -12,6 +12,9 @@
         <a href="<?= url('fees/discounts') ?>" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-percent"></i> Zniżki
         </a>
+        <a href="<?= url('fees/assignments') ?>" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-people-fill"></i> Subskrypcje
+        </a>
     </div>
 </div>
 

@@ -345,6 +345,15 @@ $router->get('/fees/discounts/:id/edit',       [\App\Controllers\DiscountsContro
 $router->post('/fees/discounts/:id/update',    [\App\Controllers\DiscountsController::class, 'update']);
 $router->post('/fees/discounts/:id/toggle',    [\App\Controllers\DiscountsController::class, 'toggleActive']);
 $router->post('/fees/discounts/:id/delete',    [\App\Controllers\DiscountsController::class, 'delete']);
+
+// Subskrypcje opłat (Faza P.3) — przypisanie polityki + zniżek M:N do zawodnika
+$router->get('/fees/assignments',                [\App\Controllers\FeeAssignmentsController::class, 'index']);
+$router->get('/fees/assignments/new',            [\App\Controllers\FeeAssignmentsController::class, 'create']);
+$router->post('/fees/assignments/store',         [\App\Controllers\FeeAssignmentsController::class, 'store']);
+$router->get('/fees/assignments/:id/edit',       [\App\Controllers\FeeAssignmentsController::class, 'edit']);
+$router->post('/fees/assignments/:id/update',    [\App\Controllers\FeeAssignmentsController::class, 'update']);
+$router->post('/fees/assignments/:id/delete',    [\App\Controllers\FeeAssignmentsController::class, 'delete']);
+$router->post('/fees/assignments/preview',       [\App\Controllers\FeeAssignmentsController::class, 'calculatePreview']);
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
