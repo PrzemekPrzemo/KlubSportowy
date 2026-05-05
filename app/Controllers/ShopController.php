@@ -170,6 +170,7 @@ class ShopController extends BaseController
      */
     public function addToCart(): void
     {
+        Csrf::verify();
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity  = max(1, (int)($_POST['quantity'] ?? 1));
         $size      = trim($_POST['size'] ?? '');
@@ -269,6 +270,7 @@ class ShopController extends BaseController
      */
     public function storeOrder(): void
     {
+        Csrf::verify();
         $cart = Session::get('shop_cart', []);
         if (empty($cart)) {
             Session::flash('warning', 'Koszyk jest pusty.');
