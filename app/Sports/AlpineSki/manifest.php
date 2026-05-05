@@ -3,7 +3,8 @@ return [
     'key'        => 'alpineski',
     'name'       => 'Narciarstwo alpejskie',
     'federation' => 'PZN Alpine',
-    'features'   => ['results', 'disciplines', 'fis_points', 'run_times'],
+    'archetype'  => \App\Sports\AlpineSki\AlpineSkiArchetype::class,
+    'features'   => ['results', 'disciplines', 'fis_points', 'run_times', 'demo-ready'],
     'routes' => [
         ['GET',  '/alpineski/results',            [\App\Sports\AlpineSki\Controllers\ResultsController::class, 'index']],
         ['POST', '/alpineski/results/store',      [\App\Sports\AlpineSki\Controllers\ResultsController::class, 'store']],

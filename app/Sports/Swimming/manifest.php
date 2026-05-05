@@ -3,7 +3,8 @@ return [
     'key'        => 'swimming',
     'name'       => 'Pływanie',
     'federation' => 'PZP',
-    'features'   => ['results', 'personal_bests', 'disciplines', 'club_records'],
+    'archetype'  => \App\Sports\Swimming\SwimmingArchetype::class,
+    'features'   => ['results', 'personal_bests', 'disciplines', 'club_records', 'demo-ready'],
     'routes' => [
         ['GET',  '/swimming/results',           [\App\Sports\Swimming\Controllers\ResultsController::class, 'index']],
         ['POST', '/swimming/results/store',      [\App\Sports\Swimming\Controllers\ResultsController::class, 'store']],

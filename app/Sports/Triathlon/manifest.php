@@ -3,7 +3,8 @@ return [
     'key'        => 'triathlon',
     'name'       => 'Triathlon',
     'federation' => 'PZTri',
-    'features'   => ['results', 'splits', 'age_groups', 'qualifications', 'distances'],
+    'archetype'  => \App\Sports\Triathlon\TriathlonArchetype::class,
+    'features'   => ['results', 'splits', 'age_groups', 'qualifications', 'distances', 'demo-ready'],
     'routes' => [
         ['GET',  '/triathlon/results',            [\App\Sports\Triathlon\Controllers\ResultsController::class,  'index']],
         ['POST', '/triathlon/results/store',      [\App\Sports\Triathlon\Controllers\ResultsController::class,  'store']],

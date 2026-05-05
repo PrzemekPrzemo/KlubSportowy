@@ -3,7 +3,8 @@ return [
     'key'        => 'cycling',
     'name'       => 'Kolarstwo',
     'federation' => 'PZKol',
-    'features'   => ['results', 'ftp_tests', 'disciplines', 'uci_categories', 'power_watts'],
+    'archetype'  => \App\Sports\Cycling\CyclingArchetype::class,
+    'features'   => ['results', 'ftp_tests', 'disciplines', 'uci_categories', 'power_watts', 'demo-ready'],
     'routes' => [
         ['GET',  '/cycling/results',            [\App\Sports\Cycling\Controllers\ResultsController::class, 'index']],
         ['POST', '/cycling/results/store',      [\App\Sports\Cycling\Controllers\ResultsController::class, 'store']],
