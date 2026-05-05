@@ -40,10 +40,10 @@ class GatewayFactoryTest extends TestCase
 
     public function testForProviderReturnsNullForUnimplementedAdapters(): void
     {
-        // Stub-y dla T.1-T.4 jeszcze nie zaimplementowane
-        // — factory zwraca null aż klasy zostaną dodane.
+        // T.2 (PayU) i T.4 (Tpay) jeszcze nie zaimplementowane —
+        // factory zwraca null aż klasy zostaną dodane.
+        // T.1 Przelewy24 dostępne (PR #75).
         $config = ['api_key' => 'test'];
-        $this->assertNull(GatewayFactory::forProvider('przelewy24', $config));
         $this->assertNull(GatewayFactory::forProvider('payu', $config));
         $this->assertNull(GatewayFactory::forProvider('tpay', $config));
     }
