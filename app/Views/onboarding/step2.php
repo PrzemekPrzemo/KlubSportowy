@@ -5,7 +5,21 @@
         <h4 class="mb-1"><i class="bi bi-trophy"></i> Sekcje sportowe</h4>
         <p class="text-muted mb-4">Wybierz sporty, w których działa Twój klub.</p>
 
-        <form method="POST" action="<?= url('onboarding/step2') ?>">
+        <?php $limit = $sportLimit['limit'] ?? null; ?>
+        <?php if ($limit !== null): ?>
+            <div class="alert alert-info d-flex justify-content-between align-items-center" id="sport-limit-alert">
+                <div>
+                    Twój plan subskrypcji pozwala wybrać maksymalnie
+                    <strong><?= (int)$limit ?></strong>
+                    <?= $limit === 1 ? 'sekcję' : 'sekcji' ?>.
+                </div>
+                <div class="text-end small">
+                    Wybrano: <strong id="sport-counter">0</strong> / <?= (int)$limit ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="<?= url('onboarding/step2') ?>" id="onboarding-step2-form">
             <?= csrf_field() ?>
 
             <div class="row g-3 mb-4">
@@ -15,7 +29,7 @@
                         <label class="card h-100 border <?= $checked ? 'border-primary' : '' ?>" style="cursor:pointer;">
                             <div class="card-body text-center p-3">
                                 <input type="checkbox" name="sports[]" value="<?= (int)$sport['id'] ?>"
-                                       class="form-check-input position-absolute top-0 end-0 m-2"
+                                       class="form-check-input position-absolute top-0 end-0 m-2 sport-checkbox"
                                        <?= $checked ? 'checked' : '' ?>>
                                 <div class="fs-1 mb-2">
                                     <i class="bi <?= View::e($sport['icon'] ?? 'bi-trophy') ?>"
@@ -49,3 +63,30 @@
 </form>
     </div>
 </div>
+
+<?php if ($limit !== null): ?>
+<script>
+(function() {
+    const limit    = <?= (int)$limit ?>;
+    const checks   = document.querySelectorAll('.sport-checkbox');
+    const counter  = document.getElementById('sport-counter');
+    const alertBox = document.getElementById('sport-limit-alert');
+
+    function refresh() {
+        const selected = Array.from(checks).filter(c => c.checked);
+        const count    = selected.length;
+        if (counter) counter.textContent = count;
+        if (alertBox) {
+            alertBox.classList.toggle('alert-info', count <= limit);
+            alertBox.classList.toggle('alert-warning', count > limit);
+        }
+        // Disable any remaining unchecked once at limit (UX hint, server still validates)
+        checks.forEach(c => {
+            if (!c.checked) c.disabled = (count >= limit);
+        });
+    }
+    checks.forEach(c => c.addEventListener('change', refresh));
+    refresh();
+})();
+</script>
+<?php endif; ?>
