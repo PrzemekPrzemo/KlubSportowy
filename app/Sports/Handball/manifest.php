@@ -3,7 +3,8 @@ return [
     'key'        => 'handball',
     'name'       => 'Piłka ręczna',
     'federation' => 'ZPRP',
-    'features'   => ['teams', 'players', 'matches', 'stats', 'positions'],
+    'archetype'  => \App\Sports\Handball\HandballArchetype::class,
+    'features'   => ['teams', 'players', 'matches', 'stats', 'positions', 'demo-ready'],
     'routes' => [
         ['GET',  '/handball/teams',              [\App\Sports\Handball\Controllers\TeamsController::class,   'index']],
         ['POST', '/handball/teams/store',        [\App\Sports\Handball\Controllers\TeamsController::class,   'store']],
