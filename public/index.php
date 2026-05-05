@@ -370,6 +370,14 @@ $router->get('/accounting/export',  [\App\Controllers\AccountingController::clas
 
 // Wszyscy zawodnicy (cross-sport, Faza P.4)
 $router->get('/members-all',        [\App\Controllers\AllMembersController::class, 'index']);
+
+// Per-klub bramki płatności (Faza P.5)
+$router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
+$router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
+$router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatewayController::class, 'save']);
+$router->post('/club/gateways/:provider/test',       [\App\Controllers\ClubGatewayController::class, 'testConnection']);
+$router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatewayController::class, 'toggleActive']);
+$router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
