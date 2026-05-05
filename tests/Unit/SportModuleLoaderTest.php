@@ -103,6 +103,57 @@ class SportModuleLoaderTest extends TestCase
         }
     }
 
+    /**
+     * Catalogue audit: gdy ktos doda nowy plugin sport, prosze dodac
+     * jego manifest z poprawnymi kluczami i podlinkowac migracje.
+     * Test obejmuje wszystkie pluginy w app/Sports/ — nowe sporty
+     * nie wymagaja zmian w testach.
+     */
+    public function testEachManifestHasMigrationsPath(): void
+    {
+        foreach (SportModuleLoader::load() as $key => $manifest) {
+            $this->assertArrayHasKey('migrations', $manifest,
+                "Manifest '{$key}' brakuje klucza 'migrations'");
+            $path = $manifest['migrations'];
+            $this->assertIsString($path, "Manifest '{$key}' migrations musi byc stringiem");
+            $this->assertDirectoryExists($path,
+                "Manifest '{$key}' wskazuje na nieistniejacy katalog migracji: {$path}");
+        }
+    }
+
+    public function testEachManifestHasAtLeastOneMigrationFile(): void
+    {
+        foreach (SportModuleLoader::load() as $key => $manifest) {
+            $path  = $manifest['migrations'] ?? null;
+            if (!$path || !is_dir($path)) continue; // pokryte przez powyzszy test
+
+            $files = glob($path . '/*.sql') ?: [];
+            $this->assertNotEmpty($files,
+                "Manifest '{$key}' ma katalog migracji {$path} ale 0 plikow .sql");
+
+            // Wszystkie migracje powinny byc poprawnie ponumerowane (NNN_name.sql)
+            foreach ($files as $f) {
+                $this->assertMatchesRegularExpression(
+                    '/\\/[0-9]{3}_[a-z0-9_]+\\.sql$/',
+                    $f,
+                    "Migracja '{$f}' nie jest w formacie NNN_name.sql"
+                );
+            }
+        }
+    }
+
+    public function testFederationFieldNotEmpty(): void
+    {
+        // Wymog tylko: kazdy plugin musi miec niepuste 'federation'
+        // (konkretne formatowanie zostawiamy autorom pluginow).
+        foreach (SportModuleLoader::load() as $key => $manifest) {
+            $this->assertNotEmpty(
+                $manifest['federation'] ?? null,
+                "Manifest '{$key}' ma puste pole 'federation'"
+            );
+        }
+    }
+
     public function testCacheWorksCorrectly(): void
     {
         $first  = SportModuleLoader::load();
