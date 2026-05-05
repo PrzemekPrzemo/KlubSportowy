@@ -7,23 +7,47 @@ class AdModel extends BaseModel
     protected string $table = 'ads';
 
     /**
-     * Return active ads for a given target (club_panel, member_portal, public).
-     * Filters by date range, is_active flag, and optionally club_id.
+     * Return active ads for a given target (club_panel, member_portal, public),
+     * filtered by audience targeting added in migration 032.
+     *
+     * Audience semantics:
+     *   audience='all'    → always matches (subject to global filters)
+     *   audience='club'   → matches when ads.club_id = ctx.clubId
+     *   audience='sport'  → matches when ads.sport_id = ctx.sportId
+     *   audience='member' → matches when ads.member_id = ctx.memberId
+     *   audience='plan'   → matches when plan_min IS NULL OR plan_min = planCode
+     *                        (caller passes current plan code; plan ordering
+     *                        is caller's responsibility)
+     *
+     * Backward compat: existing callers passing only $target+$clubId still
+     * see all 'all'-audience rows scoped per club just like before.
      */
-    public function activeForTarget(string $target, ?int $clubId = null): array
-    {
+    public function activeForTarget(
+        string  $target,
+        ?int    $clubId   = null,
+        ?int    $memberId = null,
+        ?int    $sportId  = null,
+        ?string $planCode = null
+    ): array {
         $sql = "SELECT * FROM ads
                 WHERE is_active = 1
                   AND target = ?
                   AND (start_date IS NULL OR start_date <= CURDATE())
-                  AND (end_date   IS NULL OR end_date   >= CURDATE())";
-        $params = [$target];
+                  AND (end_date   IS NULL OR end_date   >= CURDATE())
+                  AND (
+                          audience_type = 'all'
+                          OR (audience_type = 'club'   AND club_id   = ?)
+                          OR (audience_type = 'sport'  AND sport_id  = ?)
+                          OR (audience_type = 'member' AND member_id = ?)
+                          OR (audience_type = 'plan'   AND (plan_min IS NULL OR plan_min = ?))
+                      )";
+        $params = [$target, $clubId, $sportId, $memberId, $planCode];
 
         if ($clubId !== null) {
-            $sql .= " AND (club_id IS NULL OR club_id = ?)";
+            $sql .= " AND (audience_type != 'all' OR club_id IS NULL OR club_id = ?)";
             $params[] = $clubId;
         } else {
-            $sql .= " AND club_id IS NULL";
+            $sql .= " AND (audience_type != 'all' OR club_id IS NULL)";
         }
 
         $sql .= " ORDER BY created_at DESC";
