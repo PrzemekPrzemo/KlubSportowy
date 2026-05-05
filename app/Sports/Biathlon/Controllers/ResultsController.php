@@ -6,12 +6,14 @@ use App\Controllers\BaseController;
 use App\Controllers\Traits\RequiresActiveSport;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Helpers\SportResultsCrudTrait;
 use App\Models\MemberModel;
 use App\Sports\Biathlon\Models\BiathlonResultModel;
 
 class ResultsController extends BaseController
 {
     use RequiresActiveSport;
+    use SportResultsCrudTrait;
 
     public function __construct()
     {
@@ -19,6 +21,21 @@ class ResultsController extends BaseController
         $this->requireLogin();
         $this->requireClubContext();
         $this->requireSportActive('biathlon');
+    }
+
+    protected function crudConfig(): array
+    {
+        return [
+            'model'         => new BiathlonResultModel(),
+            'table'         => 'biathlon_results',
+            'index_route'   => 'biathlon/results',
+            'view_prefix'   => 'biathlon/results',
+            'title_show'    => 'Szczegóły wyniku — Biathlon',
+            'title_edit'    => 'Edytuj wynik — Biathlon',
+            'extra_selects' => [
+                'format' => ['label' => 'Format', 'options' => BiathlonResultModel::$FORMATS],
+            ],
+        ];
     }
 
     public function index(): void

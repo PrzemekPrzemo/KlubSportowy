@@ -8,6 +8,9 @@ return [
     'routes' => [
         ['GET',  '/xcski/results',            [\App\Sports\XcSki\Controllers\ResultsController::class, 'index']],
         ['POST', '/xcski/results/store',      [\App\Sports\XcSki\Controllers\ResultsController::class, 'store']],
+        ['GET',  '/xcski/results/:id',        [\App\Sports\XcSki\Controllers\ResultsController::class, 'show']],
+        ['GET',  '/xcski/results/:id/edit',   [\App\Sports\XcSki\Controllers\ResultsController::class, 'edit']],
+        ['POST', '/xcski/results/:id/update', [\App\Sports\XcSki\Controllers\ResultsController::class, 'update']],
         ['POST', '/xcski/results/:id/delete', [\App\Sports\XcSki\Controllers\ResultsController::class, 'delete']],
     ],
     'nav' => [

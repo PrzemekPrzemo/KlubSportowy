@@ -6,12 +6,14 @@ use App\Controllers\BaseController;
 use App\Controllers\Traits\RequiresActiveSport;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Helpers\SportResultsCrudTrait;
 use App\Models\MemberModel;
 use App\Sports\Snowboard\Models\SnowboardResultModel;
 
 class ResultsController extends BaseController
 {
     use RequiresActiveSport;
+    use SportResultsCrudTrait;
 
     public function __construct()
     {
@@ -19,6 +21,21 @@ class ResultsController extends BaseController
         $this->requireLogin();
         $this->requireClubContext();
         $this->requireSportActive('snowboard');
+    }
+
+    protected function crudConfig(): array
+    {
+        return [
+            'model'         => new SnowboardResultModel(),
+            'table'         => 'snowboard_results',
+            'index_route'   => 'snowboard/results',
+            'view_prefix'   => 'snowboard/results',
+            'title_show'    => 'Szczegóły wyniku — Snowboard',
+            'title_edit'    => 'Edytuj wynik — Snowboard',
+            'extra_selects' => [
+                'discipline' => ['label' => 'Konkurencja', 'options' => SnowboardResultModel::$DISCIPLINES],
+            ],
+        ];
     }
 
     public function index(): void
