@@ -332,6 +332,9 @@ $router->post('/members/:id/portal-password', [\App\Controllers\MembersControlle
 $router->get('/fees',                      [\App\Controllers\FeesController::class, 'index']);
 $router->get('/fees/rates',                [\App\Controllers\FeesController::class, 'rates']);
 $router->post('/fees/rates/store',         [\App\Controllers\FeesController::class, 'storeRate']);
+$router->get('/fees/rates/:id/edit',       [\App\Controllers\FeesController::class, 'editRate']);
+$router->post('/fees/rates/:id/update',    [\App\Controllers\FeesController::class, 'updateRate']);
+$router->post('/fees/rates/:id/toggle',    [\App\Controllers\FeesController::class, 'toggleRateActive']);
 $router->post('/fees/rates/:id/delete',    [\App\Controllers\FeesController::class, 'deleteRate']);
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);

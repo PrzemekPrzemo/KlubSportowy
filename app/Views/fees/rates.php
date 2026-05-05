@@ -12,18 +12,41 @@
                     </thead>
                     <tbody>
                     <?php foreach ($rates as $r): ?>
-                        <tr>
-                            <td><strong><?= View::e($r['name']) ?></strong></td>
+                        <tr class="<?= empty($r['is_active']) ? 'text-muted' : '' ?>">
+                            <td>
+                                <strong><?= View::e($r['name']) ?></strong>
+                                <?php if (empty($r['is_active'])): ?>
+                                    <span class="badge bg-secondary ms-1" title="Nieaktywna — ukryta przy wprowadzaniu nowych opłat">nieaktywna</span>
+                                <?php endif; ?>
+                                <?php if (!empty($r['class_name'])): ?>
+                                    <span class="badge bg-light text-secondary border ms-1"><?= View::e($r['class_name']) ?></span>
+                                <?php endif; ?>
+                            </td>
                             <td><?= View::e($r['sport_name'] ?? '—') ?></td>
                             <td><?= View::e($r['fee_type']) ?></td>
                             <td><?= View::e($r['period']) ?></td>
                             <td class="text-end"><?= format_money($r['amount']) ?></td>
                             <td class="text-end">
-                                <form method="POST" action="<?= url('fees/rates/' . (int)$r['id'] . '/delete') ?>"
-                                      onsubmit="return confirm('<?= __('common.confirm_delete') ?>')">
-                                    <?= csrf_field() ?>
-                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                </form>
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="<?= url('fees/rates/' . (int)$r['id'] . '/edit') ?>"
+                                       class="btn btn-sm btn-outline-primary" title="Edytuj">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="<?= url('fees/rates/' . (int)$r['id'] . '/toggle') ?>"
+                                          class="d-inline" title="<?= !empty($r['is_active']) ? 'Dezaktywuj' : 'Aktywuj' ?>">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-sm btn-outline-<?= !empty($r['is_active']) ? 'warning' : 'success' ?>">
+                                            <i class="bi bi-<?= !empty($r['is_active']) ? 'pause' : 'play' ?>"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="<?= url('fees/rates/' . (int)$r['id'] . '/delete') ?>"
+                                          onsubmit="return confirm('<?= __('common.confirm_delete') ?>')" class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-sm btn-outline-danger" title="Usuń">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

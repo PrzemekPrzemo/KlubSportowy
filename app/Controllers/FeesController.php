@@ -37,7 +37,8 @@ class FeesController extends BaseController
 
     public function rates(): void
     {
-        $rates  = (new FeeRateModel())->listForClub();
+        // Pokaż również nieaktywne — admin może chcieć reaktywować
+        $rates  = (new FeeRateModel())->listForClub(null, false);
         $sports = (new SportModel())->listForClub($this->currentClub());
 
         $this->render('fees/rates', [
@@ -75,6 +76,94 @@ class FeesController extends BaseController
         Csrf::verify();
         (new FeeRateModel())->delete((int)$id);
         Session::flash('success', 'Stawka usunięta.');
+        $this->redirect('fees/rates');
+    }
+
+    public function editRate(string $id): void
+    {
+        $rate = (new FeeRateModel())->findById((int)$id);
+        if (!$rate) {
+            Session::flash('error', 'Nie znaleziono stawki.');
+            $this->redirect('fees/rates');
+        }
+
+        $sports  = (new SportModel())->listForClub($this->currentClub());
+        // Klasy dla aktualnego sport_id (jeśli ustawiony)
+        $classes = [];
+        if (!empty($rate['sport_id'])) {
+            $stmt = \App\Helpers\Database::pdo()->prepare(
+                "SELECT id, name FROM member_classes
+                 WHERE sport_id = ? AND (club_id IS NULL OR club_id = ?)
+                 ORDER BY sort_order, name"
+            );
+            $stmt->execute([(int)$rate['sport_id'], $this->currentClub()]);
+            $classes = $stmt->fetchAll();
+        }
+
+        $this->render('fees/edit_rate', [
+            'title'   => 'Edytuj stawkę',
+            'rate'    => $rate,
+            'sports'  => $sports,
+            'classes' => $classes,
+        ]);
+    }
+
+    public function updateRate(string $id): void
+    {
+        Csrf::verify();
+        $idInt = (int)$id;
+        $existing = (new FeeRateModel())->findById($idInt);
+        if (!$existing) {
+            Session::flash('error', 'Nie znaleziono stawki.');
+            $this->redirect('fees/rates');
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        if ($name === '') {
+            Session::flash('error', 'Nazwa stawki jest wymagana.');
+            $this->redirect('fees/rates/' . $idInt . '/edit');
+        }
+
+        $amount = (float)($_POST['amount'] ?? 0);
+        if ($amount < 0) {
+            Session::flash('error', 'Kwota musi być >= 0.');
+            $this->redirect('fees/rates/' . $idInt . '/edit');
+        }
+
+        $data = [
+            'name'        => $name,
+            'amount'      => $amount,
+            'period'      => in_array($_POST['period'] ?? '', ['monthly','quarterly','yearly','one_time'], true)
+                              ? $_POST['period'] : 'monthly',
+            'fee_type'    => in_array($_POST['fee_type'] ?? '', ['skladka','wpisowe','licencja','zawody','obóz','inne'], true)
+                              ? $_POST['fee_type'] : 'skladka',
+            'sport_id'    => !empty($_POST['sport_id']) ? (int)$_POST['sport_id'] : null,
+            'class_id'    => !empty($_POST['class_id']) ? (int)$_POST['class_id'] : null,
+            'description' => trim($_POST['description'] ?? '') ?: null,
+            'is_active'   => isset($_POST['is_active']) ? 1 : 0,
+        ];
+
+        (new FeeRateModel())->update($idInt, $data);
+        Session::flash('success', 'Stawka zaktualizowana.');
+        $this->redirect('fees/rates');
+    }
+
+    /**
+     * Toggle is_active bez usuwania — pozwala dezaktywować historyczne
+     * stawki bez utraty danych referencyjnych w fee_rate_id payments'ów.
+     */
+    public function toggleRateActive(string $id): void
+    {
+        Csrf::verify();
+        $idInt = (int)$id;
+        $rate = (new FeeRateModel())->findById($idInt);
+        if (!$rate) {
+            Session::flash('error', 'Nie znaleziono stawki.');
+            $this->redirect('fees/rates');
+        }
+        $newVal = empty($rate['is_active']) ? 1 : 0;
+        (new FeeRateModel())->update($idInt, ['is_active' => $newVal]);
+        Session::flash('success', $newVal ? 'Stawka aktywowana.' : 'Stawka dezaktywowana.');
         $this->redirect('fees/rates');
     }
 
