@@ -16,8 +16,3 @@
         <a href="<?= url('auth/forgot-password') ?>" class="small text-muted"><?= __('auth.forgot_password') ?></a>
     </div>
 </form>
-<hr class="my-4">
-<p class="text-center mb-0">
-    <small class="text-muted"><?= __('auth.no_account') ?></small>
-    <a href="<?= url('register') ?>"><?= __('auth.register_club') ?></a>
-</p>

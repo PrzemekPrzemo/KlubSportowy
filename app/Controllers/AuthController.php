@@ -98,82 +98,36 @@ class AuthController extends BaseController
         $this->redirect('auth/login');
     }
 
+    /**
+     * Self-registration klubów jest wyłączone.
+     *
+     * Tylko Master Admin może tworzyć nowe kluby — przez panel
+     * /admin/clubs lub /admin/demos (token demo z ograniczonym czasem).
+     *
+     * Endpoint pozostaje dla kompatybilności linkow w landing page —
+     * pokazuje statyczna strone z informacja kontaktowa.
+     */
     public function showRegister(): void
     {
         if (Auth::check()) {
             $this->redirect('dashboard');
         }
         $this->view->setLayout('auth');
-        $this->view->render('auth/register', [
-            'title' => 'Rejestracja klubu',
-            'flashError' => Session::getFlash('error'),
-            'appName'    => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        $this->view->render('auth/register_disabled', [
+            'title'    => 'Rejestracja niedostępna',
+            'appName'  => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+            'contactEmail' => (require ROOT_PATH . '/config/app.php')['admin_email'] ?? 'kontakt@clubdesk.pl',
         ]);
     }
 
+    /**
+     * POST /register zablokowany — zwraca 410 Gone.
+     * Klub moze byc utworzony tylko przez Master Admina.
+     */
     public function register(): void
     {
-        Csrf::verify();
-
-        $clubName = trim($_POST['club_name'] ?? '');
-        $city     = trim($_POST['city'] ?? '');
-        $email    = trim($_POST['email'] ?? '');
-        $username = trim($_POST['username'] ?? '');
-        $fullName = trim($_POST['full_name'] ?? '');
-        $password = $_POST['password'] ?? '';
-
-        if ($clubName === '' || $email === '' || $username === '' || $password === '' || $fullName === '') {
-            Session::flash('error', 'Uzupełnij wszystkie wymagane pola.');
-            $this->redirect('register');
-        }
-        if (strlen($password) < 8) {
-            Session::flash('error', 'Hasło musi mieć co najmniej 8 znaków.');
-            $this->redirect('register');
-        }
-
-        $userModel = new UserModel();
-        if ($userModel->findByUsername($username) || $userModel->findByEmail($email)) {
-            Session::flash('error', 'Użytkownik o tym loginie lub e-mailu już istnieje.');
-            $this->redirect('register');
-        }
-
-        $db = \App\Helpers\Database::pdo();
-        $db->beginTransaction();
-        try {
-            $clubModel = new \App\Models\ClubModel();
-            $clubId    = $clubModel->insert([
-                'name'  => $clubName,
-                'city'  => $city,
-                'email' => $email,
-            ]);
-            (new \App\Models\ClubCustomizationModel())->ensureExists($clubId);
-
-            $userId = $userModel->create([
-                'username'  => $username,
-                'email'     => $email,
-                'full_name' => $fullName,
-                'password'  => $password,
-            ]);
-
-            (new \App\Models\UserClubModel())->grantRole($userId, $clubId, 'zarzad');
-
-            $plan = $db->query("SELECT id FROM subscription_plans WHERE code='trial' LIMIT 1")->fetchColumn();
-            if ($plan) {
-                $stmt = $db->prepare(
-                    "INSERT INTO club_subscriptions (club_id, plan_id, valid_until, status, billing_cycle)
-                     VALUES (?, ?, DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'trial', 'monthly')"
-                );
-                $stmt->execute([$clubId, (int)$plan]);
-            }
-
-            $db->commit();
-        } catch (\Throwable $e) {
-            $db->rollBack();
-            Session::flash('error', 'Błąd rejestracji: ' . $e->getMessage());
-            $this->redirect('register');
-        }
-
-        Session::flash('success', 'Klub został zarejestrowany. Zaloguj się, aby kontynuować.');
-        $this->redirect('auth/login');
+        http_response_code(410);
+        Session::flash('error', 'Rejestracja klubów odbywa się tylko przez Master Administratora. Skontaktuj się z nami aby uruchomić nowy klub.');
+        $this->redirect('register');
     }
 }
