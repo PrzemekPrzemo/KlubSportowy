@@ -25,6 +25,7 @@ class CsrfCoverageTest extends TestCase
         // Webhooks: external systems POST signed payloads
         ['WebhookController', 'receive'],
         ['PaymentWebhookController', 'handle'],   // Stripe HMAC signature
+        ['GatewayWebhookController', 'handle'],   // T.3 universal gateway webhook router (signed per adapter)
         // API endpoints: API key in header, not CSRF
         ['ApiController', 'index'],
         ['ApiController', 'members'],
