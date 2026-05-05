@@ -3,7 +3,8 @@ return [
     'key'        => 'powerlifting',
     'name'       => 'Trójbój siłowy',
     'federation' => 'PZTSS',
-    'features'   => ['results', 'records', 'weight_categories'],
+    'archetype'  => \App\Sports\Powerlifting\PowerliftingArchetype::class,
+    'features'   => ['results', 'records', 'weight_categories', 'demo-ready'],
     'routes' => [
         ['GET',  '/powerlifting/results',            [\App\Sports\Powerlifting\Controllers\ResultsController::class, 'index']],
         ['POST', '/powerlifting/results/store',       [\App\Sports\Powerlifting\Controllers\ResultsController::class, 'store']],
