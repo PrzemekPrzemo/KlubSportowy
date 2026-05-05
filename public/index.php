@@ -354,6 +354,14 @@ $router->get('/fees/assignments/:id/edit',       [\App\Controllers\FeeAssignment
 $router->post('/fees/assignments/:id/update',    [\App\Controllers\FeeAssignmentsController::class, 'update']);
 $router->post('/fees/assignments/:id/delete',    [\App\Controllers\FeeAssignmentsController::class, 'delete']);
 $router->post('/fees/assignments/preview',       [\App\Controllers\FeeAssignmentsController::class, 'calculatePreview']);
+
+// Per-klub bramki płatności (Faza P.5)
+$router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
+$router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
+$router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatewayController::class, 'save']);
+$router->post('/club/gateways/:provider/test',       [\App\Controllers\ClubGatewayController::class, 'testConnection']);
+$router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatewayController::class, 'toggleActive']);
+$router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
