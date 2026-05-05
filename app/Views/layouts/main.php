@@ -122,6 +122,12 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     ?>
         <a href="<?= url($item['url']) ?>"><i class="bi <?= View::e($item['icon']) ?>"></i> <?= View::e($item['label']) ?></a>
     <?php endif; endforeach; ?>
+    <?php
+    // V.0 — link "moje prowizje" tylko dla trenera/instruktora
+    if (\App\Helpers\Auth::hasRole(['trener', 'instruktor'])):
+    ?>
+        <a href="<?= url('trainer/commissions/my') ?>"><i class="bi bi-wallet2"></i> Moje prowizje</a>
+    <?php endif; ?>
     <?php endif; // end !$isSuperAdminNoClub ?>
 
     <?php if (!empty($sportNav)): ?>
