@@ -3,7 +3,8 @@ return [
     'key'        => 'weightlifting',
     'name'       => 'Podnoszenie ciężarów',
     'federation' => 'PKC',
-    'features'   => ['results', 'weight_categories', 'sinclair', 'club_records', 'personal_bests'],
+    'archetype'  => \App\Sports\Weightlifting\WeightliftingArchetype::class,
+    'features'   => ['results', 'weight_categories', 'sinclair', 'club_records', 'personal_bests', 'demo-ready'],
     'routes' => [
         ['GET',  '/weightlifting/results',            [\App\Sports\Weightlifting\Controllers\ResultsController::class, 'index']],
         ['POST', '/weightlifting/results/store',      [\App\Sports\Weightlifting\Controllers\ResultsController::class, 'store']],
