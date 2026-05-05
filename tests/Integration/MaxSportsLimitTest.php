@@ -110,7 +110,7 @@ class MaxSportsLimitTest extends TestCase
         $stmt = $db->prepare(
             "INSERT INTO subscription_plans
              (code, name, max_members, max_sports, price_monthly, price_yearly, features, is_active, sort_order)
-             VALUES (?, ?, ?, ?, 0, 0, '{}', 1, 999)"
+             VALUES (?, ?, ?, ?, 0, 0, '{}', 1, 250)"
         );
         $stmt->execute([$code, 'Test plan ' . $code, $maxMembers, $maxSports]);
         $id = (int)$db->lastInsertId();
