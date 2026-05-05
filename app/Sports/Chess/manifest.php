@@ -4,7 +4,8 @@ return [
     'name'       => 'Szachy',
     'federation' => 'PZSzach',
     'icon'       => 'bi-grid-3x3',
-    'features'   => ['ratings', 'results'],
+    'archetype'  => \App\Sports\Chess\ChessArchetype::class,
+    'features'   => ['ratings', 'results', 'demo-ready'],
     'routes' => [
         ['GET',  '/chess/ratings',              [\App\Sports\Chess\Controllers\RatingsController::class, 'index']],
         ['POST', '/chess/ratings/store',         [\App\Sports\Chess\Controllers\RatingsController::class, 'store']],

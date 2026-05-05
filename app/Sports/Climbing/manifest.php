@@ -3,7 +3,8 @@ return [
     'key'        => 'climbing',
     'name'       => 'Wspinaczka sportowa',
     'federation' => 'PZA',
-    'features'   => ['results', 'routes', 'sends', 'disciplines', 'grades'],
+    'archetype'  => \App\Sports\Climbing\ClimbingArchetype::class,
+    'features'   => ['results', 'routes', 'sends', 'disciplines', 'grades', 'demo-ready'],
     'routes' => [
         ['GET',  '/climbing/results',            [\App\Sports\Climbing\Controllers\ResultsController::class, 'index']],
         ['POST', '/climbing/results/store',      [\App\Sports\Climbing\Controllers\ResultsController::class, 'store']],
