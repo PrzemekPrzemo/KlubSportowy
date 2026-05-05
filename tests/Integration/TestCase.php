@@ -157,6 +157,11 @@ abstract class TestCase extends BaseTestCase
                 $this->db->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
             }
             foreach ($this->createdClubIds as $id) {
+                // Sportowi seederzy moga utworzyc additional members w testowym
+                // klubie ktorych createTestMember nie zna — usuwamy wszystkich
+                // pozostalych members tego klubu zanim DELETE FROM clubs (FK
+                // members.club_id ma ON DELETE RESTRICT).
+                $this->db->prepare("DELETE FROM members WHERE club_id = ?")->execute([$id]);
                 $this->db->prepare("DELETE FROM clubs WHERE id = ?")->execute([$id]);
             }
         }
