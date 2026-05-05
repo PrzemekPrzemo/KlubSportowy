@@ -61,19 +61,38 @@ class ResultImageModel extends ClubScopedModel
      */
     public function uploadFile(array $file, int $clubId): ?string
     {
-        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
-        if (!in_array($file['type'], $allowed, true)) {
+        // Server-side MIME detection — nie ufamy $file['type'] ani $file['name']
+        // (browser-supplied, spoofowalne; "evil.php" z Content-Type: image/png
+        // przeszlo by stary check i wyladowalo na serwerze jako .php).
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return null;
+        }
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
             return null;
         }
 
-        $dir = 'uploads/results/' . $clubId;
+        $mimeToExt = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/gif'  => 'gif',
+            'image/webp' => 'webp',
+            'image/bmp'  => 'bmp',
+        ];
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($file['tmp_name']) ?: '';
+        if (!isset($mimeToExt[$mime])) {
+            return null;
+        }
+        $ext = $mimeToExt[$mime];
+
+        $dir    = 'uploads/results/' . $clubId;
         $absDir = ROOT_PATH . '/public/' . $dir;
         if (!is_dir($absDir)) {
             mkdir($absDir, 0775, true);
         }
 
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION) ?: 'jpg';
-        $filename = uniqid('result_', true) . '.' . strtolower($ext);
+        $filename    = uniqid('result_', true) . '.' . $ext;
         $destination = $absDir . '/' . $filename;
 
         if (!move_uploaded_file($file['tmp_name'], $destination)) {
