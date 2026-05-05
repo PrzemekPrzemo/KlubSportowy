@@ -3,8 +3,9 @@ return [
     'key'        => 'floorball',
     'name'       => 'Floorball (Unihokej)',
     'federation' => 'PFUF',
+    'archetype'  => \App\Sports\Floorball\FloorballArchetype::class,
     'team_sport' => true,
-    'features'   => ['teams', 'players', 'matches', 'stats', 'penalties'],
+    'features'   => ['teams', 'players', 'matches', 'stats', 'penalties', 'demo-ready'],
     'routes' => [
         ['GET',  '/floorball/teams',                    [\App\Sports\Floorball\Controllers\TeamsController::class,   'index']],
         ['POST', '/floorball/teams/store',              [\App\Sports\Floorball\Controllers\TeamsController::class,   'store']],
