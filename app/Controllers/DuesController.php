@@ -141,10 +141,29 @@ class DuesController extends BaseController
                 trim($_POST['notes'] ?? '') ?: null,
                 Auth::id(),
             ]);
+            $paymentId = (int)$db->lastInsertId();
 
             // 2. Dolicz do dues + status update
             (new PaymentDueModel())->applyPayment($idInt, $amount);
             $db->commit();
+
+            // 3. U.1 — auto-naliczanie prowizji trenerów (poza transakcją —
+            //         błąd kalkulatora nie blokuje wpłaty).
+            try {
+                \App\Helpers\CommissionCalculator::accrueForPayment([
+                    'id'           => $paymentId,
+                    'club_id'      => $due['club_id'],
+                    'member_id'    => $due['member_id'],
+                    'sport_id'     => null,
+                    'amount'       => $amount,
+                    'payment_date' => date('Y-m-d'),
+                    'period_year'  => $due['period_year'],
+                    'period_month' => $due['period_month'],
+                    'fee_rate_id'  => $due['fee_rate_id'] ?: null,
+                ]);
+            } catch (\Throwable $e) {
+                error_log('CommissionCalculator (dues) failed: ' . $e->getMessage());
+            }
         } catch (\Throwable $e) {
             $db->rollBack();
             Session::flash('error', 'Błąd zapisu: ' . $e->getMessage());

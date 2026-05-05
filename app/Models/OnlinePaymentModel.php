@@ -59,10 +59,10 @@ class OnlinePaymentModel extends ClubScopedModel
     /**
      * Po opłaceniu — automatyczne zaksięgowanie w tabeli payments.
      */
-    public function bookToPayments(int $onlinePaymentId): void
+    public function bookToPayments(int $onlinePaymentId): ?int
     {
         $op = $this->findById($onlinePaymentId);
-        if (!$op || $op['status'] !== 'paid') return;
+        if (!$op || $op['status'] !== 'paid') return null;
 
         $stmt = $this->db->prepare(
             "INSERT INTO payments (club_id, member_id, fee_rate_id, amount, payment_date,
@@ -75,5 +75,25 @@ class OnlinePaymentModel extends ClubScopedModel
             'online#' . ($op['provider_id'] ?? $op['id']),
             'Płatność online: ' . $op['description'],
         ]);
+        $paymentId = (int)$this->db->lastInsertId();
+
+        // U.1 — auto-naliczanie prowizji trenerów
+        try {
+            \App\Helpers\CommissionCalculator::accrueForPayment([
+                'id'           => $paymentId,
+                'club_id'      => $op['club_id'],
+                'member_id'    => $op['member_id'],
+                'sport_id'     => null,
+                'amount'       => $op['amount'],
+                'payment_date' => date('Y-m-d'),
+                'period_year'  => $op['period_year'],
+                'period_month' => $op['period_month'],
+                'fee_rate_id'  => $op['fee_rate_id'],
+            ]);
+        } catch (\Throwable $e) {
+            error_log('CommissionCalculator (online) failed: ' . $e->getMessage());
+        }
+
+        return $paymentId;
     }
 }
