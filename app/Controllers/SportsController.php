@@ -7,6 +7,7 @@ use App\Helpers\Session;
 use App\Helpers\SportContext;
 use App\Models\ClubSportModel;
 use App\Models\SportModel;
+use App\Models\SubscriptionModel;
 
 class SportsController extends BaseController
 {
@@ -41,6 +42,20 @@ class SportsController extends BaseController
         }
 
         $clubId = $this->currentClub();
+
+        $subscription = new SubscriptionModel();
+        if ($subscription->isOverSportLimit($clubId)) {
+            $info  = $subscription->sportLimitInfo($clubId);
+            $limit = $info['limit'] ?? '?';
+            Session::flash('error', sprintf(
+                'Osiągnięto limit sekcji sportowych w planie subskrypcji (%d/%d). Zaktualizuj plan, aby dodać więcej sekcji.',
+                $info['used'],
+                $limit
+            ));
+            $this->redirect('sports');
+            return;
+        }
+
         (new ClubSportModel())->addSportToClub($clubId, $sportId, $name);
 
         Session::flash('success', 'Sekcja sportowa została uruchomiona.');
