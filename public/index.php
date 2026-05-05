@@ -355,6 +355,22 @@ $router->post('/fees/assignments/:id/update',    [\App\Controllers\FeeAssignment
 $router->post('/fees/assignments/:id/delete',    [\App\Controllers\FeeAssignmentsController::class, 'delete']);
 $router->post('/fees/assignments/preview',       [\App\Controllers\FeeAssignmentsController::class, 'calculatePreview']);
 
+// Należności + auto-generator (Faza P.4)
+$router->get('/fees/dues',                  [\App\Controllers\DuesController::class, 'index']);
+$router->get('/fees/dues/generate',         [\App\Controllers\DuesController::class, 'generateForm']);
+$router->post('/fees/dues/generate',        [\App\Controllers\DuesController::class, 'generate']);
+$router->post('/fees/dues/refresh',         [\App\Controllers\DuesController::class, 'refresh']);
+$router->post('/fees/dues/:id/pay',         [\App\Controllers\DuesController::class, 'pay']);
+$router->post('/fees/dues/:id/waive',       [\App\Controllers\DuesController::class, 'waive']);
+$router->post('/fees/dues/:id/cancel',      [\App\Controllers\DuesController::class, 'cancel']);
+
+// Księgowość (Faza P.4) — rejestr wpłat z filtrami + CSV export
+$router->get('/accounting',         [\App\Controllers\AccountingController::class, 'index']);
+$router->get('/accounting/export',  [\App\Controllers\AccountingController::class, 'exportCsv']);
+
+// Wszyscy zawodnicy (cross-sport, Faza P.4)
+$router->get('/members-all',        [\App\Controllers\AllMembersController::class, 'index']);
+
 // Per-klub bramki płatności (Faza P.5)
 $router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
 $router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
