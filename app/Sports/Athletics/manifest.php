@@ -3,7 +3,8 @@ return [
     'key'        => 'athletics',
     'name'       => 'Lekka atletyka',
     'federation' => 'PZLA',
-    'features'   => ['disciplines','records','competitions','results','times','pzla_license'],
+    'archetype'  => \App\Sports\Athletics\AthleticsArchetype::class,
+    'features'   => ['disciplines','records','competitions','results','times','pzla_license','demo-ready'],
     'routes' => [
         ['GET',  '/athletics/records',             [\App\Sports\Athletics\Controllers\RecordsController::class, 'index']],
         ['GET',  '/athletics/records/create',      [\App\Sports\Athletics\Controllers\RecordsController::class, 'create']],

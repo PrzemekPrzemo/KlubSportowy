@@ -3,7 +3,8 @@ return [
     'key'        => 'rollerskating',
     'name'       => 'Wrotkarstwo',
     'federation' => 'PZW',
-    'features'   => ['equipment','times','disciplines'],
+    'archetype'  => \App\Sports\Rollerskating\RollerskatingArchetype::class,
+    'features'   => ['equipment','times','disciplines','demo-ready'],
     'routes' => [
         ['GET',  '/rollerskating/equipment',              [\App\Sports\Rollerskating\Controllers\EquipmentController::class, 'index']],
         ['GET',  '/rollerskating/equipment/create',       [\App\Sports\Rollerskating\Controllers\EquipmentController::class, 'create']],

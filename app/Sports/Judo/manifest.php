@@ -3,7 +3,8 @@ return [
     'key'        => 'judo',
     'name'       => 'Judo',
     'federation' => 'PZJ',
-    'features'   => ['belts', 'results', 'weight_categories', 'attendance', 'calendar'],
+    'archetype'  => \App\Sports\Judo\JudoArchetype::class,
+    'features'   => ['belts', 'results', 'weight_categories', 'attendance', 'calendar', 'demo-ready'],
     'routes' => [
         ['GET',  '/judo/belts',                [\App\Sports\Judo\Controllers\BeltsController::class,      'index']],
         ['POST', '/judo/belts/store',           [\App\Sports\Judo\Controllers\BeltsController::class,      'store']],

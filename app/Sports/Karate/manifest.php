@@ -3,7 +3,8 @@ return [
     'key'        => 'karate',
     'name'       => 'Karate',
     'federation' => 'PZKK',
-    'features'   => ['belts', 'results', 'weight_categories', 'kata', 'kumite', 'attendance', 'calendar'],
+    'archetype'  => \App\Sports\Karate\KarateArchetype::class,
+    'features'   => ['belts', 'results', 'weight_categories', 'kata', 'kumite', 'attendance', 'calendar', 'demo-ready'],
     'routes' => [
         ['GET',  '/karate/belts',                 [\App\Sports\Karate\Controllers\BeltsController::class,      'index']],
         ['POST', '/karate/belts/store',            [\App\Sports\Karate\Controllers\BeltsController::class,      'store']],
