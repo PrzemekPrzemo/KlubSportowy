@@ -9,8 +9,8 @@
             Kompleksowe narzedzie do zarzadzania klubem sportowym — czlonkowie, finanse, wydarzenia,
             treningi, raporty i wiele wiecej. Wszystko w jednym miejscu.
         </p>
-        <a href="<?= url('register') ?>" class="btn btn-light btn-lg px-5">
-            <i class="bi bi-rocket-takeoff"></i> Zaloz klub za darmo
+        <a href="#contact" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-envelope"></i> Skontaktuj się z nami
         </a>
     </div>
 </section>
@@ -147,8 +147,8 @@
                                 <li class="mb-1"><i class="bi bi-check-circle text-success"></i> <?= View::e($feat) ?></li>
                                 <?php endforeach; ?>
                             </ul>
-                            <a href="<?= url('register') ?>" class="btn <?= $isFeatured ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
-                                Wybierz plan
+                            <a href="#contact" class="btn <?= $isFeatured ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
+                                <i class="bi bi-envelope me-1"></i> Zapytaj o ten plan
                             </a>
                         </div>
                     </div>
@@ -176,8 +176,8 @@
                                 <li class="mb-1"><i class="bi bi-people text-primary"></i> <?= $fp['members'] ?> zawodnikow</li>
                                 <li class="mb-1"><i class="bi bi-trophy text-primary"></i> <?= $fp['sports'] ?> sekcji</li>
                             </ul>
-                            <a href="<?= url('register') ?>" class="btn <?= $fp['featured'] ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
-                                Wybierz plan
+                            <a href="#contact" class="btn <?= $fp['featured'] ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
+                                <i class="bi bi-envelope me-1"></i> Zapytaj o ten plan
                             </a>
                         </div>
                     </div>
@@ -231,5 +231,25 @@
             </div>
             <?php endforeach; ?>
         </div>
+    </div>
+</section>
+
+<!-- CONTACT (registration jest off — tylko Master Admin tworzy kluby) -->
+<section class="py-5 bg-primary text-white" id="contact">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-3">Chcesz uruchomic swoj klub w ClubDesk?</h2>
+        <p class="lead mb-4" style="max-width:700px; margin:0 auto;">
+            Nowe kluby uruchamia administrator platformy — to gwarantuje
+            weryfikacje organizacji i optymalna konfiguracje planu subskrypcji
+            pod Twoje potrzeby.
+        </p>
+        <a href="mailto:<?= htmlspecialchars((require ROOT_PATH . '/config/app.php')['admin_email'] ?? 'kontakt@clubdesk.pl', ENT_QUOTES) ?>?subject=Chcę uruchomić klub w ClubDesk"
+           class="btn btn-light btn-lg px-5">
+            <i class="bi bi-envelope-fill me-2"></i>
+            Napisz do nas
+        </a>
+        <p class="mt-3 mb-0 small opacity-75">
+            Odpowiadamy w ciagu 24h. Pomozemy z migracja danych i szkoleniem zespolu.
+        </p>
     </div>
 </section>
