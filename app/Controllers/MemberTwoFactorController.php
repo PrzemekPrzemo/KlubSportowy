@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Csrf;
 use App\Helpers\Database;
 use App\Helpers\MemberAuth;
+use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Helpers\Totp;
 
@@ -163,6 +164,13 @@ class MemberTwoFactorController extends BaseController
     {
         Session::start();
         Csrf::verify();
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!RateLimiter::check($ip, 'portal_2fa_verify')) {
+            Session::flash('error', 'Zbyt wiele nieudanych prob. Sprobuj ponownie za kilka minut.');
+            $this->redirect('portal/2fa/verify');
+        }
+
         $code = trim($_POST['code'] ?? '');
         $pendingMemberId = Session::get('portal_pending_member_id');
         if (!$pendingMemberId || !preg_match('/^\d{6}$|^[A-F0-9]{8}$/i', $code)) {
@@ -197,9 +205,11 @@ class MemberTwoFactorController extends BaseController
         }
 
         if (!$ok) {
+            RateLimiter::hit($ip, 'portal_2fa_verify');
             Session::flash('error', 'Nieprawidłowy kod.');
             $this->redirect('portal/2fa/verify');
         }
+        RateLimiter::reset($ip, 'portal_2fa_verify');
 
         // Zakończ login
         Session::forget('portal_pending_member_id');

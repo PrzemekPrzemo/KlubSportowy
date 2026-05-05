@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Auth;
 use App\Helpers\Csrf;
 use App\Helpers\Database;
+use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Helpers\Totp;
 
@@ -108,6 +109,13 @@ class TwoFactorController extends BaseController
             $this->redirect('auth/login');
         }
 
+        // Rate limit: 6-digit TOTP can be brute-forced quickly bez tej ochrony.
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!RateLimiter::check($ip, '2fa_verify')) {
+            Session::flash('error', 'Zbyt wiele nieudanych prob. Sprobuj ponownie za kilka minut.');
+            $this->redirect('auth/2fa');
+        }
+
         $code = trim($_POST['code'] ?? '');
         $db   = Database::pdo();
         $stmt = $db->prepare("SELECT totp_secret FROM users WHERE id = ?");
@@ -135,9 +143,11 @@ class TwoFactorController extends BaseController
         }
 
         if (!$ok) {
+            RateLimiter::hit($ip, '2fa_verify');
             Session::flash('error', 'Nieprawidłowy kod.');
             $this->redirect('2fa/verify');
         }
+        RateLimiter::reset($ip, '2fa_verify');
 
         // Dokończ logowanie
         Auth::login($pendingUser);
