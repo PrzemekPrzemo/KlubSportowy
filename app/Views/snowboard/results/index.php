@@ -35,10 +35,23 @@
                     <td><?php if ($r['place']): ?><span class="badge bg-primary">#<?= (int)$r['place'] ?></span><?php endif; ?></td>
                     <td class="small"><?= $r['fis_points'] !== null ? number_format((float)$r['fis_points'], 2) : '—' ?></td>
                     <td>
-                        <form method="POST" action="<?= url('snowboard/results/' . (int)$r['id'] . '/delete') ?>" onsubmit="return confirm('Usunąć?')">
-                            <?= csrf_field() ?>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </form>
+                        <div class="d-flex gap-1">
+                            <a href="<?= url('snowboard/results/' . (int)$r['id']) ?>"
+                               class="btn btn-sm btn-outline-secondary" title="Szczegóły">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="<?= url('snowboard/results/' . (int)$r['id'] . '/edit') ?>"
+                               class="btn btn-sm btn-outline-primary" title="Edytuj">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="<?= url('snowboard/results/' . (int)$r['id'] . '/delete') ?>"
+                                  onsubmit="return confirm('Usunąć?')" class="d-inline">
+                                <?= csrf_field() ?>
+                                <button class="btn btn-sm btn-outline-danger" title="Usuń">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
