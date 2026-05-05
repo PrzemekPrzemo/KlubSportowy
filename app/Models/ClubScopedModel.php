@@ -98,6 +98,31 @@ abstract class ClubScopedModel extends BaseModel
         return parent::insert($data);
     }
 
+    /**
+     * Zaktualizuj wiersz egzekwując scope club_id.
+     *
+     * Bez scope (np. super-admin po withoutScope()) dziala identycznie
+     * jak BaseModel::update(). Z aktywnym scope: WHERE id=? AND club_id=?
+     * — zapobiega IDOR (cross-club update). Pole `club_id` w `$data` jest
+     * ignorowane — klub A nie moze "przeniesc" rekordu do klubu B.
+     */
+    public function update(int $id, array $data): bool
+    {
+        $clubId = $this->clubId();
+        if ($clubId === null) {
+            return parent::update($id, $data);
+        }
+        if (empty($data)) return true;
+        unset($data['club_id']);
+        if (empty($data)) return true;
+
+        $set  = implode(' = ?, ', array_map(fn($c) => "`{$c}`", array_keys($data))) . ' = ?';
+        $stmt = $this->db->prepare(
+            "UPDATE `{$this->table}` SET {$set} WHERE id = ? AND club_id = ?"
+        );
+        return $stmt->execute([...array_values($data), $id, $clubId]);
+    }
+
     protected function clubWhere(): string
     {
         return $this->clubId() !== null ? ' AND club_id = ?' : '';
