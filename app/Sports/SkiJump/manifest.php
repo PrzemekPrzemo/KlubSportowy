@@ -3,7 +3,8 @@ return [
     'key'        => 'skijump',
     'name'       => 'Skoki narciarskie',
     'federation' => 'PZN SJ',
-    'features'   => ['results', 'jumps', 'hill_k', 'fis_points'],
+    'archetype'  => \App\Sports\SkiJump\SkiJumpArchetype::class,
+    'features'   => ['results', 'jumps', 'hill_k', 'fis_points', 'demo-ready'],
     'routes' => [
         ['GET',  '/skijump/results',            [\App\Sports\SkiJump\Controllers\ResultsController::class, 'index']],
         ['POST', '/skijump/results/store',      [\App\Sports\SkiJump\Controllers\ResultsController::class, 'store']],

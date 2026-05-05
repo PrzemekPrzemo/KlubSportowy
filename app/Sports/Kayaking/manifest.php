@@ -3,7 +3,8 @@ return [
     'key'        => 'kayaking',
     'name'       => 'Kajakarstwo',
     'federation' => 'PZKajak',
-    'features'   => ['boats', 'results', 'disciplines', 'distance_time'],
+    'archetype'  => \App\Sports\Kayaking\KayakingArchetype::class,
+    'features'   => ['boats', 'results', 'disciplines', 'distance_time', 'demo-ready'],
     'routes' => [
         ['GET',  '/kayaking/boats',              [\App\Sports\Kayaking\Controllers\BoatsController::class,   'index']],
         ['POST', '/kayaking/boats/store',        [\App\Sports\Kayaking\Controllers\BoatsController::class,   'store']],

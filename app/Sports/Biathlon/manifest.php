@@ -3,7 +3,8 @@ return [
     'key'        => 'biathlon',
     'name'       => 'Biathlon',
     'federation' => 'PZBiathlon',
-    'features'   => ['results', 'shooting_accuracy', 'run_time', 'penalties'],
+    'archetype'  => \App\Sports\Biathlon\BiathlonArchetype::class,
+    'features'   => ['results', 'shooting_accuracy', 'run_time', 'penalties', 'demo-ready'],
     'routes' => [
         ['GET',  '/biathlon/results',            [\App\Sports\Biathlon\Controllers\ResultsController::class, 'index']],
         ['POST', '/biathlon/results/store',      [\App\Sports\Biathlon\Controllers\ResultsController::class, 'store']],

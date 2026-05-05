@@ -3,7 +3,8 @@ return [
     'key'        => 'snowboard',
     'name'       => 'Snowboard',
     'federation' => 'PZN SB',
-    'features'   => ['results', 'disciplines', 'fis_points'],
+    'archetype'  => \App\Sports\Snowboard\SnowboardArchetype::class,
+    'features'   => ['results', 'disciplines', 'fis_points', 'demo-ready'],
     'routes' => [
         ['GET',  '/snowboard/results',            [\App\Sports\Snowboard\Controllers\ResultsController::class, 'index']],
         ['POST', '/snowboard/results/store',      [\App\Sports\Snowboard\Controllers\ResultsController::class, 'store']],
