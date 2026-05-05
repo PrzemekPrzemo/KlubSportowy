@@ -68,7 +68,7 @@
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="fw-semibold small"><?= View::e($v['resolution_number']) ?></span>
-                    <span class="badge bg-<?= $ri['class'] ?>"><?= $ri['label'] ?></span>
+                    <span class="badge bg-<?= View::e($ri['class']) ?>"><?= View::e($ri['label']) ?></span>
                 </div>
                 <div class="card-body">
                     <div class="fw-bold mb-2"><?= View::e($v['title']) ?></div>
