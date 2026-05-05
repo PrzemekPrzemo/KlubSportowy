@@ -3,7 +3,8 @@ return [
     'key'        => 'bjj',
     'name'       => 'Brazilian Jiu-Jitsu',
     'federation' => 'PZBJJ',
-    'features'   => ['belts', 'results', 'weight_categories', 'gi_nogi', 'attendance'],
+    'archetype'  => \App\Sports\Bjj\BjjArchetype::class,
+    'features'   => ['belts', 'results', 'weight_categories', 'gi_nogi', 'attendance', 'demo-ready'],
     'routes' => [
         ['GET',  '/bjj/belts',              [\App\Sports\Bjj\Controllers\BeltsController::class,   'index']],
         ['POST', '/bjj/belts/store',        [\App\Sports\Bjj\Controllers\BeltsController::class,   'store']],

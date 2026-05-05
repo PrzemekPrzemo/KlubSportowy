@@ -3,7 +3,8 @@ return [
     'key'        => 'boxing',
     'name'       => 'Boks',
     'federation' => 'PZBoks',
-    'features'   => ['results', 'medicals', 'weight_classes', 'fight_record', 'amateur_pro'],
+    'archetype'  => \App\Sports\Boxing\BoxingArchetype::class,
+    'features'   => ['results', 'medicals', 'weight_classes', 'fight_record', 'amateur_pro', 'demo-ready'],
     'routes' => [
         ['GET',  '/boxing/results',             [\App\Sports\Boxing\Controllers\ResultsController::class,  'index']],
         ['POST', '/boxing/results/store',       [\App\Sports\Boxing\Controllers\ResultsController::class,  'store']],

@@ -4,7 +4,8 @@ return [
     'name'       => 'Sambo',
     'federation' => 'PZSambo',
     'icon'       => 'bi-shield-shaded',
-    'features'   => ['belts', 'results', 'weight_categories'],
+    'archetype'  => \App\Sports\Sambo\SamboArchetype::class,
+    'features'   => ['belts', 'results', 'weight_categories', 'demo-ready'],
     'routes' => [
         ['GET',  '/sambo/belts',              [\App\Sports\Sambo\Controllers\BeltsController::class,   'index']],
         ['POST', '/sambo/belts/store',         [\App\Sports\Sambo\Controllers\BeltsController::class,   'store']],

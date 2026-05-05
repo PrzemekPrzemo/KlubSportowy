@@ -3,7 +3,8 @@ return [
     'key'        => 'kickboxing',
     'name'       => 'Kickboxing',
     'federation' => 'PZKick',
-    'features'   => ['belts', 'results', 'styles', 'weight_classes'],
+    'archetype'  => \App\Sports\Kickboxing\KickboxingArchetype::class,
+    'features'   => ['belts', 'results', 'styles', 'weight_classes', 'demo-ready'],
     'routes' => [
         ['GET',  '/kickboxing/belts',              [\App\Sports\Kickboxing\Controllers\BeltsController::class,   'index']],
         ['POST', '/kickboxing/belts/store',        [\App\Sports\Kickboxing\Controllers\BeltsController::class,   'store']],

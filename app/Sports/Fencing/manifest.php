@@ -3,7 +3,8 @@ return [
     'key'        => 'fencing',
     'name'       => 'Szermierka',
     'federation' => 'PZSzerm',
-    'features'   => ['results', 'fencers', 'weapons', 'ranking', 'fie_id'],
+    'archetype'  => \App\Sports\Fencing\FencingArchetype::class,
+    'features'   => ['results', 'fencers', 'weapons', 'ranking', 'fie_id', 'demo-ready'],
     'routes' => [
         ['GET',  '/fencing/results',            [\App\Sports\Fencing\Controllers\ResultsController::class, 'index']],
         ['POST', '/fencing/results/store',      [\App\Sports\Fencing\Controllers\ResultsController::class, 'store']],

@@ -104,6 +104,31 @@ class CombatSportSeeder implements ArchetypeSeederInterface
         return null;
     }
 
+    /**
+     * Zwraca metadane wszystkich kolumn: nazwa => [is_nullable, has_default, type].
+     * Pozwala wykryc wymagane (NOT NULL + brak DEFAULT) kolumny ktore musimy
+     * jawnie wypelnic w INSERT.
+     */
+    private function colsMeta(PDO $db, string $table): array
+    {
+        $stmt = $db->prepare(
+            'SELECT column_name, is_nullable, column_default, column_type
+             FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = ?'
+        );
+        $stmt->execute([$table]);
+        $out = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $name = strtolower($row['COLUMN_NAME'] ?? $row['column_name']);
+            $out[$name] = [
+                'nullable' => strtoupper((string)($row['IS_NULLABLE'] ?? $row['is_nullable'])) === 'YES',
+                'default'  => $row['COLUMN_DEFAULT'] ?? $row['column_default'],
+                'type'     => (string)($row['COLUMN_TYPE'] ?? $row['column_type']),
+            ];
+        }
+        return $out;
+    }
+
     /** @return int[] */
     private function seedMembers(PDO $db, int $clubId, int $count): array
     {
@@ -132,24 +157,43 @@ class CombatSportSeeder implements ArchetypeSeederInterface
 
     private function seedResults(PDO $db, string $table, int $clubId, array $memberIds, int $resultCount, string $sportKey): int
     {
-        $cols = $this->cols($db, $table);
+        $meta  = $this->colsMeta($db, $table);
+        $cols  = array_fill_keys(array_keys($meta), true);
         $count = 0;
+
+        $eventName = 'Demo ' . ucfirst($sportKey) . ' Open ' . date('Y');
+
         for ($i = 0; $i < $resultCount && $i < count($memberIds); $i++) {
             $memberId = $memberIds[$i];
+            $eventDate = date('Y-m-d', strtotime('-' . (5 + $i * 7) . ' days'));
+
             $fields = [
-                'club_id'          => $clubId,
-                'member_id'        => $memberId,
-                'competition_name' => 'Demo ' . ucfirst($sportKey) . ' Open ' . date('Y'),
-                'competition_date' => date('Y-m-d', strtotime('-' . (5 + $i * 7) . ' days')),
+                'club_id'   => $clubId,
+                'member_id' => $memberId,
             ];
+            // Competition vs event naming convention — niektore sporty (Boxing,
+            // Wrestling, Sambo, Aikido, Fencing) maja `competition_name/date`,
+            // inne (Kickboxing, MMA, BJJ) maja `event_name/date`.
+            if (isset($cols['competition_name'])) $fields['competition_name'] = $eventName;
+            if (isset($cols['competition_date'])) $fields['competition_date'] = $eventDate;
+            if (isset($cols['event_name']))       $fields['event_name']       = $eventName;
+            if (isset($cols['event_date']))       $fields['event_date']       = $eventDate;
+
             if (isset($cols['placement'])) $fields['placement'] = ($i % 4) + 1;
-            // ENUM defaults
-            foreach (['category', 'weight_class', 'age_category'] as $optional) {
-                if (isset($cols[$optional])) {
-                    $val = $this->firstEnumValue($db, $table, $optional);
-                    if ($val !== null) $fields[$optional] = $val;
+
+            // Wymagane ENUMy bez default (np. kickboxing.style, sambo.style)
+            // — wykryj automatycznie i wypelnij pierwsza wartoscia ENUM.
+            foreach ($meta as $name => $m) {
+                if (isset($fields[$name])) continue;
+                $isEnum = stripos($m['type'], 'enum(') === 0;
+                if (!$isEnum) continue;
+                $required = !$m['nullable'] && $m['default'] === null;
+                if ($required || in_array($name, ['category', 'weight_class', 'age_category'], true)) {
+                    $val = $this->firstEnumValue($db, $table, $name);
+                    if ($val !== null) $fields[$name] = $val;
                 }
             }
+
             $colList = '`' . implode('`,`', array_keys($fields)) . '`';
             $holders = implode(',', array_fill(0, count($fields), '?'));
             $stmt = $db->prepare("INSERT INTO `{$table}` ({$colList}) VALUES ({$holders})");
@@ -163,19 +207,34 @@ class CombatSportSeeder implements ArchetypeSeederInterface
 
     private function seedBelts(PDO $db, string $table, int $clubId, array $memberIds): int
     {
-        $cols = $this->cols($db, $table);
+        $meta = $this->colsMeta($db, $table);
+        $cols = array_fill_keys(array_keys($meta), true);
         if (!isset($cols['member_id'])) return 0;
         $count = 0;
-        $beltColors = ['biały', 'żółty', 'pomarańczowy', 'zielony', 'niebieski', 'brązowy'];
+
         foreach ($memberIds as $i => $memberId) {
             $fields = ['club_id' => $clubId, 'member_id' => $memberId];
-            if (isset($cols['belt_color'])) $fields['belt_color'] = $beltColors[$i % count($beltColors)];
-            elseif (isset($cols['color']))  $fields['color']      = $beltColors[$i % count($beltColors)];
-            if (isset($cols['grade']))      $fields['grade']      = '5 kyu';
-            if (isset($cols['awarded_at'])) $fields['awarded_at'] = date('Y-m-d', strtotime('-' . (90 + $i * 30) . ' days'));
-            elseif (isset($cols['awarded_date'])) $fields['awarded_date'] = date('Y-m-d', strtotime('-' . (90 + $i * 30) . ' days'));
 
-            if (count($fields) <= 2) continue; // tylko club_id+member_id, brak useful kolumn
+            // Date column — kickboxing/bjj uzywaja exam_date, sambo/aikido
+            // granted_date, niektore mialy awarded_at/awarded_date.
+            $dateVal = date('Y-m-d', strtotime('-' . (90 + $i * 30) . ' days'));
+            foreach (['exam_date', 'granted_date', 'awarded_date', 'awarded_at'] as $dc) {
+                if (isset($cols[$dc])) { $fields[$dc] = $dateVal; break; }
+            }
+
+            // Wszystkie wymagane (NOT NULL bez default) ENUMy — wypelnij pierwsza
+            // wartoscia ENUM. Pokrywa belt_color, belt_level, style, gi itp.
+            foreach ($meta as $name => $m) {
+                if (isset($fields[$name])) continue;
+                $isEnum    = stripos($m['type'], 'enum(') === 0;
+                $required  = !$m['nullable'] && $m['default'] === null;
+                if ($isEnum && $required) {
+                    $val = $this->firstEnumValue($db, $table, $name);
+                    if ($val !== null) $fields[$name] = $val;
+                }
+            }
+
+            if (count($fields) <= 2) continue;
 
             $colList = '`' . implode('`,`', array_keys($fields)) . '`';
             $holders = implode(',', array_fill(0, count($fields), '?'));
@@ -190,22 +249,24 @@ class CombatSportSeeder implements ArchetypeSeederInterface
 
     private function seedFighters(PDO $db, string $table, int $clubId, array $memberIds): int
     {
-        $cols = $this->cols($db, $table);
+        $meta = $this->colsMeta($db, $table);
+        $cols = array_fill_keys(array_keys($meta), true);
         if (!isset($cols['member_id'])) return 0;
         $count = 0;
         foreach ($memberIds as $i => $memberId) {
             $fields = ['club_id' => $clubId, 'member_id' => $memberId];
-            if (isset($cols['weight_class'])) {
-                $val = $this->firstEnumValue($db, $table, 'weight_class');
-                $fields['weight_class'] = $val ?? 'open';
-            }
-            if (isset($cols['stance'])) {
-                $val = $this->firstEnumValue($db, $table, 'stance');
-                $fields['stance'] = $val ?? 'orthodox';
-            }
-            if (isset($cols['style'])) {
-                $val = $this->firstEnumValue($db, $table, 'style');
-                $fields['style'] = $val ?? 'mixed';
+
+            // Wszystkie wymagane (NOT NULL bez default) ENUMy — wypelnij,
+            // poniewaz UNIQUE KEY (club_id, member_id) wymusza max 1 rekord
+            // per zawodnik wiec mozemy raz wstawic minimalny set.
+            foreach ($meta as $name => $m) {
+                if (isset($fields[$name])) continue;
+                $isEnum   = stripos($m['type'], 'enum(') === 0;
+                $required = !$m['nullable'] && $m['default'] === null;
+                if ($isEnum && $required) {
+                    $val = $this->firstEnumValue($db, $table, $name);
+                    if ($val !== null) $fields[$name] = $val;
+                }
             }
             if (count($fields) <= 2) continue;
 

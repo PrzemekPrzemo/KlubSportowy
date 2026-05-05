@@ -3,7 +3,8 @@ return [
     'key'        => 'wrestling',
     'name'       => 'Zapasy',
     'federation' => 'PZZ',
-    'features'   => ['results', 'weight_categories', 'styles'],
+    'archetype'  => \App\Sports\Wrestling\WrestlingArchetype::class,
+    'features'   => ['results', 'weight_categories', 'styles', 'demo-ready'],
     'routes' => [
         ['GET',  '/wrestling/results',           [\App\Sports\Wrestling\Controllers\ResultsController::class, 'index']],
         ['POST', '/wrestling/results/store',      [\App\Sports\Wrestling\Controllers\ResultsController::class, 'store']],
