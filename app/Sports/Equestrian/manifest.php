@@ -3,7 +3,8 @@ return [
     'key'        => 'equestrian',
     'name'       => 'Jeździectwo',
     'federation' => 'PZJ',
-    'features'   => ['horses', 'owners', 'riders', 'pzj_license', 'competitions', 'results', 'disciplines', 'dressage', 'jumping', 'pzj_passport', 'fei_passport'],
+    'archetype'  => \App\Sports\Equestrian\EquestrianArchetype::class,
+    'features'   => ['horses', 'owners', 'riders', 'pzj_license', 'competitions', 'results', 'disciplines', 'dressage', 'jumping', 'pzj_passport', 'fei_passport', 'demo-ready'],
     'routes' => [
         ['GET',  '/equestrian/horses',                    [\App\Sports\Equestrian\Controllers\HorsesController::class,  'index']],
         ['POST', '/equestrian/horses/store',               [\App\Sports\Equestrian\Controllers\HorsesController::class,  'store']],
