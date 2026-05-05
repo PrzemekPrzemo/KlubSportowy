@@ -39,6 +39,10 @@ class CsrfCoverageTest extends TestCase
         // Push tokens: device-tied, dedicated auth header
         ['PushTokenController', 'register'],
         ['PushTokenController', 'unregister'],
+        // Self-registration zablokowane (PR #59 hotfix) — endpoint zwraca tylko
+        // 410 + redirect, NIE robi insert. CSRF nie jest wymagany bo nie ma
+        // efektu side-effect.
+        ['AuthController', 'register'],
     ];
 
     public function testAllPostEndpointsVerifyCsrf(): void
