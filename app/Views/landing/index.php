@@ -77,6 +77,35 @@
     </div>
 </section>
 
+<!-- SHOOTERO INTEGRATION CTA -->
+<section class="py-5" id="shootero">
+    <div class="container">
+        <div class="row align-items-center justify-content-center">
+            <div class="col-md-10">
+                <div class="card border-0 shadow-sm" style="background:linear-gradient(135deg,#fff5f5,#fff);">
+                    <div class="card-body p-4 d-flex flex-column flex-md-row align-items-md-center gap-4">
+                        <div class="text-center" style="font-size:3rem;color:#dc3545;">
+                            <i class="bi bi-bullseye"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h3 class="fw-bold mb-2">Strzelectwo sportowe?</h3>
+                            <p class="mb-2 text-muted">
+                                Strzelectwo (PZSS) obslugujemy przez dedykowany system
+                                <strong>shootero.pl</strong> — zawody, scoringi tarczowe, klasyfikacje
+                                ISSF, harmonogramy strzelnic i statystyki strzalow.
+                            </p>
+                            <a href="https://shootero.pl" target="_blank" rel="noopener"
+                               class="btn btn-danger">
+                                Przejdz do shootero.pl <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- PRICING -->
 <section class="py-5 bg-light" id="pricing">
     <div class="container">
