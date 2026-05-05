@@ -6,12 +6,14 @@ use App\Controllers\BaseController;
 use App\Controllers\Traits\RequiresActiveSport;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Helpers\SportResultsCrudTrait;
 use App\Models\MemberModel;
 use App\Sports\XcSki\Models\XcSkiResultModel;
 
 class ResultsController extends BaseController
 {
     use RequiresActiveSport;
+    use SportResultsCrudTrait;
 
     public function __construct()
     {
@@ -19,6 +21,21 @@ class ResultsController extends BaseController
         $this->requireLogin();
         $this->requireClubContext();
         $this->requireSportActive('xcski');
+    }
+
+    protected function crudConfig(): array
+    {
+        return [
+            'model'         => new XcSkiResultModel(),
+            'table'         => 'xc_ski_results',
+            'index_route'   => 'xcski/results',
+            'view_prefix'   => 'xcski/results',
+            'title_show'    => 'Szczegóły wyniku — Narciarstwo biegowe',
+            'title_edit'    => 'Edytuj wynik — Narciarstwo biegowe',
+            'extra_selects' => [
+                'technique' => ['label' => 'Technika', 'options' => XcSkiResultModel::$TECHNIQUES],
+            ],
+        ];
     }
 
     public function index(): void

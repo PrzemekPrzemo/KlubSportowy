@@ -8,6 +8,9 @@ return [
     'routes' => [
         ['GET',  '/skijump/results',            [\App\Sports\SkiJump\Controllers\ResultsController::class, 'index']],
         ['POST', '/skijump/results/store',      [\App\Sports\SkiJump\Controllers\ResultsController::class, 'store']],
+        ['GET',  '/skijump/results/:id',        [\App\Sports\SkiJump\Controllers\ResultsController::class, 'show']],
+        ['GET',  '/skijump/results/:id/edit',   [\App\Sports\SkiJump\Controllers\ResultsController::class, 'edit']],
+        ['POST', '/skijump/results/:id/update', [\App\Sports\SkiJump\Controllers\ResultsController::class, 'update']],
         ['POST', '/skijump/results/:id/delete', [\App\Sports\SkiJump\Controllers\ResultsController::class, 'delete']],
     ],
     'nav' => [

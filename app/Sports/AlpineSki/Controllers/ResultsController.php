@@ -6,12 +6,14 @@ use App\Controllers\BaseController;
 use App\Controllers\Traits\RequiresActiveSport;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Helpers\SportResultsCrudTrait;
 use App\Models\MemberModel;
 use App\Sports\AlpineSki\Models\AlpineSkiResultModel;
 
 class ResultsController extends BaseController
 {
     use RequiresActiveSport;
+    use SportResultsCrudTrait;
 
     public function __construct()
     {
@@ -19,6 +21,21 @@ class ResultsController extends BaseController
         $this->requireLogin();
         $this->requireClubContext();
         $this->requireSportActive('alpineski');
+    }
+
+    protected function crudConfig(): array
+    {
+        return [
+            'model'         => new AlpineSkiResultModel(),
+            'table'         => 'alpine_ski_results',
+            'index_route'   => 'alpineski/results',
+            'view_prefix'   => 'alpineski/results',
+            'title_show'    => 'Szczegóły wyniku — Narciarstwo alpejskie',
+            'title_edit'    => 'Edytuj wynik — Narciarstwo alpejskie',
+            'extra_selects' => [
+                'discipline' => ['label' => 'Konkurencja', 'options' => AlpineSkiResultModel::$DISCIPLINES],
+            ],
+        ];
     }
 
     public function index(): void

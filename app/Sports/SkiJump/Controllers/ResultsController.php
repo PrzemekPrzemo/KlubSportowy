@@ -6,12 +6,14 @@ use App\Controllers\BaseController;
 use App\Controllers\Traits\RequiresActiveSport;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Helpers\SportResultsCrudTrait;
 use App\Models\MemberModel;
 use App\Sports\SkiJump\Models\SkiJumpResultModel;
 
 class ResultsController extends BaseController
 {
     use RequiresActiveSport;
+    use SportResultsCrudTrait;
 
     public function __construct()
     {
@@ -19,6 +21,18 @@ class ResultsController extends BaseController
         $this->requireLogin();
         $this->requireClubContext();
         $this->requireSportActive('skijump');
+    }
+
+    protected function crudConfig(): array
+    {
+        return [
+            'model'       => new SkiJumpResultModel(),
+            'table'       => 'ski_jump_results',
+            'index_route' => 'skijump/results',
+            'view_prefix' => 'skijump/results',
+            'title_show'  => 'Szczegóły wyniku — Skoki narciarskie',
+            'title_edit'  => 'Edytuj wynik — Skoki narciarskie',
+        ];
     }
 
     public function index(): void

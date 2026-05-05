@@ -6,12 +6,14 @@ use App\Controllers\BaseController;
 use App\Controllers\Traits\RequiresActiveSport;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Helpers\SportResultsCrudTrait;
 use App\Models\MemberModel;
 use App\Sports\FigureSkating\Models\FigureSkatingResultModel;
 
 class ResultsController extends BaseController
 {
     use RequiresActiveSport;
+    use SportResultsCrudTrait;
 
     public function __construct()
     {
@@ -19,6 +21,22 @@ class ResultsController extends BaseController
         $this->requireLogin();
         $this->requireClubContext();
         $this->requireSportActive('figureskating');
+    }
+
+    protected function crudConfig(): array
+    {
+        return [
+            'model'         => new FigureSkatingResultModel(),
+            'table'         => 'figure_skating_results',
+            'index_route'   => 'figureskating/results',
+            'view_prefix'   => 'figureskating/results',
+            'title_show'    => 'Szczegóły wyniku — Łyżwiarstwo figurowe',
+            'title_edit'    => 'Edytuj wynik — Łyżwiarstwo figurowe',
+            'extra_selects' => [
+                'discipline' => ['label' => 'Konkurencja', 'options' => FigureSkatingResultModel::$DISCIPLINES],
+                'level'      => ['label' => 'Poziom',      'options' => FigureSkatingResultModel::$LEVELS],
+            ],
+        ];
     }
 
     public function index(): void
