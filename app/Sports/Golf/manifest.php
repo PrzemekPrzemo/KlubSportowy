@@ -3,7 +3,8 @@ return [
     'key'        => 'golf',
     'name'       => 'Golf',
     'federation' => 'PZGolfa',
-    'features'   => ['handicap_whs', 'rounds', 'courses', 'tees'],
+    'archetype'  => \App\Sports\Golf\GolfArchetype::class,
+    'features'   => ['handicap_whs', 'rounds', 'courses', 'tees', 'demo-ready'],
     'routes' => [
         ['GET',  '/golf/handicaps',            [\App\Sports\Golf\Controllers\HandicapsController::class, 'index']],
         ['POST', '/golf/handicaps/store',      [\App\Sports\Golf\Controllers\HandicapsController::class, 'store']],

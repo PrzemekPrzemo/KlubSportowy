@@ -3,7 +3,8 @@ return [
     'key'        => 'padel',
     'name'       => 'Padel',
     'federation' => 'PZPadel',
-    'features'   => ['pairs', 'courts', 'matches', 'reservations', 'rankings'],
+    'archetype'  => \App\Sports\Padel\PadelArchetype::class,
+    'features'   => ['pairs', 'courts', 'matches', 'reservations', 'rankings', 'demo-ready'],
     'routes' => [
         ['GET',  '/padel/pairs',                    [\App\Sports\Padel\Controllers\PairsController::class,        'index']],
         ['POST', '/padel/pairs/store',              [\App\Sports\Padel\Controllers\PairsController::class,        'store']],

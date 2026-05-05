@@ -4,7 +4,8 @@ return [
     'name'       => 'Squash',
     'federation' => 'PSqA',
     'icon'       => 'bi-circle',
-    'features'   => ['results', 'rankings'],
+    'archetype'  => \App\Sports\Squash\SquashArchetype::class,
+    'features'   => ['results', 'rankings', 'demo-ready'],
     'routes' => [
         ['GET',  '/squash/results',               [\App\Sports\Squash\Controllers\ResultsController::class,  'index']],
         ['POST', '/squash/results/store',          [\App\Sports\Squash\Controllers\ResultsController::class,  'store']],

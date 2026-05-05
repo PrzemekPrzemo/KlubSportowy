@@ -3,7 +3,8 @@ return [
     'key'        => 'archery',
     'name'       => 'Łucznictwo',
     'federation' => 'PZŁucz',
-    'features'   => ['equipment', 'scores', 'disciplines', 'recurve', 'compound'],
+    'archetype'  => \App\Sports\Archery\ArcheryArchetype::class,
+    'features'   => ['equipment', 'scores', 'disciplines', 'recurve', 'compound', 'demo-ready'],
     'routes' => [
         ['GET',  '/archery/bows',               [\App\Sports\Archery\Controllers\BowsController::class,   'index']],
         ['POST', '/archery/bows/store',          [\App\Sports\Archery\Controllers\BowsController::class,   'store']],

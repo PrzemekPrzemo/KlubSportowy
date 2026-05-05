@@ -3,7 +3,8 @@ return [
     'key'        => 'tennis',
     'name'       => 'Tenis ziemny',
     'federation' => 'PZT',
-    'features'   => ['matches', 'rankings', 'courts', 'surfaces', 'h2h'],
+    'archetype'  => \App\Sports\Tennis\TennisArchetype::class,
+    'features'   => ['matches', 'rankings', 'courts', 'surfaces', 'h2h', 'demo-ready'],
     'routes' => [
         ['GET',  '/tennis/matches',            [\App\Sports\Tennis\Controllers\MatchesController::class, 'index']],
         ['POST', '/tennis/matches/store',      [\App\Sports\Tennis\Controllers\MatchesController::class, 'store']],
