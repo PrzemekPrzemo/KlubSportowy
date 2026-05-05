@@ -6,6 +6,7 @@ use App\Helpers\Csrf;
 use App\Helpers\Database;
 use App\Helpers\EmailService;
 use App\Helpers\MemberAuth;
+use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 
 class PasswordResetController extends BaseController
@@ -31,6 +32,14 @@ class PasswordResetController extends BaseController
     {
         Csrf::verify();
         $email = trim($_POST['email'] ?? '');
+
+        // Rate limit: prevent email enumeration / flooding via mass requests
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!RateLimiter::check($ip, 'forgot_password')) {
+            Session::flash('error', 'Zbyt wiele prob resetu hasla. Sprobuj ponownie za kilka minut.');
+            $this->redirect('auth/forgot-password');
+        }
+        RateLimiter::hit($ip, 'forgot_password');
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             Session::flash('error', 'Podaj prawidlowy adres e-mail.');
@@ -139,6 +148,13 @@ class PasswordResetController extends BaseController
     {
         Csrf::verify();
         $email = trim($_POST['email'] ?? '');
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!RateLimiter::check($ip, 'forgot_password_member')) {
+            Session::flash('error', 'Zbyt wiele prob resetu hasla. Sprobuj ponownie za kilka minut.');
+            $this->redirect('portal/forgot-password');
+        }
+        RateLimiter::hit($ip, 'forgot_password_member');
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             Session::flash('error', 'Podaj prawidlowy adres e-mail.');
