@@ -20,9 +20,76 @@ $latestBmi = $latest ? BodyMetricsModel::calcBmi(
 
 <div class="alert alert-info small mb-3">
     <i class="bi bi-info-circle me-1"></i>
-    Pomiary dodawane są przez trenera lub lekarza klubowego. Twoja aktualna waga jest automatycznie
+    Pomiary mogą dodawać trener, lekarz klubowy lub Ty samodzielnie. Twoja aktualna waga jest automatycznie
     używana do obliczania Sinclair (podnoszenie ciężarów) i W/kg (kolarstwo).
 </div>
+
+<!-- Self-entry form -->
+<details class="card shadow-sm mb-4" <?= !empty($errors ?? []) ? 'open' : '' ?>>
+    <summary class="card-header" style="cursor:pointer; list-style:revert;">
+        <i class="bi bi-plus-circle me-1"></i> Dodaj pomiar
+    </summary>
+    <div class="card-body">
+        <?php if (!empty($errors ?? [])): ?>
+            <div class="alert alert-danger py-2 mb-3 small">
+                <?php foreach ($errors as $err): ?>
+                    <div><i class="bi bi-exclamation-triangle me-1"></i><?= View::e($err) ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        <?php $oldInput = $oldInput ?? []; ?>
+        <form method="POST" action="<?= url('portal/body-metrics') ?>" class="row g-3">
+            <?= csrf_field() ?>
+            <div class="col-md-3">
+                <label class="form-label small">Data pomiaru</label>
+                <input type="date" name="measured_at" class="form-control form-control-sm"
+                       value="<?= View::e($oldInput['measured_at'] ?? date('Y-m-d')) ?>"
+                       max="<?= date('Y-m-d') ?>" required>
+            </div>
+            <div class="col-md-3 col-6">
+                <label class="form-label small">Waga (kg)</label>
+                <input type="number" step="0.1" min="20" max="250" name="weight_kg"
+                       class="form-control form-control-sm <?= isset($errors['weight_kg']) ? 'is-invalid' : '' ?>"
+                       value="<?= View::e($oldInput['weight_kg'] ?? '') ?>" placeholder="np. 75.5">
+            </div>
+            <div class="col-md-3 col-6">
+                <label class="form-label small">Wzrost (cm)</label>
+                <input type="number" min="100" max="250" name="height_cm"
+                       class="form-control form-control-sm <?= isset($errors['height_cm']) ? 'is-invalid' : '' ?>"
+                       value="<?= View::e($oldInput['height_cm'] ?? '') ?>" placeholder="np. 178">
+            </div>
+            <div class="col-md-3 col-6">
+                <label class="form-label small">% tkanki tluszczowej</label>
+                <input type="number" step="0.1" min="0" max="70" name="body_fat_pct"
+                       class="form-control form-control-sm <?= isset($errors['body_fat_pct']) ? 'is-invalid' : '' ?>"
+                       value="<?= View::e($oldInput['body_fat_pct'] ?? '') ?>" placeholder="np. 18.5">
+            </div>
+            <div class="col-md-3 col-6">
+                <label class="form-label small">Tetno spoczynkowe (bpm)</label>
+                <input type="number" min="30" max="200" name="resting_hr"
+                       class="form-control form-control-sm <?= isset($errors['resting_hr']) ? 'is-invalid' : '' ?>"
+                       value="<?= View::e($oldInput['resting_hr'] ?? '') ?>" placeholder="np. 60">
+            </div>
+            <div class="col-md-3 col-6">
+                <label class="form-label small">Rozpietosc ramion (cm)</label>
+                <input type="number" min="100" max="260" name="wingspan_cm"
+                       class="form-control form-control-sm <?= isset($errors['wingspan_cm']) ? 'is-invalid' : '' ?>"
+                       value="<?= View::e($oldInput['wingspan_cm'] ?? '') ?>" placeholder="np. 182">
+            </div>
+            <div class="col-12">
+                <label class="form-label small">Notatki (opcjonalnie)</label>
+                <input type="text" name="notes" class="form-control form-control-sm"
+                       maxlength="255" value="<?= View::e($oldInput['notes'] ?? '') ?>"
+                       placeholder="kontekst pomiaru, np. 'po treningu'">
+            </div>
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-check2"></i> Zapisz pomiar
+                </button>
+            </div>
+        </form>
+    </div>
+</details>
 
 <!-- Current -->
 <?php if ($latest): ?>
