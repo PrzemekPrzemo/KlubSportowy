@@ -378,6 +378,13 @@ $router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatew
 $router->post('/club/gateways/:provider/test',       [\App\Controllers\ClubGatewayController::class, 'testConnection']);
 $router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatewayController::class, 'toggleActive']);
 $router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
+
+// Powiadomienia (Faza S.1)
+$router->get('/club/notifications',                       [\App\Controllers\NotificationRulesController::class, 'index']);
+$router->post('/club/notifications/rules/store',          [\App\Controllers\NotificationRulesController::class, 'storeRule']);
+$router->post('/club/notifications/rules/:id/update',     [\App\Controllers\NotificationRulesController::class, 'updateRule']);
+$router->post('/club/notifications/rules/:id/toggle',     [\App\Controllers\NotificationRulesController::class, 'toggleRule']);
+$router->post('/club/notifications/rules/:id/delete',     [\App\Controllers\NotificationRulesController::class, 'deleteRule']);
 $router->get('/fees/new',                  [\App\Controllers\FeesController::class, 'createPayment']);
 $router->post('/fees/store',               [\App\Controllers\FeesController::class, 'storePayment']);
 
