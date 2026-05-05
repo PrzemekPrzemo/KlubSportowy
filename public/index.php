@@ -404,6 +404,9 @@ $router->get('/portal/sport-history',    [\App\Controllers\MemberPortalControlle
 $router->get('/portal/club-select',      [\App\Controllers\MemberPortalController::class, 'showClubSelect']);
 $router->post('/portal/club-select/:id', [\App\Controllers\MemberPortalController::class, 'selectClub']);
 
+// Portal: cross-club sport section switcher (B1)
+$router->post('/portal/switch-section/:id', [\App\Controllers\MemberPortalController::class, 'switchSection']);
+
 // Portal: płatności online
 $router->get('/portal/payments',         [\App\Controllers\MemberPaymentController::class, 'index']);
 $router->post('/portal/payments/pay',    [\App\Controllers\MemberPaymentController::class, 'pay']);

@@ -15,6 +15,24 @@ if (MemberAuth::check() && MemberAuth::id() && MemberAuth::clubId()) {
     } catch (\Throwable) {}
 }
 
+// Cross-club sport section switcher: lista wszystkich aktywnych sekcji
+// dla zalogowanej tozsamosci (B1). Bezpieczne dla legacy logowan
+// (identityId === null → brak listy → brak dropdownu).
+$portalSections      = [];
+$activeSection       = null;
+$activeMembershipId  = MemberAuth::activeMembershipId();
+$identityIdForNav    = MemberAuth::identityId();
+if ($identityIdForNav !== null) {
+    try {
+        $portalSections = (new \App\Models\IdentitySportMembershipModel())->forIdentity($identityIdForNav);
+        if ($activeMembershipId !== null) {
+            foreach ($portalSections as $s) {
+                if ((int)$s['id'] === $activeMembershipId) { $activeSection = $s; break; }
+            }
+        }
+    } catch (\Throwable) {}
+}
+
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 'fw-semibold text-decoration-underline' : '';
 ?><!DOCTYPE html>
@@ -48,6 +66,45 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                 <strong class="text-white">Portal zawodnika</strong>
             </div>
             <div class="d-flex align-items-center gap-3">
+                <?php if (count($portalSections) > 1): ?>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light dropdown-toggle py-0 px-2" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" title="Aktywna sekcja">
+                        <i class="bi bi-shuffle me-1"></i>
+                        <?php if ($activeSection): ?>
+                            <?= View::e($activeSection['sport_name'] ?? $activeSection['sport_key']) ?>
+                            <span class="text-white-50">·</span>
+                            <?= View::e($activeSection['club_short_name'] ?? $activeSection['club_name']) ?>
+                        <?php else: ?>
+                            Wybierz sekcję
+                        <?php endif; ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header">Twoje sekcje sportowe</h6></li>
+                        <?php foreach ($portalSections as $s):
+                            $isActiveItem = $activeMembershipId !== null && (int)$s['id'] === $activeMembershipId;
+                        ?>
+                            <li>
+                                <form method="POST" action="<?= url('portal/switch-section/' . (int)$s['id']) ?>" class="m-0">
+                                    <?= csrf_field() ?>
+                                    <button type="submit"
+                                            class="dropdown-item d-flex align-items-center gap-2 <?= $isActiveItem ? 'active' : '' ?>">
+                                        <i class="bi <?= View::e($s['sport_icon'] ?? 'bi-trophy') ?>"
+                                           style="color: <?= View::e($s['sport_color'] ?? '#0d6efd') ?>"></i>
+                                        <span class="flex-grow-1">
+                                            <?= View::e($s['sport_name'] ?? $s['sport_key']) ?>
+                                            <small class="text-muted d-block"><?= View::e($s['club_name']) ?></small>
+                                        </span>
+                                        <?php if ((int)$s['is_primary'] === 1): ?>
+                                            <i class="bi bi-star-fill text-warning small" title="Primary"></i>
+                                        <?php endif; ?>
+                                    </button>
+                                </form>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
                 <?php if ($unreadNotifCount > 0): ?>
                 <a href="<?= url('portal/notifications') ?>" class="position-relative" title="Powiadomienia">
                     <i class="bi bi-bell-fill fs-5"></i>
