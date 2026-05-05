@@ -15,13 +15,24 @@ use App\Helpers\Encryption;
  */
 trait EncryptsFields
 {
-    /** Lista kolumn do szyfrowania. Overrideable w klasie. */
-    protected static array $ENCRYPTED_FIELDS = [];
+    // Klasy używające trait deklarują wlasne `protected static array $ENCRYPTED_FIELDS = [...]`.
+    // PHP 8.4 nie pozwala na property-redeclaration z roznym defaultem, dlatego trait
+    // sam nie deklaruje wlasciwosci — uzywa Reflection do bezpiecznego odczytu.
 
-    /** Pobierz listę pól — klasa może nadpisać metodę lub tablicę. */
+    /** Pobierz listę pól — klasa może nadpisać metodę lub zadeklarować tablicę $ENCRYPTED_FIELDS. */
     protected function encryptedFields(): array
     {
-        return static::$ENCRYPTED_FIELDS;
+        $cls = static::class;
+        try {
+            $ref = new \ReflectionClass($cls);
+            if ($ref->hasProperty('ENCRYPTED_FIELDS')) {
+                $prop = $ref->getProperty('ENCRYPTED_FIELDS');
+                if ($prop->isStatic()) {
+                    return (array)$prop->getValue();
+                }
+            }
+        } catch (\Throwable) {}
+        return [];
     }
 
     /** Szyfruje wybrane pola w danych przed zapisem. */

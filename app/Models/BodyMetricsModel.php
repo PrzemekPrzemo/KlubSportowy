@@ -63,6 +63,80 @@ class BodyMetricsModel extends ClubScopedModel
         return (float)$row['weight_kg'];
     }
 
+    /**
+     * Waliduje zestaw pomiarow zawodnika. Zwraca tablice bledow ['pole' => 'komunikat']
+     * lub puste tablice gdy wszystko OK. Sprawdza realistyczne zakresy fizjologiczne.
+     */
+    public static function validate(array $data): array
+    {
+        $errors = [];
+
+        // weight 20-250 kg
+        if (isset($data['weight_kg']) && $data['weight_kg'] !== null && $data['weight_kg'] !== '') {
+            $w = (float)$data['weight_kg'];
+            if ($w < 20.0 || $w > 250.0) {
+                $errors['weight_kg'] = 'Waga powinna miescic sie w przedziale 20–250 kg.';
+            }
+        }
+
+        // height 100-250 cm
+        if (isset($data['height_cm']) && $data['height_cm'] !== null && $data['height_cm'] !== '') {
+            $h = (int)$data['height_cm'];
+            if ($h < 100 || $h > 250) {
+                $errors['height_cm'] = 'Wzrost powinien miescic sie w przedziale 100–250 cm.';
+            }
+        }
+
+        // body fat 0-70 %
+        if (isset($data['body_fat_pct']) && $data['body_fat_pct'] !== null && $data['body_fat_pct'] !== '') {
+            $bf = (float)$data['body_fat_pct'];
+            if ($bf < 0.0 || $bf > 70.0) {
+                $errors['body_fat_pct'] = 'Procent tkanki tluszczowej w zakresie 0–70%.';
+            }
+        }
+
+        // resting HR 30-200 bpm
+        if (isset($data['resting_hr']) && $data['resting_hr'] !== null && $data['resting_hr'] !== '') {
+            $hr = (int)$data['resting_hr'];
+            if ($hr < 30 || $hr > 200) {
+                $errors['resting_hr'] = 'Tetno spoczynkowe w zakresie 30–200 bpm.';
+            }
+        }
+
+        // wingspan 100-260 cm
+        if (isset($data['wingspan_cm']) && $data['wingspan_cm'] !== null && $data['wingspan_cm'] !== '') {
+            $ws = (int)$data['wingspan_cm'];
+            if ($ws < 100 || $ws > 260) {
+                $errors['wingspan_cm'] = 'Rozpietosc ramion w zakresie 100–260 cm.';
+            }
+        }
+
+        // measured_at: not in the future, not before 1900
+        if (isset($data['measured_at']) && $data['measured_at']) {
+            $ts = strtotime((string)$data['measured_at']);
+            if ($ts === false) {
+                $errors['measured_at'] = 'Nieprawidlowy format daty.';
+            } elseif ($ts > strtotime('tomorrow')) {
+                $errors['measured_at'] = 'Data pomiaru nie moze byc w przyszlosci.';
+            } elseif ($ts < strtotime('1900-01-01')) {
+                $errors['measured_at'] = 'Data pomiaru jest nierealna.';
+            }
+        }
+
+        // require at least one measurement
+        $hasAny = false;
+        foreach (['weight_kg','height_cm','body_fat_pct','resting_hr','wingspan_cm'] as $k) {
+            if (isset($data[$k]) && $data[$k] !== null && $data[$k] !== '') {
+                $hasAny = true; break;
+            }
+        }
+        if (!$hasAny) {
+            $errors['_at_least_one'] = 'Podaj co najmniej jeden pomiar.';
+        }
+
+        return $errors;
+    }
+
     public static function calcBmi(?float $weightKg, ?int $heightCm): ?float
     {
         if (!$weightKg || !$heightCm || $heightCm <= 0) return null;

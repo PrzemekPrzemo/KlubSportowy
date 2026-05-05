@@ -511,13 +511,64 @@ class MemberPortalController extends BaseController
         $model    = new \App\Models\BodyMetricsModel();
         $this->view->setLayout('portal');
         $this->view->render('portal/body_metrics', [
-            'title'   => 'Pomiary ciała',
-            'member'  => MemberAuth::member(),
-            'metrics' => $model->listForMember($memberId, 100),
-            'latest'  => $model->latestForMember($memberId),
-            'history' => $model->weightHistory($memberId, 12),
-            'appName' => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+            'title'    => 'Pomiary ciała',
+            'member'   => MemberAuth::member(),
+            'metrics'  => $model->listForMember($memberId, 100),
+            'latest'   => $model->latestForMember($memberId),
+            'history'  => $model->weightHistory($memberId, 12),
+            'errors'   => Session::getFlash('body_metrics_errors') ?: [],
+            'oldInput' => Session::getFlash('body_metrics_input') ?: [],
+            'appName'  => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
+    }
+
+    /**
+     * POST /portal/body-metrics — self-entry by zawodnik.
+     * Walidacja: waga 20-250 kg, wzrost 100-250 cm, BF 0-70%,
+     * HR 30-200 bpm, wingspan 100-260 cm, data nie z przyszlosci.
+     */
+    public function storeBodyMetrics(): void
+    {
+        Csrf::verify();
+        MemberAuth::requireLogin();
+
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+
+        $input = [
+            'measured_at'  => trim($_POST['measured_at'] ?? '') ?: date('Y-m-d'),
+            'weight_kg'    => $_POST['weight_kg']    ?? null,
+            'height_cm'    => $_POST['height_cm']    ?? null,
+            'body_fat_pct' => $_POST['body_fat_pct'] ?? null,
+            'resting_hr'   => $_POST['resting_hr']   ?? null,
+            'wingspan_cm'  => $_POST['wingspan_cm']  ?? null,
+            'notes'        => trim($_POST['notes']  ?? '') ?: null,
+        ];
+
+        $errors = \App\Models\BodyMetricsModel::validate($input);
+        if (!empty($errors)) {
+            Session::flash('body_metrics_errors', $errors);
+            Session::flash('body_metrics_input',  $input);
+            $this->redirect('portal/body-metrics');
+            return;
+        }
+
+        $row = [
+            'club_id'     => $clubId,
+            'member_id'   => $memberId,
+            'measured_at' => $input['measured_at'],
+            'weight_kg'   => $input['weight_kg']    !== null && $input['weight_kg']    !== '' ? (float)$input['weight_kg']    : null,
+            'height_cm'   => $input['height_cm']    !== null && $input['height_cm']    !== '' ? (int)$input['height_cm']      : null,
+            'body_fat_pct'=> $input['body_fat_pct'] !== null && $input['body_fat_pct'] !== '' ? (float)$input['body_fat_pct'] : null,
+            'resting_hr'  => $input['resting_hr']   !== null && $input['resting_hr']   !== '' ? (int)$input['resting_hr']     : null,
+            'wingspan_cm' => $input['wingspan_cm']  !== null && $input['wingspan_cm']  !== '' ? (int)$input['wingspan_cm']    : null,
+            'measured_by' => 'self', // oznaczenie zawodnik wpisal samodzielnie
+            'notes'       => $input['notes'],
+        ];
+
+        (new \App\Models\BodyMetricsModel())->insert($row);
+        Session::flash('success', 'Pomiar zapisany.');
+        $this->redirect('portal/body-metrics');
     }
 
     public function medical(): void

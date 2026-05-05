@@ -415,6 +415,7 @@ $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalControlle
 
 // Portal: pomiary ciała
 $router->get('/portal/body-metrics',     [\App\Controllers\MemberPortalController::class, 'bodyMetrics']);
+$router->post('/portal/body-metrics',    [\App\Controllers\MemberPortalController::class, 'storeBodyMetrics']);
 
 // Admin: uprawnienia trenerskie i sędziowskie
 $router->get('/certifications',             [\App\Controllers\CoachCertificationsController::class, 'index']);
