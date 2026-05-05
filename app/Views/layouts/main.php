@@ -103,6 +103,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'compliance'    => ['url' => 'admin/compliance','icon' => 'bi-shield-check',         'label' => 'Zgodność WADA',           'mod' => 'medical',         'sensitive' => true],
         'equipment'     => ['url' => 'equipment',     'icon' => 'bi-box-seam',               'label' => 'Sprzęt klubowy',          'mod' => null],
         'certifications'=> ['url' => 'certifications','icon' => 'bi-patch-check',            'label' => 'Uprawnienia trenerskie',  'mod' => null],
+        'commissions'   => ['url' => 'club/trainers/commissions', 'icon' => 'bi-cash-coin',  'label' => 'Prowizje trenerów',       'mod' => 'fees'],
         'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',              'label' => __('nav.announcements'),   'mod' => 'announcements'],
         'gallery'       => ['url' => 'gallery',       'icon' => 'bi-images',                 'label' => __('nav.gallery'),         'mod' => null],
         'messages'      => ['url' => 'messages',      'icon' => 'bi-chat-dots',              'label' => __('nav.messages'),        'mod' => null],
