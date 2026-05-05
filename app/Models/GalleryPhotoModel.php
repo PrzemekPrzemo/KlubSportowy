@@ -80,17 +80,34 @@ class GalleryPhotoModel extends BaseModel
      */
     public function upload(array $file, int $clubId, int $albumId): ?string
     {
-        $dir = 'uploads/gallery/' . $clubId . '/' . $albumId;
+        // Walidacja uploadu: error code, real upload, MIME, ext.
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return null;
+        }
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            return null;
+        }
+
+        // MIME wykryty serwer-side (nie ufamy $file['type'] ani extensji
+        // z $file['name'] — klient moze wgrac "evil.php" z fake'owym typem).
+        $mimeToExt = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/gif'  => 'gif',
+            'image/webp' => 'webp',
+        ];
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($file['tmp_name']) ?: '';
+        if (!isset($mimeToExt[$mime])) {
+            return null;
+        }
+        $ext = $mimeToExt[$mime];
+
+        $dir    = 'uploads/gallery/' . $clubId . '/' . $albumId;
         $absDir = ROOT_PATH . '/public/' . $dir;
 
         if (!is_dir($absDir)) {
             mkdir($absDir, 0775, true);
-        }
-
-        $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        if (!in_array($ext, $allowed, true)) {
-            return null;
         }
 
         $filename = uniqid('img_', true) . '.' . $ext;

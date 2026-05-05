@@ -396,10 +396,32 @@ class ShopController extends BaseController
 
     private function uploadProductImage(array $file): ?string
     {
-        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!in_array($file['type'], $allowed, true)) {
+        // Bezpieczna walidacja:
+        //   1. UPLOAD_ERR_OK (klient mogl wyslac broken plik)
+        //   2. MIME wykryty serwer-side przez finfo (nie ufamy $file['type'],
+        //      ktory jest browser-supplied i mozna go sfalszowac)
+        //   3. Extension wynika z verified MIME, nie z $file['name']
+        //      (zeby atakujacy nie wgral "evil.php" z Content-Type: image/png)
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             return null;
         }
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            return null;
+        }
+
+        $mimeToExt = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/gif'  => 'gif',
+            'image/webp' => 'webp',
+        ];
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($file['tmp_name']) ?: '';
+        if (!isset($mimeToExt[$mime])) {
+            return null;
+        }
+        $ext = $mimeToExt[$mime];
 
         $clubId = ClubContext::current() ?: 0;
         $dir    = 'uploads/shop/' . $clubId;
@@ -408,8 +430,7 @@ class ShopController extends BaseController
             mkdir($absDir, 0775, true);
         }
 
-        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION) ?: 'jpg';
-        $filename = uniqid('prod_', true) . '.' . strtolower($ext);
+        $filename = uniqid('prod_', true) . '.' . $ext;
         $dest     = $absDir . '/' . $filename;
 
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
