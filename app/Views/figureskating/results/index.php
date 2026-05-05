@@ -37,10 +37,23 @@
                     <td class="font-monospace fw-bold text-success"><?= $r['total_score'] !== null ? number_format((float)$r['total_score'], 2) : '—' ?></td>
                     <td><?php if ($r['place']): ?><span class="badge bg-primary">#<?= (int)$r['place'] ?></span><?php endif; ?></td>
                     <td>
-                        <form method="POST" action="<?= url('figureskating/results/' . (int)$r['id'] . '/delete') ?>" onsubmit="return confirm('Usunąć?')">
-                            <?= csrf_field() ?>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </form>
+                        <div class="d-flex gap-1">
+                            <a href="<?= url('figureskating/results/' . (int)$r['id']) ?>"
+                               class="btn btn-sm btn-outline-secondary" title="Szczegóły">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="<?= url('figureskating/results/' . (int)$r['id'] . '/edit') ?>"
+                               class="btn btn-sm btn-outline-primary" title="Edytuj">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="<?= url('figureskating/results/' . (int)$r['id'] . '/delete') ?>"
+                                  onsubmit="return confirm('Usunąć?')" class="d-inline">
+                                <?= csrf_field() ?>
+                                <button class="btn btn-sm btn-outline-danger" title="Usuń">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
