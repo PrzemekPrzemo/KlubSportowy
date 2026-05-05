@@ -64,6 +64,7 @@ class AdsTargetingTest extends TestCase
             'title'         => 'Tylko ten sport',
             'audience_type' => 'sport',
             'sport_id'      => $sportId,
+            'target'        => 'member_portal',
         ]);
 
         $hit  = (new AdModel())->activeForTarget('member_portal', null, null, $sportId);
@@ -84,6 +85,7 @@ class AdsTargetingTest extends TestCase
             'title'         => 'Reklama personalizowana',
             'audience_type' => 'member',
             'member_id'     => $m1['id'],
+            'target'        => 'member_portal',
         ]);
 
         $hit  = (new AdModel())->activeForTarget('member_portal', $club, $m1['id']);
