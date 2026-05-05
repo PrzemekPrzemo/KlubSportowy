@@ -13,7 +13,7 @@ use App\Models\MemberModel;
  * scope club_id, zapobiega IDOR (cross-club update).
  *
  * Klub A i klub B maja po jednym czlonku. Klub A ustawiony jako kontekst
- * (ClubContext::setCurrent) probuje update'owac czlonka klubu B przez
+ * (ClubContext::set) probuje update'owac czlonka klubu B przez
  * MemberModel::update(). Update musi NIE zmodyfikowac wiersza klubu B.
  */
 class ClubScopedUpdateIsolationTest extends TestCase
@@ -30,7 +30,7 @@ class ClubScopedUpdateIsolationTest extends TestCase
         $memberB = $this->createTestMember($clubB, ['first_name' => 'Beata', 'last_name' => 'Bklub']);
 
         // Ustaw kontekst na klub A i sprobuj zaktualizowac czlonka klubu B
-        ClubContext::setCurrent($clubA);
+        ClubContext::set($clubA);
         $model = new MemberModel();
         $result = $model->update($memberB['id'], ['first_name' => 'HACKED']);
 
@@ -54,7 +54,7 @@ class ClubScopedUpdateIsolationTest extends TestCase
         $clubA = $this->createTestClub('Klub A — happy path');
         $memberA = $this->createTestMember($clubA, ['first_name' => 'Anna']);
 
-        ClubContext::setCurrent($clubA);
+        ClubContext::set($clubA);
         $model = new MemberModel();
         $model->update($memberA['id'], ['first_name' => 'Aniela']);
 
@@ -71,7 +71,7 @@ class ClubScopedUpdateIsolationTest extends TestCase
         $clubB = $this->createTestClub('Klub B — club_id ignore');
         $memberA = $this->createTestMember($clubA, ['first_name' => 'Anna']);
 
-        ClubContext::setCurrent($clubA);
+        ClubContext::set($clubA);
         $model = new MemberModel();
         // Zlosliwa proba "przeniesienia" do klubu B
         $model->update($memberA['id'], [
