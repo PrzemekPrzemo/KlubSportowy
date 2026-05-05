@@ -7,6 +7,7 @@ return [
     'key'        => 'basketball',
     'name'       => 'Koszykówka',
     'federation' => 'PZKosz',
+    'archetype'  => \App\Sports\Basketball\BasketballArchetype::class,
     'features'   => [
         'teams',
         'positions',      // PG, SG, SF, PF, C
@@ -15,6 +16,7 @@ return [
         'fouls',          // faule + kary
         'transfers',
         'pzkosz_license',
+        'demo-ready',
     ],
     'routes' => [
         ['GET',  '/basketball/teams',              [\App\Sports\Basketball\Controllers\TeamsController::class, 'index']],

@@ -3,7 +3,8 @@ return [
     'key'        => 'taekwondo',
     'name'       => 'Taekwondo',
     'federation' => 'PZTkd',
-    'features'   => ['belts', 'results', 'weight_categories', 'attendance', 'calendar'],
+    'archetype'  => \App\Sports\Taekwondo\TaekwondoArchetype::class,
+    'features'   => ['belts', 'results', 'weight_categories', 'attendance', 'calendar', 'demo-ready'],
     'routes' => [
         ['GET',  '/taekwondo/belts',                 [\App\Sports\Taekwondo\Controllers\BeltsController::class,      'index']],
         ['POST', '/taekwondo/belts/store',            [\App\Sports\Taekwondo\Controllers\BeltsController::class,      'store']],

@@ -7,6 +7,7 @@ return [
     'key'        => 'volleyball',
     'name'       => 'Siatkówka',
     'federation' => 'PZPS',
+    'archetype'  => \App\Sports\Volleyball\VolleyballArchetype::class,
     'features'   => [
         'teams',
         'positions',      // atakujący, przyjmujący, środkowy, rozgrywający, libero
@@ -15,6 +16,7 @@ return [
         'player_stats',   // ataki, bloki, serwisy, asy
         'transfers',
         'pzps_license',
+        'demo-ready',
     ],
     'routes' => [
         ['GET',  '/volleyball/teams',              [\App\Sports\Volleyball\Controllers\TeamsController::class, 'index']],

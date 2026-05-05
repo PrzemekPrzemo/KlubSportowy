@@ -4,7 +4,8 @@ return [
     'key'        => 'football',
     'name'       => 'Piłka nożna',
     'federation' => 'PZPN',
-    'features'   => ['teams','positions','matches','cards','transfers','stats','leagues','pzpn_license'],
+    'archetype'  => \App\Sports\Football\FootballArchetype::class,
+    'features'   => ['teams','positions','matches','cards','transfers','stats','leagues','pzpn_license','demo-ready'],
     'routes' => [
         ['GET',  '/football/teams',              [\App\Sports\Football\Controllers\TeamsController::class, 'index']],
         ['GET',  '/football/teams/create',       [\App\Sports\Football\Controllers\TeamsController::class, 'create']],
