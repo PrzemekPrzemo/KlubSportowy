@@ -19,6 +19,7 @@ use App\Models\MemberModel;
 use App\Models\MemberNotificationModel;
 use App\Models\ClubPaymentGatewayModel;
 use App\Models\MemberFeeAssignmentModel;
+use App\Models\MemberNotificationPrefModel;
 use App\Models\PaymentDueModel;
 use App\Models\PaymentModel;
 use App\Models\SportAttendanceModel;
@@ -372,6 +373,98 @@ class MemberPortalController extends BaseController
             'statuses'          => PaymentDueModel::$STATUSES,
             'appName'           => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
+    }
+
+    /**
+     * Faza S.2 — portal opt-out z powiadomień (RODO compliance).
+     *
+     * Zawodnik wybiera per template_type + per channel czy chce dostawać
+     * powiadomienia. Domyślnie WSZYSTKO opt-IN (brak rekordu w prefs).
+     *
+     * Bonus: "Wycisz wszystko" → global opt-out (template_type=NULL).
+     */
+    public function notificationPrefs(): void
+    {
+        MemberAuth::requireLogin();
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+
+        $prefsModel = new MemberNotificationPrefModel();
+        $existingPrefs = $prefsModel->listForMember($memberId);
+
+        // Index po template_type dla łatwego lookupu w widoku
+        $prefByTemplate = [];
+        $globalOptOut   = false;
+        foreach ($existingPrefs as $p) {
+            if ($p['template_type'] === null) {
+                $globalOptOut = !empty($p['opted_out']);
+            } else {
+                $prefByTemplate[$p['template_type']] = $p;
+            }
+        }
+
+        // Lista template'ów dostępnych w klubie + globalnych
+        $stmt = \App\Helpers\Database::pdo()->prepare(
+            "SELECT DISTINCT template_type, name FROM email_templates
+             WHERE club_id IS NULL OR club_id = ?
+             ORDER BY template_type"
+        );
+        $stmt->execute([$clubId]);
+        $templates = $stmt->fetchAll();
+
+        // Friendly labels (Polish)
+        $templateLabels = [
+            'welcome'         => 'Powitanie nowego zawodnika',
+            'fee_reminder'    => 'Przypomnienia o składkach',
+            'license_expiry'  => 'Wygasające licencje',
+            'medical_expiry'  => 'Wygasające badania lekarskie',
+            'event_reminder'  => 'Przypomnienia o wydarzeniach',
+            'training_reminder' => 'Przypomnienia o treningach',
+            'attendance'      => 'Frekwencja',
+            'tournament'      => 'Zawody i turnieje',
+        ];
+
+        $this->view->setLayout('portal');
+        $this->view->render('portal/notification_prefs', [
+            'title'           => 'Preferencje powiadomień',
+            'member'          => MemberAuth::member(),
+            'templates'       => $templates,
+            'templateLabels'  => $templateLabels,
+            'prefByTemplate'  => $prefByTemplate,
+            'globalOptOut'    => $globalOptOut,
+            'appName'         => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    public function updateNotificationPrefs(): void
+    {
+        MemberAuth::requireLogin();
+        \App\Helpers\Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+
+        $prefsModel = new MemberNotificationPrefModel();
+
+        // Global opt-out: jeśli zaznaczone, ustaw template_type=NULL, opted_out=1
+        $globalOff = !empty($_POST['global_opt_out']);
+        $prefsModel->setPreference($memberId, $clubId, null, 'both', $globalOff);
+
+        // Per template — array z form: prefs[template_type][opted_out] + [channel]
+        if (!$globalOff && !empty($_POST['prefs']) && is_array($_POST['prefs'])) {
+            foreach ($_POST['prefs'] as $tpl => $cfg) {
+                if (!is_string($tpl) || $tpl === '') continue;
+                $tpl = preg_replace('/[^a-z0-9_-]/i', '', $tpl); // sanitize
+                if ($tpl === '') continue;
+
+                $optedOut = !empty($cfg['opted_out']);
+                $channel  = in_array($cfg['channel'] ?? '', ['email', 'sms', 'both'], true)
+                            ? $cfg['channel'] : 'both';
+                $prefsModel->setPreference($memberId, $clubId, $tpl, $channel, $optedOut);
+            }
+        }
+
+        Session::flash('success', 'Preferencje powiadomień zapisane.');
+        $this->redirect('portal/notification-prefs');
     }
 
     public function events(): void

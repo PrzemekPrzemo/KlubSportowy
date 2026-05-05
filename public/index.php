@@ -461,6 +461,10 @@ $router->get('/portal/payments/success', [\App\Controllers\MemberPaymentControll
 $router->get('/portal/dues',             [\App\Controllers\MemberPortalController::class, 'dues']);
 $router->post('/portal/dues/:id/pay',    [\App\Controllers\MemberPaymentController::class, 'payDue']);
 
+// Portal — preferencje powiadomień (Faza S.2 RODO opt-out)
+$router->get('/portal/notification-prefs',         [\App\Controllers\MemberPortalController::class, 'notificationPrefs']);
+$router->post('/portal/notification-prefs/update', [\App\Controllers\MemberPortalController::class, 'updateNotificationPrefs']);
+
 // Portal: karta zawodnika + zdjęcie
 $router->get('/portal/member-card',      [\App\Controllers\MemberPortalController::class, 'memberCard']);
 $router->post('/portal/photo-upload',    [\App\Controllers\MemberPortalController::class, 'uploadPhoto']);

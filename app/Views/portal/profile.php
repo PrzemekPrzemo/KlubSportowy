@@ -88,3 +88,18 @@
         </div>
     </div>
 </div>
+
+<!-- Preferencje powiadomień (Faza S.2 RODO opt-out) -->
+<div class="card mt-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <strong><i class="bi bi-bell me-1"></i> Preferencje powiadomień</strong>
+            <small class="d-block text-muted">
+                Wybierz które powiadomienia od klubu chcesz otrzymywać i jakim kanałem (email/SMS).
+            </small>
+        </div>
+        <a href="<?= url('portal/notification-prefs') ?>" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-gear"></i> Ustaw
+        </a>
+    </div>
+</div>
