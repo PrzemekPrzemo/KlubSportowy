@@ -4,7 +4,8 @@ return [
     'name'       => 'Aikido',
     'federation' => 'PZAI',
     'icon'       => 'bi-arrows-angle-expand',
-    'features'   => ['belts', 'results'],
+    'archetype'  => \App\Sports\Aikido\AikidoArchetype::class,
+    'features'   => ['belts', 'results', 'demo-ready'],
     'routes' => [
         ['GET',  '/aikido/belts',              [\App\Sports\Aikido\Controllers\BeltsController::class,   'index']],
         ['POST', '/aikido/belts/store',         [\App\Sports\Aikido\Controllers\BeltsController::class,   'store']],

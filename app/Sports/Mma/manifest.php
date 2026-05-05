@@ -3,7 +3,8 @@ return [
     'key'        => 'mma',
     'name'       => 'MMA (Mixed Martial Arts)',
     'federation' => 'PZMMA',
-    'features'   => ['fighters', 'results', 'methods', 'weight_classes', 'amateur_pro'],
+    'archetype'  => \App\Sports\Mma\MmaArchetype::class,
+    'features'   => ['fighters', 'results', 'methods', 'weight_classes', 'amateur_pro', 'demo-ready'],
     'routes' => [
         ['GET',  '/mma/fighters',            [\App\Sports\Mma\Controllers\FightersController::class, 'index']],
         ['POST', '/mma/fighters/store',      [\App\Sports\Mma\Controllers\FightersController::class, 'store']],
