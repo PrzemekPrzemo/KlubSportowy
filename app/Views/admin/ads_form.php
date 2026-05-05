@@ -12,8 +12,62 @@ $action = $ad
             <input type="text" name="title" value="<?= View::e($ad['title'] ?? '') ?>" class="form-control" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Club ID (pusty = globalny)</label>
-            <input type="number" name="club_id" value="<?= View::e($ad['club_id'] ?? '') ?>" class="form-control" min="1">
+            <label class="form-label">Klub (pusty = globalny)</label>
+            <select name="club_id" class="form-select">
+                <option value="">— globalny —</option>
+                <?php foreach ($clubs as $c): ?>
+                    <option value="<?= (int)$c['id'] ?>"
+                            <?= (int)($ad['club_id'] ?? 0) === (int)$c['id'] ? 'selected' : '' ?>>
+                        <?= View::e($c['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <!-- Targeting block (D2) -->
+        <div class="col-12 mt-2">
+            <div class="border rounded p-3 bg-light">
+                <h6 class="mb-3"><i class="bi bi-bullseye me-1"></i> Targetowanie audiencji</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Typ audiencji</label>
+                        <select name="audience_type" id="ads_audience_type" class="form-select">
+                            <?php foreach ($audienceTypes as $key => $label): ?>
+                                <option value="<?= View::e($key) ?>"
+                                        <?= ($ad['audience_type'] ?? 'all') === $key ? 'selected' : '' ?>>
+                                    <?= View::e($label) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 audience-field" data-when="sport">
+                        <label class="form-label">Sport (gdy audience=sport)</label>
+                        <select name="sport_id" class="form-select">
+                            <option value="">—</option>
+                            <?php foreach ($sports as $s): ?>
+                                <option value="<?= (int)$s['id'] ?>"
+                                        <?= (int)($ad['sport_id'] ?? 0) === (int)$s['id'] ? 'selected' : '' ?>>
+                                    <?= View::e($s['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 audience-field" data-when="member">
+                        <label class="form-label">ID zawodnika (gdy audience=member)</label>
+                        <input type="number" name="member_id" min="1"
+                               value="<?= View::e($ad['member_id'] ?? '') ?>"
+                               class="form-control" placeholder="np. 1234">
+                        <div class="form-text small">
+                            Master admin zna ID z bazy. Przyszla rozszerzona wersja doda search-by-email.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-text small mt-2">
+                    <strong>all</strong> = uniwersalna, <strong>club</strong> = wybierz klub powyzej,
+                    <strong>sport</strong> = wymagany sport, <strong>member</strong> = wymagany ID,
+                    <strong>plan</strong> = wymagany kod planu w polu „Minimalny plan".
+                </div>
+            </div>
         </div>
         <div class="col-md-6">
             <label class="form-label">Sciezka obrazka</label>
@@ -41,7 +95,15 @@ $action = $ad
         </div>
         <div class="col-md-4">
             <label class="form-label">Minimalny plan</label>
-            <input type="text" name="plan_min" value="<?= View::e($ad['plan_min'] ?? '') ?>" class="form-control" placeholder="np. basic">
+            <select name="plan_min" class="form-select">
+                <option value="">—</option>
+                <?php foreach ($plans as $p): ?>
+                    <option value="<?= View::e($p['code']) ?>"
+                            <?= ($ad['plan_min'] ?? '') === $p['code'] ? 'selected' : '' ?>>
+                        <?= View::e($p['name']) ?> (<?= View::e($p['code']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Data poczatkowa</label>
@@ -64,3 +126,27 @@ $action = $ad
         <a href="<?= url('admin/ads') ?>" class="btn btn-outline-secondary">Anuluj</a>
     </div>
 </form>
+
+<script>
+(function() {
+    // Show/hide audience-specific fields based on selected audience_type.
+    var sel = document.getElementById('ads_audience_type');
+    if (!sel) return;
+    function refresh() {
+        var v = sel.value;
+        document.querySelectorAll('.audience-field').forEach(function(el) {
+            var when = el.getAttribute('data-when');
+            // Always visible if relevant; soft-hide otherwise (don't unmount, server still validates)
+            if (when === v) {
+                el.style.display = '';
+                el.style.opacity = 1;
+            } else {
+                el.style.display = '';
+                el.style.opacity = 0.4;
+            }
+        });
+    }
+    sel.addEventListener('change', refresh);
+    refresh();
+})();
+</script>
