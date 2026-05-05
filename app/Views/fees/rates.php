@@ -1,4 +1,20 @@
 <?php use App\Helpers\View; ?>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0"><i class="bi bi-cash-stack text-primary me-2"></i>Stawki opłat</h3>
+    <div class="btn-group">
+        <a href="<?= url('fees') ?>" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-receipt"></i> Wpłaty
+        </a>
+        <a href="<?= url('fees/rates') ?>" class="btn btn-secondary btn-sm">
+            <i class="bi bi-cash-stack"></i> Stawki
+        </a>
+        <a href="<?= url('fees/discounts') ?>" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-percent"></i> Zniżki
+        </a>
+    </div>
+</div>
+
 <div class="row g-3">
     <div class="col-md-7">
         <div class="card p-3">
