@@ -3,7 +3,8 @@ return [
     'key'        => 'gymnastics',
     'name'       => 'Gimnastyka',
     'federation' => 'PZG',
-    'features'   => ['results', 'routines', 'apparatus', 'disciplines', 'minor_protection'],
+    'archetype'  => \App\Sports\Gymnastics\GymnasticsArchetype::class,
+    'features'   => ['results', 'routines', 'apparatus', 'disciplines', 'minor_protection', 'demo-ready'],
     'routes' => [
         ['GET',  '/gymnastics/results',               [\App\Sports\Gymnastics\Controllers\ResultsController::class, 'index']],
         ['POST', '/gymnastics/results/store',         [\App\Sports\Gymnastics\Controllers\ResultsController::class, 'store']],

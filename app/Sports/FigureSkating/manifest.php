@@ -3,7 +3,8 @@ return [
     'key'        => 'figureskating',
     'name'       => 'Łyżwiarstwo figurowe',
     'federation' => 'PZLF',
-    'features'   => ['results', 'disciplines', 'tes_pcs', 'sp_fs'],
+    'archetype'  => \App\Sports\FigureSkating\FigureSkatingArchetype::class,
+    'features'   => ['results', 'disciplines', 'tes_pcs', 'sp_fs', 'demo-ready'],
     'routes' => [
         ['GET',  '/figureskating/results',            [\App\Sports\FigureSkating\Controllers\ResultsController::class, 'index']],
         ['POST', '/figureskating/results/store',      [\App\Sports\FigureSkating\Controllers\ResultsController::class, 'store']],

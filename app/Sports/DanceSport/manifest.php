@@ -3,7 +3,8 @@ return [
     'key'        => 'dance_sport',
     'name'       => 'Taniec sportowy',
     'federation' => 'PZTS',
-    'features'   => ['couples', 'results', 'classes', 'standard', 'latin'],
+    'archetype'  => \App\Sports\DanceSport\DanceSportArchetype::class,
+    'features'   => ['couples', 'results', 'classes', 'standard', 'latin', 'demo-ready'],
     'routes' => [
         ['GET',  '/dance_sport/couples',              [\App\Sports\DanceSport\Controllers\CouplesController::class, 'index']],
         ['POST', '/dance_sport/couples/store',         [\App\Sports\DanceSport\Controllers\CouplesController::class, 'store']],
