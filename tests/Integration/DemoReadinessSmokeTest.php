@@ -64,7 +64,7 @@ class DemoReadinessSmokeTest extends TestCase
         }
     }
 
-    public function testGetDemoCountsReturnsZerosForFreshClub(): void
+    public function testGetDemoCountsReturnsArrayPerTable(): void
     {
         $clubId = $this->createTestClub('Demo Counts Fresh');
 
@@ -74,8 +74,18 @@ class DemoReadinessSmokeTest extends TestCase
 
         $counts = $this->getDemoCounts($stub, $clubId);
         $this->assertNotEmpty($counts);
-        foreach ($counts as $table => $count) {
-            $this->assertGreaterThanOrEqual(0, $count, "Table {$table} count should be >= 0");
+        // Helper zwraca count >= 0 dla istniejacych tabel albo -1 dla missing.
+        // Wymagamy, ze przynajmniej JEDNA tabela istnieje (count >= 0) — po
+        // A.4 plugin migrations w CI tabele Football powinny byc obecne.
+        $existing = array_filter($counts, fn($c) => $c >= 0);
+        $this->assertNotEmpty(
+            $existing,
+            'Zadna z tabel Football nie istnieje w CI DB — A.4 plugin migrations '
+            . 'mogly nie zaaplikowac sie. Counts: ' . json_encode($counts)
+        );
+        // Dla istniejacych tabel — fresh club ma 0 wierszy (jeszcze nie seedujemy)
+        foreach ($existing as $table => $count) {
+            $this->assertSame(0, $count, "Fresh club: tabela {$table} powinna byc pusta");
         }
     }
 
