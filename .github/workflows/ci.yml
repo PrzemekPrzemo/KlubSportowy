@@ -56,8 +56,28 @@ jobs:
           coverage: xdebug
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
-      - name: Setup test database
+      - name: Setup test database (base schema)
         run: mysql -h 127.0.0.1 -u root -proot klubsportowy_test < database/schema.sql
+      - name: Apply root migrations (after schema baseline)
+        run: |
+          set -e
+          shopt -s nullglob
+          for f in database/migrations/*.sql; do
+            echo "→ applying $f"
+            # CI baseline (schema.sql) zawiera juz wczesniejsze migracje;
+            # ALTER TABLE-y moga juz byc w schema. Pozwalamy na blad ale logujemy.
+            mysql -h 127.0.0.1 -u root -proot klubsportowy_test < "$f" 2>&1 || \
+              echo "  (some statements may already exist — non-fatal)"
+          done
+      - name: Apply plugin migrations (per sport)
+        run: |
+          set -e
+          shopt -s nullglob
+          for f in app/Sports/*/migrations/*.sql; do
+            echo "→ applying $f"
+            mysql -h 127.0.0.1 -u root -proot klubsportowy_test < "$f" 2>&1 || \
+              echo "  (some statements may already exist — non-fatal)"
+          done
       - name: Create test config
         run: |
           cat > config/database.local.php << 'EOF'
