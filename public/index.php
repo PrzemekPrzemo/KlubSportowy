@@ -371,6 +371,18 @@ $router->get('/accounting/export',  [\App\Controllers\AccountingController::clas
 // Wszyscy zawodnicy (cross-sport, Faza P.4)
 $router->get('/members-all',        [\App\Controllers\AllMembersController::class, 'index']);
 
+// Prowizje trenerów (Faza U.2)
+$router->get('/club/trainers/commissions',                          [\App\Controllers\TrainerCommissionsController::class, 'index']);
+$router->get('/club/trainers/commissions/report',                   [\App\Controllers\TrainerCommissionsController::class, 'report']);
+$router->post('/club/trainers/commissions/mark-paid-out',           [\App\Controllers\TrainerCommissionsController::class, 'markPaidOut']);
+$router->get('/club/trainers/commissions/rates',                    [\App\Controllers\TrainerCommissionsController::class, 'rates']);
+$router->get('/club/trainers/commissions/rates/new',                [\App\Controllers\TrainerCommissionsController::class, 'createRate']);
+$router->post('/club/trainers/commissions/rates/store',             [\App\Controllers\TrainerCommissionsController::class, 'storeRate']);
+$router->get('/club/trainers/commissions/rates/:id/edit',           [\App\Controllers\TrainerCommissionsController::class, 'editRate']);
+$router->post('/club/trainers/commissions/rates/:id/update',        [\App\Controllers\TrainerCommissionsController::class, 'updateRate']);
+$router->post('/club/trainers/commissions/rates/:id/toggle',        [\App\Controllers\TrainerCommissionsController::class, 'toggleRate']);
+$router->post('/club/trainers/commissions/rates/:id/delete',        [\App\Controllers\TrainerCommissionsController::class, 'deleteRate']);
+
 // Per-klub bramki płatności (Faza P.5)
 $router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
 $router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
