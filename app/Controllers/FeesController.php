@@ -200,7 +200,21 @@ class FeesController extends BaseController
             $this->redirect('fees/new');
         }
 
-        (new PaymentModel())->insert($data);
+        $paymentId = (new PaymentModel())->insert($data);
+
+        // U.1 — auto-naliczanie prowizji trenerów po manualnej rejestracji wpłaty.
+        // Błąd kalkulatora NIE powinien rollbackować wpłaty — log + dalej.
+        try {
+            \App\Helpers\CommissionCalculator::accrueForPayment(
+                array_merge($data, [
+                    'id'      => $paymentId,
+                    'club_id' => \App\Helpers\ClubContext::current(),
+                ])
+            );
+        } catch (\Throwable $e) {
+            error_log('CommissionCalculator (manual) failed: ' . $e->getMessage());
+        }
+
         Session::flash('success', 'Opłata zarejestrowana.');
         $this->redirect('fees');
     }
