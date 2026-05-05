@@ -84,13 +84,62 @@
                         </div>
                     </div>
                     <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Nr paszportu</label>
+                        <div class="col-md-3">
+                            <label class="form-label">Paszport (legacy)</label>
                             <input type="text" name="passport_no" class="form-control">
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Paszport PZJ</label>
+                            <input type="text" name="pzj_passport_no" class="form-control" placeholder="np. PZJ-12345">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Paszport FEI</label>
+                            <input type="text" name="fei_passport_no" class="form-control" placeholder="np. POL12345">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Mikrochip ISO</label>
+                            <input type="text" name="microchip" class="form-control" maxlength="20" placeholder="15-cyfrowy">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Wysokość w kłębie (cm)</label>
+                            <input type="number" name="height_cm" class="form-control" min="80" max="200">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Klasa sportowa</label>
+                            <select name="sport_class" class="form-select">
+                                <?php foreach ($sportClasses as $k => $label): ?>
+                                    <option value="<?= $k ?>"><?= View::e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Dyscypliny (multi-select)</label>
+                            <select name="discipline_focus[]" class="form-select" multiple size="3">
+                                <?php foreach ($disciplines as $k => $label): ?>
+                                    <option value="<?= $k ?>"><?= View::e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text small">Ctrl+klik dla wielu</div>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Właściciel (imię i nazwisko)</label>
-                            <input type="text" name="owner_name" class="form-control">
+                            <label class="form-label">Właściciel (z rejestru)</label>
+                            <select name="owner_id" class="form-select">
+                                <option value="">— brak / wpisz ręcznie poniżej —</option>
+                                <?php foreach ($owners as $oid => $oLabel): ?>
+                                    <option value="<?= (int)$oid ?>"><?= View::e($oLabel) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text small">
+                                <a href="<?= url('equestrian/owners') ?>">Zarządzaj rejestrem właścicieli</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Lub ad-hoc imię i nazwisko</label>
+                            <input type="text" name="owner_name" class="form-control" placeholder="gdy właściciel nie jest w rejestrze">
                         </div>
                     </div>
                     <div class="mb-3">
