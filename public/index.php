@@ -427,8 +427,13 @@ $router->post('/billing/upgrade',            [\App\Controllers\BillingController
 $router->get('/billing/invoices',            [\App\Controllers\BillingController::class, 'invoices']);
 $router->post('/billing/invoices/:id/paid',  [\App\Controllers\BillingController::class, 'markPaid']);
 
-// Stripe/P24 Webhook (no CSRF — signed)
+// Stripe/P24 Webhook (no CSRF — signed) — legacy SaaS billing
 $router->post('/webhook/payment', [\App\Controllers\PaymentWebhookController::class, 'handle']);
+
+// Faza T.3 — universal gateway webhook router (all providers)
+// Routes payment notifications per provider via GatewayFactory.
+// (no CSRF — uwierzytelnione sygnaturą HMAC w adapterze)
+$router->post('/api/v1/payment/webhook/:provider', [\App\Controllers\GatewayWebhookController::class, 'handle']);
 
 // Portal zawodnika (self-service)
 $router->get('/portal/login',            [\App\Controllers\MemberPortalController::class, 'showLogin']);

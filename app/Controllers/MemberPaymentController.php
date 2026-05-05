@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Helpers\Csrf;
+use App\Helpers\Gateway\CheckoutRequest;
+use App\Helpers\Gateway\GatewayException;
+use App\Helpers\Gateway\GatewayFactory;
 use App\Helpers\MemberAuth;
 use App\Helpers\PaymentGateway;
 use App\Helpers\Session;
@@ -160,14 +163,46 @@ class MemberPaymentController extends BaseController
 
         $successUrl = url('portal/payments/success?op_id=' . $opId);
         $cancelUrl  = url('portal/dues?cancelled=1');
+        $notifyUrl  = url('api/v1/payment/webhook/' . $gateway['provider'] . '?club_id=' . $clubId);
 
-        // Stripe-only obecnie — w przyszłości routing per gateway provider
+        // Faza T.3 — używamy GatewayFactory zamiast bezpośredniego
+        // PaymentGateway helper. Routing per provider (Stripe / P24 / PayU / Tpay).
+        $adapter = GatewayFactory::forProvider($gateway['provider'], $gateway);
+
+        if ($adapter !== null) {
+            try {
+                $req = new CheckoutRequest(
+                    clubId:            $clubId,
+                    memberId:          $memberId,
+                    amount:            $remaining,
+                    currency:          $gateway['currency'] ?? 'PLN',
+                    description:       'Należność klubowa #' . $dueId,
+                    successUrl:        $successUrl,
+                    cancelUrl:         $cancelUrl,
+                    notifyUrl:         $notifyUrl,
+                    internalReference: 'due#' . $dueId,
+                    customerEmail:     MemberAuth::member()['email'] ?? null,
+                );
+                $result = $adapter->createCheckout($req);
+                $opModel->update($opId, [
+                    'checkout_url' => $result->redirectUrl,
+                    'provider_id'  => $result->externalId,
+                ]);
+                header('Location: ' . $result->redirectUrl);
+                exit;
+            } catch (GatewayException $e) {
+                error_log('Gateway checkout failed (' . $gateway['provider'] . '): ' . $e->getMessage());
+                // Fallthrough do legacy Stripe lub manual
+            }
+        }
+
+        // Legacy fallback: stary PaymentGateway helper (Stripe-only)
+        // dla backward compat — będzie usunięty w T.3.1
         $checkoutUrl = PaymentGateway::createCheckoutSession(
             $clubId, $remaining,
             'Należność klubowa #' . $dueId,
             $successUrl, $cancelUrl
         );
-
         if ($checkoutUrl) {
             $opModel->update($opId, ['checkout_url' => $checkoutUrl]);
             header('Location: ' . $checkoutUrl);
