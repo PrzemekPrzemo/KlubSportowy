@@ -11,6 +11,7 @@ use App\Models\ClubModel;
 use App\Models\ClubSportModel;
 use App\Models\MemberModel;
 use App\Models\SportModel;
+use App\Models\SubscriptionModel;
 
 class OnboardingController extends BaseController
 {
@@ -63,12 +64,14 @@ class OnboardingController extends BaseController
         $allSports    = (new SportModel())->listActive();
         $clubSports   = (new SportModel())->listForClub($clubId);
         $clubSportIds = array_column($clubSports, 'id');
+        $sportLimit   = (new SubscriptionModel())->sportLimitInfo($clubId);
 
         $this->render('onboarding/step2', [
             'title'        => 'Onboarding — Sekcje sportowe',
             'currentStep'  => 2,
             'allSports'    => $allSports,
             'clubSportIds' => $clubSportIds,
+            'sportLimit'   => $sportLimit,
         ]);
     }
 
@@ -77,11 +80,35 @@ class OnboardingController extends BaseController
         Csrf::verify();
 
         $clubId   = $this->currentClub();
-        $selected = $_POST['sports'] ?? [];
+        $selected = array_values(array_unique(array_map('intval', (array)($_POST['sports'] ?? []))));
+
+        // Egzekwuj limit z planu subskrypcji. Wlicz już aktywne sekcje
+        // (deduplikacja wcześniej zapobiega podwójnemu liczeniu).
+        $subscription = new SubscriptionModel();
+        $info         = $subscription->sportLimitInfo($clubId);
+        $limit        = $info['limit'];
+
+        if ($limit !== null) {
+            $clubSports = (new SportModel())->listForClub($clubId);
+            $existing   = array_map('intval', array_column($clubSports, 'id'));
+            $totalAfter = count(array_unique(array_merge($existing, $selected)));
+
+            if ($totalAfter > $limit) {
+                Session::flash('error', sprintf(
+                    'Wybrano %d sekcji, plan subskrypcji pozwala na maksymalnie %d. Odznacz część lub zaktualizuj plan.',
+                    $totalAfter,
+                    $limit
+                ));
+                $this->redirect('onboarding/step2');
+                return;
+            }
+        }
 
         $csModel = new ClubSportModel();
         foreach ($selected as $sportId) {
-            $csModel->addSportToClub($clubId, (int)$sportId);
+            if ($sportId > 0) {
+                $csModel->addSportToClub($clubId, $sportId);
+            }
         }
 
         Session::flash('success', 'Sekcje sportowe zapisane.');
