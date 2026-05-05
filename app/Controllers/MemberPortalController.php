@@ -634,10 +634,16 @@ class MemberPortalController extends BaseController
 
         $trainings = [];
         if (!empty($sportIds)) {
-            $offset = max(0, (int)($_GET['week'] ?? 0));
-            $from   = (new \DateTime())->modify("+{$offset} weeks")->modify('monday this week')->format('Y-m-d');
-            $to     = (new \DateTime($from))->modify('+13 days')->format('Y-m-d');
-            $in     = implode(',', array_map('intval', $sportIds));
+            $offset  = max(0, (int)($_GET['week'] ?? 0));
+            $fromDt  = (new \DateTime())->modify("+{$offset} weeks")->modify('monday this week')->setTime(0, 0, 0);
+            $toDt    = (clone $fromDt)->modify('+14 days'); // half-open: 2 weeks
+            $fromStr = $fromDt->format('Y-m-d H:i:s');
+            $toStr   = $toDt->format('Y-m-d H:i:s');
+            $in      = implode(',', array_map('intval', $sportIds));
+            // Range predicate on t.start_time (sargable) lets MySQL use
+            // composite index trainings(club_sport_id, start_time) added
+            // in migration 030_perf_indexes.sql. Wrapping with DATE()
+            // would have forced a full scan.
             $stmt2  = $db->prepare(
                 "SELECT t.*, s.name AS sport_name, s.color, u.full_name AS instructor_name
                  FROM trainings t
@@ -645,11 +651,12 @@ class MemberPortalController extends BaseController
                  JOIN sports s ON s.id = cs.sport_id
                  LEFT JOIN users u ON u.id = t.instructor_id
                  WHERE t.club_sport_id IN ({$in})
-                   AND DATE(t.start_time) BETWEEN ? AND ?
+                   AND t.start_time >= ?
+                   AND t.start_time <  ?
                    AND t.status != 'odwolany'
                  ORDER BY t.start_time"
             );
-            $stmt2->execute([$from, $to]);
+            $stmt2->execute([$fromStr, $toStr]);
             $trainings = $stmt2->fetchAll();
         }
 
