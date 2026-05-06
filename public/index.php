@@ -325,6 +325,9 @@ $router->post('/gdpr/member/:memberId/anonymize', [\App\Controllers\GdprControll
 
 // Zawodnicy
 $router->post('/members/bulk',        [\App\Controllers\MembersController::class, 'bulkAction']);
+// Z.3 — bulk message form + send
+$router->get('/members/bulk-message',         [\App\Controllers\MembersController::class, 'bulkMessageForm']);
+$router->post('/members/bulk-message/send',   [\App\Controllers\MembersController::class, 'bulkMessageSend']);
 $router->get('/members',              [\App\Controllers\MembersController::class, 'index']);
 $router->get('/members/create',       [\App\Controllers\MembersController::class, 'create']);
 $router->post('/members/store',       [\App\Controllers\MembersController::class, 'store']);
