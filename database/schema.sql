@@ -663,7 +663,11 @@ INSERT INTO `age_categories` (`name`, `age_from`, `age_to`, `sort_order`) VALUES
   ('Weteran 45+',      45, 54, 10),
   ('Weteran 55+',      55, 99, 11);
 
--- Subscription plans
+-- Subscription plans (baseline)
+-- Q.1: aktualne plany Q.1 (trial_v2/starter/club/multi_sport/enterprise/federation)
+-- są wprowadzane przez migrację 052_pricing_overhaul.sql. Tu zachowujemy
+-- legacy seed (trial/basic/standard/premium) jako bezpieczny minimal — ASCII-only
+-- aby uniknąć problemów z encoding na różnych konfiguracjach mysql client.
 INSERT INTO `subscription_plans` (`code`, `name`, `max_members`, `max_sports`, `price_monthly`, `price_yearly`, `features`, `sort_order`) VALUES
   ('trial',    'Trial (30 dni)', 25,   1,    0.00,    0.00,
      '{"sms":false,"api":false,"backup":false,"custom_css":false}', 1),
@@ -672,7 +676,8 @@ INSERT INTO `subscription_plans` (`code`, `name`, `max_members`, `max_sports`, `
   ('standard', 'Standard',       500,  5,  149.00, 1490.00,
      '{"sms":true,"api":true,"backup":true,"custom_css":true}',     3),
   ('premium',  'Premium',        NULL, NULL, 299.00, 2990.00,
-     '{"sms":true,"api":true,"backup":true,"custom_css":true,"white_label":true}', 4);
+     '{"sms":true,"api":true,"backup":true,"custom_css":true,"white_label":true}', 4)
+ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- Global settings
 INSERT INTO `settings` (`key`, `value`, `label`, `type`) VALUES

@@ -288,6 +288,10 @@ $router->get('/terms',   [\App\Controllers\LegalController::class, 'terms']);
 $router->get('/privacy', [\App\Controllers\LegalController::class, 'privacy']);
 
 // Strony publiczne (bez logowania)
+// Q.1 — Publiczny cennik (no-auth)
+$router->get('/cennik',              [\App\Controllers\PricingController::class, 'index']);
+$router->get('/pricing',             [\App\Controllers\PricingController::class, 'index']);
+
 $router->get('/pub',                 [\App\Controllers\PublicController::class, 'clubList']);
 $router->get('/pub/:slug/results',   [\App\Controllers\PublicController::class, 'clubResults']);
 $router->get('/pub/:slug',           [\App\Controllers\PublicController::class, 'clubPage']);

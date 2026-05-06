@@ -164,9 +164,14 @@ class AdminController extends BaseController
         $clubId = $model->insert($data);
         (new ClubCustomizationModel())->ensureExists($clubId);
 
-        // Default trial subscription
+        // Default trial subscription — Q.1: trial_v2 (nowy kod), fallback na 'trial' (legacy)
         $db   = Database::pdo();
-        $plan = $db->query("SELECT id FROM subscription_plans WHERE code='trial' LIMIT 1")->fetchColumn();
+        $plan = $db->query(
+            "SELECT id FROM subscription_plans
+              WHERE code IN ('trial_v2','trial') AND is_active = 1
+              ORDER BY (code='trial_v2') DESC, id ASC
+              LIMIT 1"
+        )->fetchColumn();
         if ($plan) {
             $stmt = $db->prepare(
                 "INSERT INTO club_subscriptions (club_id, plan_id, valid_until, status, billing_cycle)
