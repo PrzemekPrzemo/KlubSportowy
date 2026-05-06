@@ -62,7 +62,7 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
         <!-- Top bar -->
         <div class="d-flex justify-content-between align-items-center py-2">
             <div class="d-flex align-items-center gap-2">
-                <img src="/images/logo-cd-white.svg" alt="CD" style="height:28px;">
+                <img src="<?= View::e(system_logo('white')) ?>" alt="CD" style="height:28px;">
                 <strong class="text-white">Portal zawodnika</strong>
             </div>
             <div class="d-flex align-items-center gap-3">

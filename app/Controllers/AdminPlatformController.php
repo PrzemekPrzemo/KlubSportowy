@@ -177,6 +177,75 @@ class AdminPlatformController extends BaseController
         return "uploads/clubs/{$clubId}/{$filename}";
     }
 
+    // ── System branding (W.1) ───────────────────────────────
+
+    /**
+     * Master Admin: konfiguracja globalnego logo systemu (color + white).
+     */
+    public function systemBranding(): void
+    {
+        $settings = new \App\Models\SettingModel();
+        $this->render('admin/platform/system_branding', [
+            'title'      => 'Logo systemu',
+            'logoColor'  => (string)$settings->get('system_logo_color', ''),
+            'logoWhite'  => (string)$settings->get('system_logo_white', ''),
+            'logoAlt'    => (string)$settings->get('system_logo_alt',   'ClubDesk'),
+        ]);
+    }
+
+    public function saveSystemBranding(): void
+    {
+        Csrf::verify();
+        $settings = new \App\Models\SettingModel();
+
+        // Upload color variant
+        if (!empty($_FILES['logo_color']['tmp_name'])) {
+            $path = $this->saveSystemLogo($_FILES['logo_color'], 'color');
+            if ($path !== null) $settings->set('system_logo_color', $path);
+        }
+        // Upload white variant
+        if (!empty($_FILES['logo_white']['tmp_name'])) {
+            $path = $this->saveSystemLogo($_FILES['logo_white'], 'white');
+            if ($path !== null) $settings->set('system_logo_white', $path);
+        }
+        // Alt text
+        $alt = trim($_POST['logo_alt'] ?? '');
+        if ($alt !== '') $settings->set('system_logo_alt', $alt);
+
+        // Reset (powrót do domyślnych wbudowanych SVG)
+        if (isset($_POST['reset_color'])) $settings->set('system_logo_color', '');
+        if (isset($_POST['reset_white'])) $settings->set('system_logo_white', '');
+
+        Session::flash('success', 'Logo systemu zaktualizowane.');
+        $this->redirect('admin/platform/system-branding');
+    }
+
+    /**
+     * Zapisuje plik do `public/uploads/system/`. Zwraca ścieżkę względną
+     * (np. "uploads/system/logo_color_1715000000.png") albo null gdy
+     * walidacja typu się nie powiodła.
+     */
+    private function saveSystemLogo(array $file, string $variant): ?string
+    {
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'], true)) {
+            Session::flash('error', 'Niedozwolone rozszerzenie pliku — dozwolone: png, jpg, jpeg, webp, svg.');
+            return null;
+        }
+        if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
+            Session::flash('error', 'Plik logo musi być mniejszy niż 2 MB.');
+            return null;
+        }
+        $dir = ROOT_PATH . '/public/uploads/system';
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $filename = "logo_{$variant}_" . time() . '.' . $ext;
+        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
+            Session::flash('error', 'Nie udało się zapisać pliku.');
+            return null;
+        }
+        return 'uploads/system/' . $filename;
+    }
+
     // ── Support tickets ─────────────────────────────────────
 
     public function supportTickets(): void

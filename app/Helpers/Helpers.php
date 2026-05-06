@@ -184,3 +184,31 @@ if (!function_exists('current_club_name')) {
         return $cache[$clubId];
     }
 }
+
+if (!function_exists('system_logo')) {
+    /**
+     * Zwraca URL do logo systemu skonfigurowanego przez Master Admina.
+     * Fallback: wbudowane pliki SVG z public/images/.
+     *
+     * @param string $variant 'color' (na jasnym tle) | 'white' (na ciemnym tle)
+     */
+    function system_logo(string $variant = 'color'): string
+    {
+        static $cache = [];
+        if (!isset($cache[$variant])) {
+            try {
+                $key = $variant === 'white' ? 'system_logo_white' : 'system_logo_color';
+                $val = (new \App\Models\SettingModel())->get($key, '');
+                $val = is_string($val) ? trim($val) : '';
+                if ($val !== '') {
+                    $cache[$variant] = url($val);
+                } else {
+                    $cache[$variant] = '/images/logo-cd' . ($variant === 'white' ? '-white' : '') . '.svg';
+                }
+            } catch (\Throwable) {
+                $cache[$variant] = '/images/logo-cd' . ($variant === 'white' ? '-white' : '') . '.svg';
+            }
+        }
+        return $cache[$variant];
+    }
+}

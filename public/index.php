@@ -204,6 +204,9 @@ $router->get('/admin/platform/plans/:id/edit',       [\App\Controllers\AdminPlat
 $router->post('/admin/platform/plans/:id/update',    [\App\Controllers\AdminPlatformController::class, 'updatePlan']);
 $router->get('/admin/platform/branding/:clubId',     [\App\Controllers\AdminPlatformController::class, 'clubBranding']);
 $router->post('/admin/platform/branding/:clubId/save', [\App\Controllers\AdminPlatformController::class, 'saveClubBranding']);
+// W.1 — global system logo (Master Admin)
+$router->get('/admin/platform/system-branding',       [\App\Controllers\AdminPlatformController::class, 'systemBranding']);
+$router->post('/admin/platform/system-branding/save', [\App\Controllers\AdminPlatformController::class, 'saveSystemBranding']);
 $router->get('/admin/platform/support',              [\App\Controllers\AdminPlatformController::class, 'supportTickets']);
 $router->get('/admin/platform/support/:id',          [\App\Controllers\AdminPlatformController::class, 'viewTicket']);
 $router->post('/admin/platform/support/:id/reply',   [\App\Controllers\AdminPlatformController::class, 'replyTicket']);

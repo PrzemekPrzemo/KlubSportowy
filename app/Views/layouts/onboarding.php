@@ -48,7 +48,7 @@
     <div class="container">
         <div class="text-center">
             <a href="<?= url('dashboard') ?>" class="onboarding-brand d-inline-flex align-items-center gap-2">
-                <img src="/images/logo-cd.svg" alt="CD" style="height:36px;">
+                <img src="<?= View::e(system_logo('color')) ?>" alt="CD" style="height:36px;">
                 <span><?= View::e($appName ?? 'ClubDesk') ?></span>
             </a>
         </div>
