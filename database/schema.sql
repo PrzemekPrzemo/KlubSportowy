@@ -663,22 +663,21 @@ INSERT INTO `age_categories` (`name`, `age_from`, `age_to`, `sort_order`) VALUES
   ('Weteran 45+',      45, 54, 10),
   ('Weteran 55+',      55, 99, 11);
 
--- Subscription plans
--- Plany cenowe ClubDesk (Q.1 — odświeżone po analizie konkurencji 2026-05)
--- Trial 14 dni → starter/club/multi-sport/enterprise/federation
+-- Subscription plans (baseline)
+-- Q.1: aktualne plany Q.1 (trial_v2/starter/club/multi_sport/enterprise/federation)
+-- są wprowadzane przez migrację 052_pricing_overhaul.sql. Tu zachowujemy
+-- legacy seed (trial/basic/standard/premium) jako bezpieczny minimal — ASCII-only
+-- aby uniknąć problemów z encoding na różnych konfiguracjach mysql client.
 INSERT INTO `subscription_plans` (`code`, `name`, `max_members`, `max_sports`, `price_monthly`, `price_yearly`, `features`, `sort_order`) VALUES
-  ('trial_v2',    'Trial — 14 dni',     30,   1,     0.00,    0.00,
-     '{"sms":false,"api":false,"backup":false,"custom_css":false,"trial_days":14,"badge":"TRIAL","description":"Bezpłatny okres próbny. 30 zawodników, 1 sekcja sportowa."}', 1),
-  ('starter',     'Starter',            50,   1,    39.00,  390.00,
-     '{"sms":false,"api":false,"backup":true,"custom_css":false,"gateways":"p24,payu,tpay","support":"email","description":"Małe szkółki sportowe — do 50 zawodników, 1 sekcja."}', 2),
-  ('club',        'Klub',              150,   5,    89.00,  890.00,
-     '{"sms":true,"api":false,"backup":true,"custom_css":true,"gateways":"p24,payu,tpay,stripe","medical":true,"compliance":true,"support":"email_priority","badge":"NAJPOPULARNIEJSZY","description":"Klub sportowy z kilkoma sekcjami — do 150 zawodników, 5 sekcji, SMS, custom branding."}', 3),
-  ('multi_sport', 'Multi-Sport',       500,  15,   179.00, 1790.00,
-     '{"sms":true,"api":true,"backup":true,"custom_css":true,"gateways":"p24,payu,tpay,stripe","medical":true,"compliance":true,"analytics":true,"reports_pdf":true,"support":"email_priority,phone","description":"Duży klub z wieloma dyscyplinami — do 500 zawodników, 15 sekcji, API, telefon."}', 4),
-  ('enterprise',  'Enterprise',        NULL, NULL,  349.00, 3490.00,
-     '{"sms":true,"api":true,"backup":true,"custom_css":true,"white_label":true,"custom_domain":true,"dedicated_smtp":true,"gateways":"all","medical":true,"compliance":true,"analytics":true,"reports_pdf":true,"support":"dedicated_account_manager","description":"Akademie sportowe i duże związki — bez limitu, white-label, dedykowane wsparcie."}', 5),
-  ('federation',  'Federacja',         NULL, NULL,    0.00,    0.00,
-     '{"sms":true,"api":true,"backup":true,"custom_css":true,"white_label":true,"custom_domain":true,"dedicated_smtp":true,"gateways":"all","medical":true,"compliance":true,"analytics":true,"reports_pdf":true,"multi_club_admin":true,"sso":true,"support":"sla,dedicated_team","pricing_model":"custom_quote","description":"Polskie związki sportowe i sieci klubów — wycena indywidualna, SSO, SLA."}', 6);
+  ('trial',    'Trial (30 dni)', 25,   1,    0.00,    0.00,
+     '{"sms":false,"api":false,"backup":false,"custom_css":false}', 1),
+  ('basic',    'Basic',          100,  2,   49.00,  490.00,
+     '{"sms":false,"api":false,"backup":true,"custom_css":false}',  2),
+  ('standard', 'Standard',       500,  5,  149.00, 1490.00,
+     '{"sms":true,"api":true,"backup":true,"custom_css":true}',     3),
+  ('premium',  'Premium',        NULL, NULL, 299.00, 2990.00,
+     '{"sms":true,"api":true,"backup":true,"custom_css":true,"white_label":true}', 4)
+ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- Global settings
 INSERT INTO `settings` (`key`, `value`, `label`, `type`) VALUES
