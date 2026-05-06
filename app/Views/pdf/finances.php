@@ -65,6 +65,4 @@ $fm = fn($v) => number_format((float)$v, 2, ',', ' ') . ' zł';
 </table>
 <?php endif; ?>
 
-<div class="footer">
-    Wygenerowano: <?= $e($generated ?? '') ?>
-</div>
+<?= $systemFooter ?? '<div class="footer">Wygenerowano: ' . $e($generated ?? '') . '</div>' ?>

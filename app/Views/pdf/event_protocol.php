@@ -98,6 +98,4 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
     </table>
 </div>
 
-<div class="footer">
-    Wygenerowano: <?= $e($generated ?? '') ?>
-</div>
+<?= $systemFooter ?? '<div class="footer">Wygenerowano: ' . $e($generated ?? '') . '</div>' ?>

@@ -677,6 +677,7 @@ $router->get('/reports',                    [\App\Controllers\ReportsController:
 $router->get('/reports/members-pdf',        [\App\Controllers\ReportsController::class, 'membersPdf']);
 $router->get('/reports/members-csv',        [\App\Controllers\ReportsController::class, 'membersCsv']);
 $router->get('/reports/finances-pdf',       [\App\Controllers\ReportsController::class, 'financesPdf']);
+$router->get('/reports/monthly-dues-pdf',   [\App\Controllers\ReportsController::class, 'monthlyDuesPdf']);
 $router->get('/reports/finances-csv',       [\App\Controllers\ReportsController::class, 'financesCsv']);
 $router->get('/reports/event-protocol/:id', [\App\Controllers\ReportsController::class, 'eventProtocolPdf']);
 $router->get('/reports/member-card/:id',    [\App\Controllers\ReportsController::class, 'memberCardPdf']);

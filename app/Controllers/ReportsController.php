@@ -39,9 +39,11 @@ class ReportsController extends BaseController
         $clubId  = $this->currentClub();
         $members = $this->getMembersWithSports($clubId);
         $header  = PdfHelper::getClubHeader($clubId);
+        $footer  = PdfHelper::getSystemFooter();
 
         $html = View::partial('pdf/members_list', [
-            'clubHeader' => $header,
+            'clubHeader'   => $header,
+            'systemFooter' => $footer,
             'members'    => $members,
             'generated'  => date('d.m.Y H:i'),
         ]);
@@ -108,9 +110,11 @@ class ReportsController extends BaseController
         }
 
         $header = PdfHelper::getClubHeader($clubId);
+        $footer  = PdfHelper::getSystemFooter();
 
         $html = View::partial('pdf/finances', [
-            'clubHeader'  => $header,
+            'clubHeader'   => $header,
+            'systemFooter' => $footer,
             'payments'    => $payments,
             'year'        => $year,
             'totalAmount' => $totalAmount,
@@ -178,9 +182,11 @@ class ReportsController extends BaseController
         $entries = $this->getEventEntries((int)$eventId);
 
         $header = PdfHelper::getClubHeader($clubId);
+        $footer  = PdfHelper::getSystemFooter();
 
         $html = View::partial('pdf/event_protocol', [
-            'clubHeader' => $header,
+            'clubHeader'   => $header,
+            'systemFooter' => $footer,
             'event'      => $event,
             'entries'     => $entries,
             'generated'  => date('d.m.Y H:i'),
@@ -207,9 +213,11 @@ class ReportsController extends BaseController
 
         $branding = (new ClubCustomizationModel())->findForClub($clubId) ?? ClubCustomizationModel::defaults();
         $header   = PdfHelper::getClubHeader($clubId);
+        $footer  = PdfHelper::getSystemFooter();
 
         $html = View::partial('pdf/member_card', [
-            'clubHeader' => $header,
+            'clubHeader'   => $header,
+            'systemFooter' => $footer,
             'member'     => $member,
             'branding'   => $branding,
             'clubId'     => $clubId,
@@ -219,6 +227,52 @@ class ReportsController extends BaseController
         $safeName = ($member['last_name'] ?? 'member') . '_' . ($member['first_name'] ?? '');
         $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $safeName);
         PdfHelper::renderToPdf($html, 'karta_' . $safeName . '.pdf', 'L');
+    }
+
+    /**
+     * Y.2 — PDF raport miesięczny zaległości (overdue dues).
+     * Idealny dla zarządu: kto zalega, ile, od kiedy.
+     */
+    public function monthlyDuesPdf(): void
+    {
+        $this->requireLogin();
+        $this->requireClubContext();
+
+        $clubId = $this->currentClub();
+        $db     = \App\Helpers\Database::pdo();
+
+        // Pobierz wszystkie zaległości (overdue + pending past due)
+        $stmt = $db->prepare(
+            "SELECT pd.*, m.first_name, m.last_name, m.member_number, m.email, m.phone,
+                    fr.name AS rate_name, fr.fee_type
+             FROM payment_dues pd
+             JOIN members m ON m.id = pd.member_id
+             LEFT JOIN fee_rates fr ON fr.id = pd.fee_rate_id
+             WHERE pd.club_id = ?
+               AND (pd.status = 'overdue'
+                    OR (pd.status IN ('pending','partial') AND pd.due_date < CURDATE()))
+             ORDER BY pd.due_date ASC, m.last_name"
+        );
+        $stmt->execute([$clubId]);
+        $dues = $stmt->fetchAll();
+
+        $totalOutstanding = 0.0;
+        foreach ($dues as $d) {
+            $totalOutstanding += (float)$d['net_amount'] - (float)$d['paid_amount'];
+        }
+
+        $header = PdfHelper::getClubHeader($clubId);
+        $footer = PdfHelper::getSystemFooter();
+
+        $html = View::partial('pdf/monthly_dues', [
+            'clubHeader'       => $header,
+            'systemFooter'     => $footer,
+            'dues'             => $dues,
+            'totalOutstanding' => $totalOutstanding,
+            'generated'        => date('d.m.Y H:i'),
+        ]);
+
+        PdfHelper::renderToPdf($html, 'zaleglosci_' . date('Y-m-d') . '.pdf', 'L');
     }
 
     // ── Private helpers ──────────────────────────────────────
