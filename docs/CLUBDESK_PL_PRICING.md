@@ -58,7 +58,6 @@ nieprzykrytymi przewagami:
 | **Pakiet SMS — 100** | 25 zł/m-c | Powiadomienia o treningach |
 | **Pakiet SMS — 500** | 99 zł/m-c | + przypomnienia o składkach |
 | **Pakiet SMS — 2000** | 299 zł/m-c | + masowe akcje marketingowe |
-| **Custom domena** | 49 zł/m-c | klub.com zamiast klub.clubdesk.pl |
 | **Asystowane wdrożenie** | 990 zł jednorazowo | Dedykowany konsultant 5h |
 | **Migracja z innego systemu** | bezpłatnie | (CSV / Excel / Klubduden) |
 | **Szkolenie online** | 290 zł/sesja | 90 min, do 10 osób z klubu |
@@ -132,7 +131,6 @@ multi-tenant (klub A nigdy nie widzi danych klubu B). Audit log każdej akcji.
 | SMS w cenie | ❌ | ❌ | ✅ 100/m-c | ✅ 500/m-c | ✅ 2000/m-c |
 | API REST | ❌ | ❌ | ❌ | ✅ | ✅ |
 | Custom branding | ❌ | ❌ | ✅ CSS | ✅ CSS | ✅ White-label |
-| Custom domena | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Anti-doping (WADA) | ❌ | ❌ | ✅ | ✅ | ✅ |
 | Moduł medyczny | ✅ | ✅ | ✅ pełen | ✅ pełen | ✅ pełen |
 | Raporty PDF z brandingiem | ❌ | ✅ podstawowe | ✅ | ✅ pełne | ✅ pełne |

@@ -84,7 +84,6 @@
                     <li><i class="bi bi-<?= !empty($f['api']) ? 'check2' : 'x' ?>"></i> Dostęp API</li>
                     <li><i class="bi bi-<?= !empty($f['custom_css']) ? 'check2' : 'x' ?>"></i> Custom branding (CSS)</li>
                     <li><i class="bi bi-<?= !empty($f['white_label']) ? 'check2' : 'x' ?>"></i> White-label (bez logo CD)</li>
-                    <li><i class="bi bi-<?= !empty($f['custom_domain']) ? 'check2' : 'x' ?>"></i> Custom domena</li>
                     <li><i class="bi bi-<?= !empty($f['medical']) ? 'check2' : 'x' ?>"></i> Moduł medyczny + WADA</li>
                     <li><i class="bi bi-<?= !empty($f['compliance']) ? 'check2' : 'x' ?>"></i> Anti-doping consent</li>
                     <li><i class="bi bi-<?= !empty($f['analytics']) ? 'check2' : 'x' ?>"></i> Zaawansowana analityka</li>
