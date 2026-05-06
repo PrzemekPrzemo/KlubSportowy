@@ -75,6 +75,52 @@ class SearchController extends BaseController
             ];
         }
 
+        // Z.1 — Sekcje sportowe (klubowe)
+        if ($clubId) {
+            $stmt = $db->prepare(
+                "SELECT cs.id, COALESCE(cs.name, s.name) AS name, s.icon, s.color
+                   FROM club_sports cs
+                   JOIN sports s ON s.id = cs.sport_id
+                  WHERE cs.club_id = ?
+                    AND (cs.name LIKE ? OR s.name LIKE ?)
+                  LIMIT 5"
+            );
+            $stmt->execute([$clubId, $like, $like]);
+            foreach ($stmt->fetchAll() as $r) {
+                $results[] = [
+                    'type'  => 'sport',
+                    'label' => $r['name'],
+                    'url'   => url('sports'),
+                    'icon'  => $r['icon'] ?: 'bi-trophy',
+                ];
+            }
+        }
+
+        // Z.1 — Wpłaty (po reference / notes)
+        if ($clubId) {
+            $sql = "SELECT p.id, p.amount, p.payment_date, p.reference,
+                           m.first_name, m.last_name, m.member_number
+                    FROM payments p
+                    JOIN members m ON m.id = p.member_id
+                   WHERE p.club_id = ?
+                     AND (p.reference LIKE ? OR p.notes LIKE ?
+                          OR m.last_name LIKE ? OR m.first_name LIKE ?)
+                   ORDER BY p.payment_date DESC
+                   LIMIT 5";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$clubId, $like, $like, $like, $like]);
+            foreach ($stmt->fetchAll() as $r) {
+                $amt = number_format((float)$r['amount'], 2, ',', ' ') . ' zł';
+                $results[] = [
+                    'type'  => 'payment',
+                    'label' => $r['last_name'] . ' ' . $r['first_name'] . ' — ' . $amt
+                              . ' (' . substr($r['payment_date'], 0, 10) . ')',
+                    'url'   => url('fees'),
+                    'icon'  => 'bi-cash-coin',
+                ];
+            }
+        }
+
         $this->json(['results' => $results]);
     }
 }
