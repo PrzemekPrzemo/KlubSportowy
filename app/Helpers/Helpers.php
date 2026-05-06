@@ -115,6 +115,60 @@ if (!function_exists('__')) {
     }
 }
 
+if (!function_exists('club_logo')) {
+    /**
+     * URL do logo aktywnego klubu (lub klubu o danym id).
+     * @param string   $variant 'main'|'alt'|'dark'  — fallback na 'main' gdy brak
+     * @param int|null $clubId  null = current club z kontekstu
+     */
+    function club_logo(string $variant = 'main', ?int $clubId = null): ?string
+    {
+        $clubId ??= \App\Helpers\ClubContext::current();
+        if ($clubId === null) return null;
+        static $cache = [];
+        $key = $clubId . ':' . $variant;
+        if (isset($cache[$key])) return $cache[$key];
+        try {
+            $row = (new \App\Models\ClubCustomizationModel())->findForClub($clubId);
+            if (!$row) return $cache[$key] = null;
+            $col  = $variant === 'main' ? 'logo_path' : "logo_{$variant}_path";
+            $path = $row[$col] ?? null;
+            // Fallback: alt/dark → main gdy brak konkretnego wariantu
+            if (!$path && $variant !== 'main') {
+                $path = $row['logo_path'] ?? null;
+            }
+            return $cache[$key] = $path ? url($path) : null;
+        } catch (\Throwable) {
+            return $cache[$key] = null;
+        }
+    }
+}
+
+if (!function_exists('sport_logo')) {
+    /**
+     * URL do logo sekcji sportowej klubu (club_sport_id).
+     * Fallback: alt/dark → main → null gdy brak.
+     */
+    function sport_logo(int $clubSportId, string $variant = 'main'): ?string
+    {
+        static $cache = [];
+        $key = $clubSportId . ':' . $variant;
+        if (isset($cache[$key])) return $cache[$key];
+        try {
+            $row = (new \App\Models\ClubSportModel())->findById($clubSportId);
+            if (!$row) return $cache[$key] = null;
+            $col  = "logo_{$variant}_path";
+            $path = $row[$col] ?? null;
+            if (!$path && $variant !== 'main') {
+                $path = $row['logo_main_path'] ?? null;
+            }
+            return $cache[$key] = $path ? url($path) : null;
+        } catch (\Throwable) {
+            return $cache[$key] = null;
+        }
+    }
+}
+
 if (!function_exists('current_club_name')) {
     function current_club_name(string $default = ''): string
     {
