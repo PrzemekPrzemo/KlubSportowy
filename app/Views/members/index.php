@@ -1,4 +1,30 @@
 <?php use App\Helpers\View; ?>
+
+<!-- Z.2 — Quick filter chips (saved filters) -->
+<div class="mb-2 d-flex flex-wrap gap-2 align-items-center">
+    <small class="text-muted">Szybkie filtry:</small>
+    <a href="<?= url('members') ?>"
+       class="btn btn-sm <?= empty($status) ? 'btn-secondary' : 'btn-outline-secondary' ?>">
+        Wszyscy
+    </a>
+    <a href="<?= url('members') ?>?status=aktywny"
+       class="btn btn-sm <?= ($status ?? '') === 'aktywny' ? 'btn-success' : 'btn-outline-success' ?>">
+        <i class="bi bi-check-circle"></i> Aktywni
+    </a>
+    <a href="<?= url('members') ?>?status=zawieszony"
+       class="btn btn-sm <?= ($status ?? '') === 'zawieszony' ? 'btn-warning' : 'btn-outline-warning' ?>">
+        Zawieszeni
+    </a>
+    <a href="<?= url('members') ?>?status=urlop"
+       class="btn btn-sm <?= ($status ?? '') === 'urlop' ? 'btn-info' : 'btn-outline-info' ?>">
+        Urlop
+    </a>
+    <a href="<?= url('members') ?>?status=wykreslony"
+       class="btn btn-sm <?= ($status ?? '') === 'wykreslony' ? 'btn-secondary' : 'btn-outline-secondary' ?>">
+        Wykreśleni
+    </a>
+</div>
+
 <div class="card p-3 mb-3">
     <form method="GET" class="row g-2">
         <div class="col-md-4">
