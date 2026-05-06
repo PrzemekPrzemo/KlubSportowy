@@ -33,6 +33,12 @@ class DashboardController extends BaseController
         $expiringMedical  = (new MedicalExamModel())->expiringSoon(60);
         $sub              = (new SubscriptionModel())->findForClub($clubId);
 
+        // X.2 — Activity feed (10 ostatnich zdarzeń klubu)
+        $activityFeed = [];
+        try {
+            $activityFeed = (new \App\Models\ActivityLogModel())->recentForClub($clubId, 10);
+        } catch (\Throwable) {}
+
         // Load widget configuration for current user
         $widgetModel  = new DashboardWidgetModel();
         $widgets      = $widgetModel->getForUser((int)Auth::id());
@@ -45,6 +51,7 @@ class DashboardController extends BaseController
             'expiringMedical'  => $expiringMedical,
             'subscription'     => $sub,
             'widgets'          => $widgets,
+            'activityFeed'     => $activityFeed,
         ]);
     }
 

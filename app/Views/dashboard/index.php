@@ -199,6 +199,64 @@ $widgetLabels = [
 
 <?php endforeach; ?>
 
+<!-- X.2 — Activity feed klubu (zawsze widoczny, niezależnie od widget config) -->
+<?php if (!empty($activityFeed)): ?>
+<div class="card p-3 mt-4">
+    <h5 class="mb-3"><i class="bi bi-activity text-primary"></i> Ostatnie zdarzenia w klubie</h5>
+    <div class="list-group list-group-flush">
+        <?php foreach ($activityFeed as $a):
+            $action = (string)($a['action'] ?? '');
+            $entity = (string)($a['entity'] ?? '');
+            $iconMap = [
+                'create'    => 'bi-plus-circle text-success',
+                'update'    => 'bi-pencil text-primary',
+                'delete'    => 'bi-trash text-danger',
+                'login'     => 'bi-box-arrow-in-right text-info',
+                'payment'   => 'bi-cash text-success',
+                'payment_received' => 'bi-cash text-success',
+                'training'  => 'bi-stopwatch text-info',
+                'attendance'=> 'bi-check2-square text-success',
+            ];
+            $iconClass = 'bi-circle-fill text-secondary';
+            foreach ($iconMap as $k => $cls) {
+                if (str_contains($action, $k) || str_contains($entity, $k)) { $iconClass = $cls; break; }
+            }
+            // Tłumaczenia akcji
+            $actionLabels = [
+                'create' => 'utworzono', 'update' => 'zaktualizowano', 'delete' => 'usunięto',
+                'login' => 'zalogowanie', 'logout' => 'wylogowanie',
+                'payment_received' => 'zaksięgowano wpłatę',
+                'attendance_marked' => 'zarejestrowano frekwencję',
+            ];
+            $actionLabel = $actionLabels[$action] ?? $action;
+            $entityLabels = [
+                'member' => 'zawodnika', 'members' => 'zawodników',
+                'payment' => 'wpłaty', 'training' => 'treningu',
+                'event' => 'wydarzenia', 'club_sport' => 'sekcji sportowej',
+                'online_payment' => 'płatności online',
+            ];
+            $entityLabel = $entityLabels[$entity] ?? $entity;
+            $userName = $a['full_name'] ?? $a['username'] ?? 'system';
+        ?>
+            <div class="list-group-item d-flex align-items-start gap-2">
+                <i class="bi <?= View::e($iconClass) ?>" style="font-size: 1.1rem; margin-top: 2px;"></i>
+                <div class="flex-grow-1" style="font-size: .92rem;">
+                    <strong><?= View::e($userName) ?></strong>
+                    <span class="text-muted"><?= View::e($actionLabel) ?></span>
+                    <?php if ($entityLabel): ?>
+                        <span class="text-muted"><?= View::e($entityLabel) ?></span>
+                    <?php endif; ?>
+                    <?php if (!empty($a['entity_id'])): ?>
+                        <code class="small">#<?= (int)$a['entity_id'] ?></code>
+                    <?php endif; ?>
+                    <small class="text-muted d-block"><?= format_datetime($a['created_at']) ?></small>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Widget Configuration Modal -->
 <div class="modal fade" id="widgetConfigModal" tabindex="-1">
     <div class="modal-dialog">
