@@ -24,13 +24,19 @@
                                     <?= $cs['team_sport'] ? '• drużynowy' : '• indywidualny' ?>
                                 </small>
                             </div>
-                            <form method="POST" action="<?= url('sports/disable/' . (int)$cs['club_sport_id']) ?>"
-                                  onsubmit="return confirm('Wyłączyć sekcję?')">
-                                <?= csrf_field() ?>
-                                <button class="btn btn-sm btn-outline-danger" type="submit">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </form>
+                            <div class="d-flex gap-1">
+                                <a href="<?= url('sports/' . (int)$cs['club_sport_id'] . '/logos') ?>"
+                                   class="btn btn-sm btn-outline-secondary" title="Logo sekcji (3 sloty na PDF)">
+                                    <i class="bi bi-images"></i>
+                                </a>
+                                <form method="POST" action="<?= url('sports/disable/' . (int)$cs['club_sport_id']) ?>"
+                                      onsubmit="return confirm('Wyłączyć sekcję?')" class="m-0">
+                                    <?= csrf_field() ?>
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>

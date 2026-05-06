@@ -128,21 +128,53 @@ class AdminPlatformController extends BaseController
             'subdomain'     => trim($_POST['subdomain'] ?? '') ?: null,
         ];
 
-        if (!empty($_FILES['logo']['tmp_name'])) {
-            $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, ['png','jpg','jpeg','webp','svg','gif'], true)) {
-                $dir = ROOT_PATH . '/public/uploads/clubs/' . (int)$clubId;
-                if (!is_dir($dir)) @mkdir($dir, 0775, true);
-                $filename = 'logo_' . time() . '.' . $ext;
-                if (move_uploaded_file($_FILES['logo']['tmp_name'], $dir . '/' . $filename)) {
-                    $data['logo_path'] = 'uploads/clubs/' . (int)$clubId . '/' . $filename;
-                }
+        // W.2: 3 sloty logo klubu — main (logo_path) + alt + dark
+        $logoFields = [
+            'logo'      => 'logo_path',      // main (legacy field name)
+            'logo_alt'  => 'logo_alt_path',
+            'logo_dark' => 'logo_dark_path',
+        ];
+        foreach ($logoFields as $inputName => $dbCol) {
+            if (!empty($_FILES[$inputName]['tmp_name'])) {
+                $path = $this->saveClubLogo($_FILES[$inputName], (int)$clubId, $inputName);
+                if ($path !== null) $data[$dbCol] = $path;
+            }
+            // Reset (usuń aktualne)
+            $variant = $inputName === 'logo' ? 'main' : str_replace('logo_', '', $inputName);
+            if (!empty($_POST['reset_' . $variant])) {
+                $data[$dbCol] = null;
             }
         }
 
         (new ClubCustomizationModel())->upsert((int)$clubId, $data);
         Session::flash('success', 'Branding klubu zaktualizowany.');
         $this->redirect('admin/platform/branding/' . $clubId);
+    }
+
+    /**
+     * W.2: zapisuje plik logo klubu (3 warianty: logo / logo_alt / logo_dark).
+     * Zwraca ścieżkę względną do public/ (np. "uploads/clubs/12/logo_main_1715000000.png")
+     * albo null gdy walidacja zawiodła.
+     */
+    private function saveClubLogo(array $file, int $clubId, string $inputName): ?string
+    {
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'], true)) {
+            Session::flash('error', 'Niedozwolone rozszerzenie pliku — dozwolone: png, jpg, jpeg, webp, svg.');
+            return null;
+        }
+        if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
+            Session::flash('error', 'Plik logo musi być mniejszy niż 2 MB.');
+            return null;
+        }
+        $dir = ROOT_PATH . '/public/uploads/clubs/' . $clubId;
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $variant  = $inputName === 'logo' ? 'main' : str_replace('logo_', '', $inputName);
+        $filename = "logo_{$variant}_" . time() . '.' . $ext;
+        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
+            return null;
+        }
+        return "uploads/clubs/{$clubId}/{$filename}";
     }
 
     // ── Support tickets ─────────────────────────────────────

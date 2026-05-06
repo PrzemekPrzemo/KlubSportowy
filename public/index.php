@@ -308,6 +308,9 @@ $router->post('/sports/enable',        [\App\Controllers\SportsController::class
 $router->post('/sports/disable/:id',   [\App\Controllers\SportsController::class, 'disable']);
 $router->post('/sports/activate/:id',  [\App\Controllers\SportsController::class, 'activate']);
 $router->post('/sports/clear-active',  [\App\Controllers\SportsController::class, 'clearActive']);
+// W.2 — per-sport logos (3 sloty na PDF / dokumenty)
+$router->get('/sports/:id/logos',       [\App\Controllers\SportsController::class, 'editLogos']);
+$router->post('/sports/:id/logos/save', [\App\Controllers\SportsController::class, 'saveLogos']);
 
 // GDPR
 $router->get('/gdpr',                            [\App\Controllers\GdprController::class, 'index']);

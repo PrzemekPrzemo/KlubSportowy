@@ -15,12 +15,41 @@
             <input type="text" name="motto" value="<?= View::e($custom['motto'] ?? '') ?>" class="form-control"></div>
         <div class="col-md-6"><label class="form-label">Subdomena</label>
             <input type="text" name="subdomain" value="<?= View::e($custom['subdomain'] ?? '') ?>" class="form-control" placeholder="np. azs-warszawa"></div>
-        <div class="col-md-6"><label class="form-label">Logo (upload)</label>
-            <input type="file" name="logo" class="form-control" accept="image/*">
-            <?php if (!empty($custom['logo_path'])): ?>
-                <small>Aktualne: <code><?= View::e($custom['logo_path']) ?></code></small>
-            <?php endif; ?>
-        </div>
+    </div>
+
+    <hr class="my-4">
+    <h5 class="mb-3"><i class="bi bi-images"></i> Logotypy klubu (3 sloty)</h5>
+    <small class="text-muted d-block mb-3">
+        Logo używane w sidebarze klubu i na dokumentach (PDF, raporty).
+        Wgraj 1-3 warianty: <strong>main</strong> (główne — domyślne wszędzie),
+        <strong>alt</strong> (alternatywne — np. uproszczone), <strong>dark</strong>
+        (na ciemnym tle — jasny kolor).
+    </small>
+
+    <div class="row g-3">
+        <?php foreach (['main' => 'Główne (logo_path)', 'alt' => 'Alternatywne', 'dark' => 'Ciemne tło'] as $variant => $label):
+            $field = $variant === 'main' ? 'logo_path' : "logo_{$variant}_path";
+            $name  = $variant === 'main' ? 'logo' : "logo_{$variant}";
+        ?>
+            <div class="col-md-4">
+                <label class="form-label"><?= View::e($label) ?></label>
+                <?php if (!empty($custom[$field])): ?>
+                    <div class="bg-light p-2 rounded mb-2 text-center">
+                        <img src="<?= url($custom[$field]) ?>" style="max-height:60px; max-width:100%;">
+                    </div>
+                <?php endif; ?>
+                <input type="file" name="<?= $name ?>" class="form-control form-control-sm" accept="image/*">
+                <?php if (!empty($custom[$field])): ?>
+                    <div class="form-check mt-1">
+                        <input type="checkbox" name="reset_<?= $variant ?>" id="reset_<?= $variant ?>" class="form-check-input">
+                        <label for="reset_<?= $variant ?>" class="form-check-label small">Usuń</label>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="row g-3 mt-2">
         <div class="col-12"><label class="form-label">Custom CSS</label>
             <textarea name="custom_css" class="form-control" rows="4" style="font-family:monospace"><?= View::e($custom['custom_css'] ?? '') ?></textarea></div>
     </div>

@@ -106,4 +106,73 @@ class SportsController extends BaseController
         Session::flash('info', 'Wyczyszczono kontekst sekcji sportowej.');
         $this->redirect('dashboard');
     }
+
+    /**
+     * W.2 — formularz upload logo dla sekcji sportowej (3 sloty).
+     */
+    public function editLogos(string $id): void
+    {
+        $clubSport = (new ClubSportModel())->findWithSport((int)$id);
+        if (!$clubSport) {
+            Session::flash('error', 'Nie znaleziono sekcji.');
+            $this->redirect('sports');
+        }
+        $this->render('sports/logos', [
+            'title'     => 'Logo sekcji: ' . ($clubSport['sport_name'] ?? '—'),
+            'clubSport' => $clubSport,
+        ]);
+    }
+
+    public function saveLogos(string $id): void
+    {
+        Csrf::verify();
+        $idInt     = (int)$id;
+        $clubSport = (new ClubSportModel())->findWithSport($idInt);
+        if (!$clubSport) {
+            Session::flash('error', 'Nie znaleziono sekcji.');
+            $this->redirect('sports');
+        }
+
+        $clubId = (int)$clubSport['club_id'];
+        $data   = [];
+        foreach (['main', 'alt', 'dark'] as $variant) {
+            $field = 'logo_' . $variant;
+            if (!empty($_FILES[$field]['tmp_name'])) {
+                $path = $this->saveSportLogo($_FILES[$field], $clubId, $idInt, $variant);
+                if ($path !== null) $data["logo_{$variant}_path"] = $path;
+            }
+            if (!empty($_POST['reset_' . $variant])) {
+                $data["logo_{$variant}_path"] = null;
+            }
+        }
+
+        if (!empty($data)) {
+            (new ClubSportModel())->update($idInt, $data);
+            Session::flash('success', 'Logo sekcji zaktualizowane.');
+        } else {
+            Session::flash('info', 'Brak zmian.');
+        }
+        $this->redirect('sports/' . $idInt . '/logos');
+    }
+
+    private function saveSportLogo(array $file, int $clubId, int $clubSportId, string $variant): ?string
+    {
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'], true)) {
+            Session::flash('error', 'Niedozwolone rozszerzenie pliku.');
+            return null;
+        }
+        if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
+            Session::flash('error', 'Plik logo musi być mniejszy niż 2 MB.');
+            return null;
+        }
+        $dir = ROOT_PATH . "/public/uploads/clubs/{$clubId}/sports/{$clubSportId}";
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $filename = "logo_{$variant}_" . time() . '.' . $ext;
+        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
+            Session::flash('error', 'Nie udało się zapisać pliku.');
+            return null;
+        }
+        return "uploads/clubs/{$clubId}/sports/{$clubSportId}/{$filename}";
+    }
 }
