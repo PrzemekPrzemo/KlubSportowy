@@ -6,7 +6,14 @@
         <div class="card p-3">
             <h5 class="mb-3"><i class="bi bi-check2-square"></i> Aktywne sekcje (<?= count($current) ?>)</h5>
             <?php if (empty($current)): ?>
-                <div class="text-muted">Brak aktywnych sekcji. Dodaj pierwszy sport z prawej strony.</div>
+                <?php
+                $icon       = 'bi-trophy';
+                $title      = 'Brak aktywnych sekcji';
+                $message    = 'Wybierz pierwszą dyscyplinę z listy obok i utwórz sekcję sportową. Klub może mieć kilka sekcji równocześnie (limit zależy od planu subskrypcji).';
+                $actionUrl  = null; // CTA w prawej kolumnie już jest
+                $actionLabel= null;
+                include __DIR__ . '/../_partials/empty_state.php';
+                ?>
             <?php else: ?>
                 <div class="list-group list-group-flush">
                     <?php foreach ($current as $cs): ?>

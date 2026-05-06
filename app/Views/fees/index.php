@@ -17,7 +17,16 @@
         </thead>
         <tbody>
         <?php if (empty($pagination['data'])): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4"><?= __('fee.no_payments') ?></td></tr>
+            <tr><td colspan="7" class="p-0">
+                <?php
+                $icon       = 'bi-cash-coin';
+                $title      = 'Brak płatności';
+                $message    = 'Zarejestruj pierwszą wpłatę — gotówka, przelew lub karta. Zawodnicy mogą też zapłacić online z portalu (Stripe / Przelewy24 / PayU / Tpay).';
+                $actionUrl  = url('fees/new');
+                $actionLabel= '+ Nowa wpłata';
+                include __DIR__ . '/../_partials/empty_state.php';
+                ?>
+            </td></tr>
         <?php else: ?>
             <?php foreach ($pagination['data'] as $p): ?>
                 <tr>

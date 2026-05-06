@@ -26,7 +26,16 @@
         </thead>
         <tbody>
         <?php if (empty($pagination['data'])): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4">Brak treningów.</td></tr>
+            <tr><td colspan="7" class="p-0">
+                <?php
+                $icon       = 'bi-stopwatch';
+                $title      = 'Brak treningów';
+                $message    = 'Zaplanuj pierwszy trening — wybierz sekcję, datę, prowadzącego i obiekt. Zawodnicy zobaczą harmonogram w portalu.';
+                $actionUrl  = url('trainings/create');
+                $actionLabel= '+ Zaplanuj trening';
+                include __DIR__ . '/../_partials/empty_state.php';
+                ?>
+            </td></tr>
         <?php else: ?>
             <?php foreach ($pagination['data'] as $t): ?>
                 <tr>
