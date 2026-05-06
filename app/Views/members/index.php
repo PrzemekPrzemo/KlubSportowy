@@ -47,7 +47,16 @@
             </thead>
             <tbody>
                 <?php if (empty($pagination['data'])): ?>
-                    <tr><td colspan="7" class="text-center text-muted py-4"><?= __('members.none') ?></td></tr>
+                    <tr><td colspan="7" class="p-0">
+                        <?php
+                        $icon       = 'bi-people';
+                        $title      = 'Brak zawodników w klubie';
+                        $message    = 'Dodaj pierwszego zawodnika ręcznie lub zaimportuj listę z CSV. Zawodnicy mogą logować się do portalu i opłacać składki online.';
+                        $actionUrl  = url('members/create');
+                        $actionLabel= '+ Dodaj zawodnika';
+                        include __DIR__ . '/../_partials/empty_state.php';
+                        ?>
+                    </td></tr>
                 <?php else: ?>
                     <?php foreach ($pagination['data'] as $m): ?>
                         <tr>
