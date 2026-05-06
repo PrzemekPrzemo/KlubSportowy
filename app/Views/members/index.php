@@ -80,6 +80,7 @@
             <option value="suspend"><?= __('members.bulk_suspend') ?></option>
             <option value="delete"><?= __('members.bulk_delete') ?></option>
             <option value="export_csv"><?= __('members.bulk_export_csv') ?></option>
+            <option value="send_message">📨 Wyślij wiadomość email</option>
         </select>
         <button type="submit" class="btn btn-outline-primary"><?= __('members.bulk_submit') ?></button>
     </div>

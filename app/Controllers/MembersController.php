@@ -198,11 +198,106 @@ class MembersController extends BaseController
                 CsvExporter::download('members_export.csv', $headers, $rows);
                 return; // CsvExporter calls exit
 
+            case 'send_message':
+                // Z.3 — przekieruj do formularza z preselected IDs
+                Session::set('bulk_message_member_ids', $ids);
+                $this->redirect('members/bulk-message');
+                return;
+
             default:
                 Session::flash('error', __('members.bulk_invalid_action'));
                 break;
         }
 
+        $this->redirect('members');
+    }
+
+    /**
+     * Z.3 — Form do bulk-message: szablon wiadomości + lista odbiorców.
+     */
+    public function bulkMessageForm(): void
+    {
+        $this->requireLogin();
+        $this->requireClubContext();
+
+        $ids = Session::get('bulk_message_member_ids') ?? [];
+        if (empty($ids) || !is_array($ids)) {
+            Session::flash('error', 'Najpierw zaznacz zawodników na liście.');
+            $this->redirect('members');
+        }
+
+        $model = new MemberModel();
+        $recipients = [];
+        foreach ($ids as $mid) {
+            $m = $model->findById((int)$mid);
+            if ($m && !empty($m['email'])) {
+                $recipients[] = [
+                    'id'    => (int)$m['id'],
+                    'name'  => trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? '')),
+                    'email' => $m['email'],
+                ];
+            }
+        }
+
+        $this->render('members/bulk_message', [
+            'title'      => 'Wyślij wiadomość — bulk',
+            'recipients' => $recipients,
+            'totalIds'   => count($ids),
+        ]);
+    }
+
+    /**
+     * Z.3 — Wysyłka bulk message przez EmailService::queue.
+     */
+    public function bulkMessageSend(): void
+    {
+        Csrf::verify();
+        $this->requireLogin();
+        $this->requireClubContext();
+
+        $ids = Session::get('bulk_message_member_ids') ?? [];
+        if (empty($ids)) {
+            Session::flash('error', 'Brak odbiorców. Zaznacz zawodników na liście.');
+            $this->redirect('members');
+        }
+
+        $subject = trim($_POST['subject'] ?? '');
+        $body    = trim($_POST['body'] ?? '');
+        if ($subject === '' || $body === '') {
+            Session::flash('error', 'Temat i treść wiadomości są wymagane.');
+            $this->redirect('members/bulk-message');
+        }
+
+        $clubId = $this->currentClub();
+        $model  = new MemberModel();
+        $sent   = 0;
+        $skipped = 0;
+        foreach ($ids as $mid) {
+            $m = $model->findById((int)$mid);
+            if (!$m || empty($m['email'])) { $skipped++; continue; }
+
+            // Personalizacja: {{first_name}} → imię
+            $personalizedBody = str_replace(
+                ['{{first_name}}', '{{last_name}}', '{{member_number}}'],
+                [$m['first_name'] ?? '', $m['last_name'] ?? '', $m['member_number'] ?? ''],
+                $body
+            );
+
+            \App\Helpers\EmailService::queue(
+                $clubId,
+                $m['email'],
+                $subject,
+                $personalizedBody,
+                trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? '')),
+                'bulk_message'
+            );
+            $sent++;
+        }
+
+        // Wyczyść session preselection
+        Session::remove('bulk_message_member_ids');
+
+        Session::flash('success', "Zakolejkowano {$sent} wiadomości. Worker email-owy wyśle je w tle." . ($skipped > 0 ? " {$skipped} pominięto (brak email)." : ''));
         $this->redirect('members');
     }
 
