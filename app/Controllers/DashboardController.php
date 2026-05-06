@@ -42,6 +42,9 @@ class DashboardController extends BaseController
         // X.3 — Onboarding checklist (znika gdy 100% complete)
         $onboarding = $this->onboardingChecklist($clubId, $stats);
 
+        // X.4 — Pulse tiles: aktualne saldo + akcje na dziś
+        $pulse = $this->pulseTiles($clubId);
+
         // Load widget configuration for current user
         $widgetModel  = new DashboardWidgetModel();
         $widgets      = $widgetModel->getForUser((int)Auth::id());
@@ -56,6 +59,7 @@ class DashboardController extends BaseController
             'widgets'          => $widgets,
             'activityFeed'     => $activityFeed,
             'onboarding'       => $onboarding,
+            'pulse'            => $pulse,
         ]);
     }
 
@@ -122,6 +126,129 @@ class DashboardController extends BaseController
             'percent'    => $total > 0 ? (int)round(100 * $doneCount / $total) : 0,
             'is_complete'=> $doneCount === $total,
         ];
+    }
+
+    /**
+     * X.4 — Tiles z dynamicznymi danymi: zaległości, wpłaty w m-cu,
+     * nowi członkowie 30 dni, frekwencja miesięczna. Tylko niezerowe pokazujemy.
+     */
+    private function pulseTiles(int $clubId): array
+    {
+        $db = \App\Helpers\Database::pdo();
+        $tiles = [];
+
+        // 1. Saldo zaległości (suma overdue + pending past due_date)
+        try {
+            $stmt = $db->prepare(
+                "SELECT
+                    COALESCE(SUM(net_amount - paid_amount), 0) AS amount,
+                    COUNT(*) AS cnt
+                 FROM payment_dues
+                 WHERE club_id = ?
+                   AND (status = 'overdue'
+                        OR (status IN ('pending','partial') AND due_date < CURDATE()))"
+            );
+            $stmt->execute([$clubId]);
+            $row = $stmt->fetch();
+            if (!empty($row) && (float)$row['amount'] > 0) {
+                $tiles[] = [
+                    'key'    => 'overdue',
+                    'icon'   => 'bi-exclamation-triangle-fill',
+                    'color'  => 'danger',
+                    'label'  => 'Zaległości',
+                    'value'  => format_money($row['amount']),
+                    'sub'    => (int)$row['cnt'] . ' '
+                        . ((int)$row['cnt'] === 1 ? 'należność' : ((int)$row['cnt'] < 5 ? 'należności' : 'należności')),
+                    'href'   => url('fees/dues?status=overdue'),
+                ];
+            }
+        } catch (\Throwable) {}
+
+        // 2. Płatności w tym miesiącu
+        try {
+            $stmt = $db->prepare(
+                "SELECT
+                    COALESCE(SUM(amount), 0) AS amount,
+                    COUNT(*) AS cnt
+                 FROM payments
+                 WHERE club_id = ?
+                   AND payment_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')"
+            );
+            $stmt->execute([$clubId]);
+            $row = $stmt->fetch();
+            if (!empty($row) && (int)$row['cnt'] > 0) {
+                $tiles[] = [
+                    'key'    => 'this_month',
+                    'icon'   => 'bi-cash-stack',
+                    'color'  => 'success',
+                    'label'  => 'Wpłaty w ' . [
+                        1=>'styczniu',2=>'lutym',3=>'marcu',4=>'kwietniu',5=>'maju',6=>'czerwcu',
+                        7=>'lipcu',8=>'sierpniu',9=>'wrześniu',10=>'październiku',11=>'listopadzie',12=>'grudniu',
+                    ][(int)date('n')],
+                    'value'  => format_money($row['amount']),
+                    'sub'    => (int)$row['cnt'] . ' wpłat',
+                    'href'   => url('fees'),
+                ];
+            }
+        } catch (\Throwable) {}
+
+        // 3. Nowi członkowie ostatnie 30 dni
+        try {
+            $stmt = $db->prepare(
+                "SELECT COUNT(*) FROM members
+                  WHERE club_id = ?
+                    AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                    AND status = 'aktywny'"
+            );
+            $stmt->execute([$clubId]);
+            $cnt = (int)$stmt->fetchColumn();
+            if ($cnt > 0) {
+                $tiles[] = [
+                    'key'    => 'new_members',
+                    'icon'   => 'bi-person-plus-fill',
+                    'color'  => 'info',
+                    'label'  => 'Nowi zawodnicy',
+                    'value'  => '+' . $cnt,
+                    'sub'    => 'ostatnie 30 dni',
+                    'href'   => url('members'),
+                ];
+            }
+        } catch (\Throwable) {}
+
+        // 4. Najbliższy trening
+        try {
+            $stmt = $db->prepare(
+                "SELECT t.start_time, s.name AS sport_name, s.color AS sport_color
+                 FROM trainings t
+                 LEFT JOIN club_sports cs ON cs.id = t.club_sport_id
+                 LEFT JOIN sports s       ON s.id = cs.sport_id
+                 WHERE t.club_id = ?
+                   AND t.start_time >= NOW()
+                   AND t.status != 'odwolany'
+                 ORDER BY t.start_time ASC
+                 LIMIT 1"
+            );
+            $stmt->execute([$clubId]);
+            $row = $stmt->fetch();
+            if (!empty($row)) {
+                $start = strtotime($row['start_time']);
+                $diff  = $start - time();
+                $when  = $diff < 86400
+                    ? 'za ' . max(1, (int)floor($diff / 3600)) . ' h'
+                    : 'za ' . (int)floor($diff / 86400) . ' dni';
+                $tiles[] = [
+                    'key'    => 'next_training',
+                    'icon'   => 'bi-stopwatch-fill',
+                    'color'  => 'primary',
+                    'label'  => 'Najbliższy trening',
+                    'value'  => $when,
+                    'sub'    => $row['sport_name'] ?? '—',
+                    'href'   => url('trainings'),
+                ];
+            }
+        } catch (\Throwable) {}
+
+        return $tiles;
     }
 
     public function saveWidgets(): void

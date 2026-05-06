@@ -105,6 +105,26 @@ $widgetLabels = [
         </div>
     </div>
 </div>
+
+<!-- X.4 — Pulse tiles (dynamic actionable data) -->
+<?php if (!empty($pulse)): ?>
+<div class="row g-3 mb-4">
+    <?php foreach ($pulse as $tile): ?>
+        <div class="col-sm-6 col-lg-3">
+            <a href="<?= View::e($tile['href']) ?>"
+               class="card p-3 text-decoration-none text-dark border-<?= View::e($tile['color']) ?>"
+               style="border-left: 4px solid var(--bs-<?= View::e($tile['color']) ?>) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="text-muted small"><?= View::e($tile['label']) ?></div>
+                    <i class="bi <?= View::e($tile['icon']) ?> text-<?= View::e($tile['color']) ?>" style="font-size:1.2rem;"></i>
+                </div>
+                <div class="h3 mb-0 mt-1 fw-bold text-<?= View::e($tile['color']) ?>"><?= View::e($tile['value']) ?></div>
+                <small class="text-muted"><?= View::e($tile['sub']) ?></small>
+            </a>
+        </div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
 </div>
 <?php endif; ?>
 
