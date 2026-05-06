@@ -100,8 +100,8 @@ class AntiDopingModel extends ClubScopedModel
             "SELECT DISTINCT m.id, m.first_name, m.last_name, m.member_number,
                     GROUP_CONCAT(DISTINCT s.key) AS sports
              FROM members m
-             JOIN member_sports ms ON ms.member_id = m.id AND ms.club_id = m.club_id
-             JOIN club_sports cs  ON cs.id = ms.club_sport_id
+             JOIN member_sports ms ON ms.member_id = m.id
+             JOIN club_sports cs  ON cs.id = ms.club_sport_id AND cs.club_id = m.club_id
              JOIN sports s        ON s.id = cs.sport_id
              LEFT JOIN anti_doping_declarations ad
                 ON ad.member_id = m.id AND ad.club_id = m.club_id
