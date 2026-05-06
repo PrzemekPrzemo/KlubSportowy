@@ -37,6 +37,24 @@ class ActivityLogModel extends BaseModel
         return $this->db->query($sql)->fetchAll();
     }
 
+    /**
+     * X.2 — Activity feed dla dashboard klubu.
+     * Tylko zdarzenia tego klubu, sortowane od najnowszych.
+     */
+    public function recentForClub(int $clubId, int $limit = 10): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT al.*, u.username, u.full_name
+             FROM activity_log al
+             LEFT JOIN users u ON u.id = al.user_id
+             WHERE al.club_id = ?
+             ORDER BY al.created_at DESC
+             LIMIT " . (int)$limit
+        );
+        $stmt->execute([$clubId]);
+        return $stmt->fetchAll();
+    }
+
     public function listFiltered(
         ?int $clubId,
         ?int $userId,
