@@ -69,7 +69,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <?php if (!empty($clubBranding['logo_path'])): ?>
             <img src="<?= url($clubBranding['logo_path']) ?>" alt="logo" style="max-width:180px; max-height:60px; margin-bottom:.5rem;">
         <?php endif; ?>
-        <h5 class="mb-0"><img src="/images/logo-cd-white.svg" alt="CD" style="height:48px;vertical-align:middle;margin-right:8px;"> <span style="color:#EE2C28;font-weight:700;">clubdesk.pl</span></h5>
+        <h5 class="mb-0"><img src="<?= View::e(system_logo('white')) ?>" alt="CD" style="height:48px;vertical-align:middle;margin-right:8px;"> <span style="color:#EE2C28;font-weight:700;">clubdesk.pl</span></h5>
         <?php if (!empty($currentClub)): ?>
             <small class="d-block mt-1 text-muted"><?= View::e($currentClub['name']) ?></small>
         <?php endif; ?>
@@ -194,6 +194,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
         <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
         <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
+        <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> Logo systemu</a>
         <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
         <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
         <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> Log aktywności</a>

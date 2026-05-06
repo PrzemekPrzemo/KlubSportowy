@@ -20,7 +20,7 @@
 <body>
 <div class="portal-card">
     <div class="portal-brand">
-        <img src="/images/logo-cd.svg" alt="ClubDesk" style="height:48px; margin-bottom:.5rem;">
+        <img src="<?= View::e(system_logo('color')) ?>" alt="ClubDesk" style="height:48px; margin-bottom:.5rem;">
         <h1>Portal zawodnika</h1>
         <small><?= View::e($appName ?? 'ClubDesk') ?></small>
     </div>

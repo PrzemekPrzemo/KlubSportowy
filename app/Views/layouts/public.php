@@ -25,7 +25,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark" style="background: #232232;">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="<?= url('pub') ?>">
-            <img src="/images/logo-cd-white.svg" alt="CD" style="height:36px;">
+            <img src="<?= View::e(system_logo('white')) ?>" alt="CD" style="height:36px;">
             <span style="font-weight:700;"><?= View::e($appName ?? 'ClubDesk') ?></span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#pubNav">

@@ -22,7 +22,7 @@
 <body>
 <div class="auth-card">
     <div class="auth-brand">
-        <img src="/images/logo-cd.svg" alt="ClubDesk" style="height:48px;">
+        <img src="<?= View::e(system_logo('color')) ?>" alt="ClubDesk" style="height:48px;">
         <h1><?= View::e($appName ?? 'ClubDesk') ?></h1>
         <p class="text-muted small mb-0">Więcej sportu, mniej papierowej roboty.</p>
         <small><?= __('auth.subtitle') ?></small>
