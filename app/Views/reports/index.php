@@ -45,6 +45,19 @@
         </div>
     </div>
 
+    <!-- Y.2: Raport zaległości miesięcznych -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card p-3 h-100 border-danger" style="border-left: 4px solid var(--bs-danger) !important;">
+            <h5 class="mb-2"><i class="bi bi-exclamation-triangle text-danger"></i> Zaległości</h5>
+            <p class="text-muted small mb-3">
+                Lista wszystkich zawodników którzy zalegają z opłatami — z kwotami, dniami po terminie i kontaktem do windykacji.
+            </p>
+            <a href="<?= url('reports/monthly-dues-pdf') ?>" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
+        </div>
+    </div>
+
     <!-- Raport: Protokol wydarzenia -->
     <div class="col-md-6 col-lg-4">
         <div class="card h-100">

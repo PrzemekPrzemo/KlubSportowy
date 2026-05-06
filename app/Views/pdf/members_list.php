@@ -62,6 +62,4 @@ $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
     </tbody>
 </table>
 
-<div class="footer">
-    Wygenerowano: <?= $e($generated ?? '') ?>
-</div>
+<?= $systemFooter ?? '<div class="footer">Wygenerowano: ' . $e($generated ?? '') . '</div>' ?>
