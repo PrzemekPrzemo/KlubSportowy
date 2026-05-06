@@ -25,6 +25,45 @@ $widgetLabels = [
 ];
 ?>
 
+<!-- X.3 — Onboarding checklist (auto-ukryty gdy 100% complete) -->
+<?php if (!empty($onboarding) && !$onboarding['is_complete']): ?>
+<div class="card p-4 mb-4 border-primary" style="border-left: 4px solid var(--app-primary, #EE2C28) !important;">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-rocket-takeoff text-primary"></i> Pierwsze kroki w klubie</h5>
+            <small class="text-muted">Przejdź <?= (int)$onboarding['done'] ?> z <?= (int)$onboarding['total'] ?> kroków konfiguracji aby w pełni wykorzystać ClubDesk.</small>
+        </div>
+        <span class="badge bg-primary fs-6"><?= (int)$onboarding['percent'] ?>%</span>
+    </div>
+
+    <div class="progress mb-3" style="height: 8px;">
+        <div class="progress-bar bg-primary" role="progressbar"
+             style="width: <?= (int)$onboarding['percent'] ?>%"
+             aria-valuenow="<?= (int)$onboarding['percent'] ?>"
+             aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+
+    <div class="row g-2">
+        <?php foreach ($onboarding['steps'] as $step): ?>
+            <div class="col-md-6 col-lg-4">
+                <a href="<?= $step['done'] || !$step['href'] ? '#' : View::e($step['href']) ?>"
+                   class="d-flex align-items-center gap-2 p-2 rounded text-decoration-none
+                          <?= $step['done'] ? 'text-success' : 'text-dark' ?>"
+                   style="background: <?= $step['done'] ? '#f0fdf4' : '#f8fafc' ?>;
+                          <?= $step['done'] ? 'cursor: default;' : '' ?>"
+                   <?= $step['done'] ? 'tabindex="-1"' : '' ?>>
+                    <i class="bi <?= $step['done'] ? 'bi-check-circle-fill text-success' : View::e($step['icon']) ?>"
+                       style="font-size: 1.3rem; flex-shrink: 0;"></i>
+                    <span class="small <?= $step['done'] ? 'text-decoration-line-through' : '' ?>">
+                        <?= View::e($step['label']) ?>
+                    </span>
+                </a>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="mb-3 text-end">
     <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#widgetConfigModal">
         <i class="bi bi-gear"></i> <?= __('dash.configure_widgets') ?>
