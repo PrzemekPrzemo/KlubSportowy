@@ -24,10 +24,20 @@ class Router
 
     public function dispatch(): void
     {
-        $method = $_SERVER['REQUEST_METHOD'];
-        $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        // Defensywne: healthchecki / CLI / niektóre probe-y (kubernetes,
+        // monitoring) wywołują front controller bez pełnego $_SERVER.
+        // Brak REQUEST_METHOD/REQUEST_URI = 400 zamiast Fatal Error.
+        $method = $_SERVER['REQUEST_METHOD'] ?? null;
+        $rawUri = $_SERVER['REQUEST_URI']    ?? null;
+        if ($method === null || $rawUri === null) {
+            http_response_code(400);
+            echo 'Bad request';
+            return;
+        }
 
-        $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $uri = parse_url($rawUri, PHP_URL_PATH) ?? '/';
+
+        $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/');
         if ($basePath && str_starts_with($uri, $basePath)) {
             $uri = substr($uri, strlen($basePath));
         }
