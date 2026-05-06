@@ -157,22 +157,11 @@ class SportsController extends BaseController
 
     private function saveSportLogo(array $file, int $clubId, int $clubSportId, string $variant): ?string
     {
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'], true)) {
-            Session::flash('error', 'Niedozwolone rozszerzenie pliku.');
-            return null;
-        }
-        if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
-            Session::flash('error', 'Plik logo musi być mniejszy niż 2 MB.');
-            return null;
-        }
-        $dir = ROOT_PATH . "/public/uploads/clubs/{$clubId}/sports/{$clubSportId}";
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        $filename = "logo_{$variant}_" . time() . '.' . $ext;
-        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
-            Session::flash('error', 'Nie udało się zapisać pliku.');
-            return null;
-        }
-        return "uploads/clubs/{$clubId}/sports/{$clubSportId}/{$filename}";
+        return \App\Helpers\LogoUploader::save(
+            $file,
+            ROOT_PATH . "/public/uploads/clubs/{$clubId}/sports/{$clubSportId}",
+            "uploads/clubs/{$clubId}/sports/{$clubSportId}",
+            $variant
+        );
     }
 }
