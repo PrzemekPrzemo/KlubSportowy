@@ -30,46 +30,74 @@ class SubscriptionModel extends BaseModel
 
     public function isOverMemberLimit(int $clubId): bool
     {
-        $sub = $this->findForClub($clubId);
-        if ($sub === null || $sub['max_members'] === null) return false;
+        $limits = $this->effectiveLimits($clubId);
+        if ($limits['max_members'] === null) return false;
 
         $stmt = $this->db->prepare(
             "SELECT COUNT(*) FROM members WHERE club_id = ? AND status = 'aktywny'"
         );
         $stmt->execute([$clubId]);
         $count = (int)$stmt->fetchColumn();
-        return $count >= (int)$sub['max_members'];
+        return $count >= (int)$limits['max_members'];
     }
 
     public function isOverSportLimit(int $clubId): bool
     {
-        $sub = $this->findForClub($clubId);
-        if ($sub === null || $sub['max_sports'] === null) return false;
+        $limits = $this->effectiveLimits($clubId);
+        if ($limits['max_sports'] === null) return false;
 
         $stmt = $this->db->prepare(
             "SELECT COUNT(*) FROM club_sports WHERE club_id = ? AND is_active = 1"
         );
         $stmt->execute([$clubId]);
         $count = (int)$stmt->fetchColumn();
-        return $count >= (int)$sub['max_sports'];
+        return $count >= (int)$limits['max_sports'];
     }
 
+    /**
+     * Q.2.3 — sportLimitInfo uwzględnia addon-y boost-ujące max_sports.
+     * Klub na planie 'Klub' (5 sek) z addonem +1 → limit 6.
+     */
     public function sportLimitInfo(int $clubId): array
     {
-        $sub = $this->findForClub($clubId);
-        if ($sub === null) {
-            return ['limit' => null, 'used' => 0, 'remaining' => null];
-        }
+        $limits = $this->effectiveLimits($clubId);
         $stmt = $this->db->prepare(
             "SELECT COUNT(*) FROM club_sports WHERE club_id = ? AND is_active = 1"
         );
         $stmt->execute([$clubId]);
-        $used  = (int)$stmt->fetchColumn();
-        $limit = $sub['max_sports'] !== null ? (int)$sub['max_sports'] : null;
+        $used = (int)$stmt->fetchColumn();
+        $effective = $limits['max_sports'];
         return [
-            'limit'     => $limit,
-            'used'      => $used,
-            'remaining' => $limit !== null ? max(0, $limit - $used) : null,
+            'limit'         => $effective,
+            'used'          => $used,
+            'remaining'     => $effective !== null ? max(0, $effective - $used) : null,
+            'plan_limit'    => $limits['plan_max_sports'],
+            'addon_boost'   => $limits['addon_sports_boost'],
+        ];
+    }
+
+    /**
+     * Q.2.3 — analogicznie dla zawodników (do użycia gdy klub bliski limitu
+     * i powinien dokupić addon zamiast skakać na droższy plan).
+     */
+    public function memberLimitInfo(int $clubId): array
+    {
+        $limits = $this->effectiveLimits($clubId);
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM members WHERE club_id = ? AND status = 'aktywny'"
+        );
+        $stmt->execute([$clubId]);
+        $used = (int)$stmt->fetchColumn();
+        $effective = $limits['max_members'];
+        return [
+            'limit'         => $effective,
+            'used'          => $used,
+            'remaining'     => $effective !== null ? max(0, $effective - $used) : null,
+            'plan_limit'    => $limits['plan_max_members'],
+            'addon_boost'   => $limits['addon_members_boost'],
+            'percent'       => ($effective !== null && $effective > 0)
+                                ? min(100, (int)round(100 * $used / $effective))
+                                : 0,
         ];
     }
 

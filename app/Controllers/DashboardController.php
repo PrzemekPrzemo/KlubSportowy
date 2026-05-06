@@ -248,6 +248,35 @@ class DashboardController extends BaseController
             }
         } catch (\Throwable) {}
 
+        // Q.2.3 — Proaktywna sugestia addona gdy klub bliski limitu (>= 90%)
+        try {
+            $sub = new \App\Models\SubscriptionModel();
+            $memberInfo = $sub->memberLimitInfo($clubId);
+            if ($memberInfo['limit'] !== null && $memberInfo['percent'] >= 90 && $memberInfo['remaining'] <= 10) {
+                $tiles[] = [
+                    'key'    => 'limit_warning_members',
+                    'icon'   => 'bi-arrow-up-circle-fill',
+                    'color'  => 'warning',
+                    'label'  => 'Limit zawodników: ' . $memberInfo['percent'] . '%',
+                    'value'  => $memberInfo['used'] . '/' . $memberInfo['limit'],
+                    'sub'    => 'Dokup +50 za 49 zł/m-c',
+                    'href'   => url('club/subscription/addons'),
+                ];
+            }
+            $sportInfo = $sub->sportLimitInfo($clubId);
+            if ($sportInfo['limit'] !== null && $sportInfo['used'] >= $sportInfo['limit']) {
+                $tiles[] = [
+                    'key'    => 'limit_warning_sports',
+                    'icon'   => 'bi-trophy-fill',
+                    'color'  => 'warning',
+                    'label'  => 'Limit sekcji osiągnięty',
+                    'value'  => $sportInfo['used'] . '/' . $sportInfo['limit'],
+                    'sub'    => 'Dokup +1 sekcję za 25 zł/m-c',
+                    'href'   => url('club/subscription/addons'),
+                ];
+            }
+        } catch (\Throwable) {}
+
         return $tiles;
     }
 
