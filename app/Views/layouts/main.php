@@ -113,6 +113,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'reports'       => ['url' => 'reports',       'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),         'mod' => 'reports'],
         'documents'     => ['url' => 'documents',     'icon' => 'bi-file-earmark-pdf',       'label' => __('nav.documents'),       'mod' => null],
         'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
+        'subscription'  => ['url' => 'club/subscription', 'icon' => 'bi-credit-card-2-front', 'label' => 'Subskrypcja klubu',     'mod' => null],
     ];
     $allowed = $navModules ?? null;
     $canSensitive = \App\Helpers\Auth::canAccessSensitiveData();
