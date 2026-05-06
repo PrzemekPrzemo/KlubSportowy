@@ -833,39 +833,61 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
   COMMENT='Macierz uprawnień rola x modul (NULL club_id = domyślne)';
 
 -- Seed domyślnych ról (globalnych — club_id NULL)
--- zarzad ma pełen dostęp
+-- zarzad ma pełen dostęp do wszystkich modułów (RBAC defaults)
 INSERT IGNORE INTO role_permissions (club_id, role, module, can_view, can_edit) VALUES
+  -- ZARZAD: pełne uprawnienia
   (NULL, 'zarzad', 'members',       1, 1),
   (NULL, 'zarzad', 'sports',        1, 1),
-  (NULL, 'zarzad', 'fees',          1, 1),
+  (NULL, 'zarzad', 'calendar',      1, 1),
   (NULL, 'zarzad', 'events',        1, 1),
   (NULL, 'zarzad', 'trainings',     1, 1),
-  (NULL, 'zarzad', 'calendar',      1, 1),
+  (NULL, 'zarzad', 'fees',          1, 1),
   (NULL, 'zarzad', 'medical',       1, 1),
   (NULL, 'zarzad', 'announcements', 1, 1),
+  (NULL, 'zarzad', 'gallery',       1, 1),
+  (NULL, 'zarzad', 'messages',      1, 1),
+  (NULL, 'zarzad', 'analytics',     1, 1),
+  (NULL, 'zarzad', 'bookings',      1, 1),
+  (NULL, 'zarzad', 'reports',       1, 1),
   (NULL, 'zarzad', 'club',          1, 1),
+  (NULL, 'zarzad', 'shop',          1, 1),
+  (NULL, 'zarzad', 'livestream',    1, 1),
 
+  -- TRENER: zawodnicy + sekcje read, kalendarz/treningi RW
   (NULL, 'trener', 'members',       1, 1),
+  (NULL, 'trener', 'sports',        1, 0),
+  (NULL, 'trener', 'calendar',      1, 1),
   (NULL, 'trener', 'events',        1, 1),
   (NULL, 'trener', 'trainings',     1, 1),
-  (NULL, 'trener', 'calendar',      1, 1),
   (NULL, 'trener', 'medical',       1, 0),
   (NULL, 'trener', 'announcements', 1, 1),
+  (NULL, 'trener', 'gallery',       1, 1),
+  (NULL, 'trener', 'messages',      1, 1),
+  (NULL, 'trener', 'reports',       1, 0),
+  (NULL, 'trener', 'fees',          1, 0),
 
+  -- INSTRUKTOR: jak trener, mniej edycji
   (NULL, 'instruktor', 'members',   1, 0),
+  (NULL, 'instruktor', 'sports',    1, 0),
+  (NULL, 'instruktor', 'calendar',  1, 1),
   (NULL, 'instruktor', 'events',    1, 0),
   (NULL, 'instruktor', 'trainings', 1, 1),
-  (NULL, 'instruktor', 'calendar',  1, 0),
   (NULL, 'instruktor', 'announcements', 1, 0),
+  (NULL, 'instruktor', 'gallery',   1, 1),
+  (NULL, 'instruktor', 'messages',  1, 1),
 
+  -- SEDZIA
   (NULL, 'sedzia', 'events',        1, 1),
   (NULL, 'sedzia', 'calendar',      1, 0),
 
+  -- LEKARZ: medyczne (RW) + zawodnicy (read)
   (NULL, 'lekarz', 'members',       1, 0),
   (NULL, 'lekarz', 'medical',       1, 1),
 
+  -- KSIEGOWY: opłaty (RW) + zawodnicy (read) + raporty
   (NULL, 'ksiegowy', 'members',     1, 0),
-  (NULL, 'ksiegowy', 'fees',        1, 1);
+  (NULL, 'ksiegowy', 'fees',        1, 1),
+  (NULL, 'ksiegowy', 'reports',     1, 1);
 
 SET foreign_key_checks = 1;
 -- Shooting plugin migration: weapons + ammo
