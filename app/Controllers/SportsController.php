@@ -59,8 +59,10 @@ class SportsController extends BaseController
         if ($subscription->isOverSportLimit($clubId)) {
             $info  = $subscription->sportLimitInfo($clubId);
             $limit = $info['limit'] ?? '?';
+            // Q.2.3 — proponuj dokup addona zamiast skakać na droższy plan
             Session::flash('error', sprintf(
-                'Osiągnięto limit sekcji sportowych w planie subskrypcji (%d/%d). Zaktualizuj plan, aby dodać więcej sekcji.',
+                'Osiągnięto limit sekcji sportowych (%d/%d). Dokup +1 sekcję za 25 zł/m-c lub +5 za 99 zł/m-c, '
+              . 'albo rozważ upgrade planu. Przejdź: /club/subscription/addons',
                 $info['used'],
                 $limit
             ));
