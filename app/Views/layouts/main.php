@@ -131,6 +131,20 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     <?php endif; ?>
     <?php endif; // end !$isSuperAdminNoClub ?>
 
+    <!-- Z.2 — Recent items (zarządzane przez JS, ukryte gdy puste) -->
+    <?php if (!$isSuperAdminNoClub): ?>
+        <div class="section-label" id="recent-items-label" style="display:none;">Ostatnio odwiedzane</div>
+        <div id="recent-items-list" style="display:none;"></div>
+        <script>
+            // Pokaż label gdy lista ma items
+            document.addEventListener('DOMContentLoaded', function() {
+                var list = document.getElementById('recent-items-list');
+                var label = document.getElementById('recent-items-label');
+                if (list && label && list.children.length > 0) label.style.display = 'block';
+            });
+        </script>
+    <?php endif; ?>
+
     <?php if (!empty($sportNav)): ?>
         <div class="section-label"><?= __('nav.section') ?>: <?= View::e($activeSportKey) ?></div>
         <?php foreach ($sportNav as $item): ?>
@@ -315,6 +329,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= url('js/app.js') ?>"></script>
 <script src="<?= url('js/search.js') ?>"></script>
+<script src="<?= url('js/recent-items.js') ?>"></script>
 <script src="<?= url('js/dark-mode.js') ?>"></script>
 <script>
 // Hamburger sidebar toggle

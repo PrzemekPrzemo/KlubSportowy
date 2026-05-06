@@ -70,6 +70,35 @@
 </div>
 
 <!-- Filtry -->
+<!-- Z.2 — Quick filter chips (saved filters) -->
+<div class="mb-2 d-flex flex-wrap gap-2 align-items-center">
+    <small class="text-muted">Szybkie filtry:</small>
+    <a href="<?= url('fees/dues') ?>"
+       class="btn btn-sm <?= empty($filters['status']) ? 'btn-secondary' : 'btn-outline-secondary' ?>">
+        Wszystkie
+    </a>
+    <a href="<?= url('fees/dues') ?>?status=overdue"
+       class="btn btn-sm <?= ($filters['status'] ?? '') === 'overdue' ? 'btn-danger' : 'btn-outline-danger' ?>">
+        <i class="bi bi-exclamation-triangle"></i> Przeterminowane
+    </a>
+    <a href="<?= url('fees/dues') ?>?status=pending"
+       class="btn btn-sm <?= ($filters['status'] ?? '') === 'pending' ? 'btn-warning' : 'btn-outline-warning' ?>">
+        Oczekujące
+    </a>
+    <a href="<?= url('fees/dues') ?>?status=partial"
+       class="btn btn-sm <?= ($filters['status'] ?? '') === 'partial' ? 'btn-info' : 'btn-outline-info' ?>">
+        Częściowo opłacone
+    </a>
+    <a href="<?= url('fees/dues') ?>?status=paid"
+       class="btn btn-sm <?= ($filters['status'] ?? '') === 'paid' ? 'btn-success' : 'btn-outline-success' ?>">
+        <i class="bi bi-check-circle"></i> Opłacone
+    </a>
+    <a href="<?= url('fees/dues') ?>?period_year=<?= (int)date('Y') ?>"
+       class="btn btn-sm <?= ((int)($filters['period_year'] ?? 0) === (int)date('Y') && empty($filters['status'])) ? 'btn-primary' : 'btn-outline-primary' ?>">
+        Rok <?= (int)date('Y') ?>
+    </a>
+</div>
+
 <form method="GET" class="card p-3 mb-3">
     <div class="row g-2 align-items-end">
         <div class="col-md-2">
