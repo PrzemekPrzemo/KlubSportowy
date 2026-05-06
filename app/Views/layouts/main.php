@@ -236,11 +236,14 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
 </nav>
 
 <main class="main-content">
-    <!-- Global search bar -->
-    <div class="search-wrapper mb-3" style="max-width:400px;">
+    <!-- Global search bar (Z.1: Ctrl+K shortcut, arrow nav) -->
+    <div class="search-wrapper mb-3" style="max-width:480px;">
         <div class="input-group input-group-sm">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" id="global-search-input" class="form-control" placeholder="<?= View::e(__('common.search_placeholder')) ?>">
+            <input type="text" id="global-search-input" class="form-control"
+                   placeholder="<?= View::e(__('common.search_placeholder')) ?>">
+            <span class="input-group-text small text-muted" title="Skrót klawiaturowy"
+                  style="font-family: monospace; font-size: 11px;">Ctrl+K</span>
         </div>
         <div id="global-search-dropdown" class="search-dropdown"></div>
     </div>
