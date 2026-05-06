@@ -371,7 +371,8 @@ $router->get('/accounting/export',  [\App\Controllers\AccountingController::clas
 // Wszyscy zawodnicy (cross-sport, Faza P.4)
 $router->get('/members-all',        [\App\Controllers\AllMembersController::class, 'index']);
 
-// Prowizje trenerów (Faza U.2)
+// Prowizje trenerów (U.2 admin + V.0 portal trenera)
+$router->get('/trainer/commissions/my',                             [\App\Controllers\TrainerCommissionsController::class, 'my']);
 $router->get('/club/trainers/commissions',                          [\App\Controllers\TrainerCommissionsController::class, 'index']);
 $router->get('/club/trainers/commissions/report',                   [\App\Controllers\TrainerCommissionsController::class, 'report']);
 $router->post('/club/trainers/commissions/mark-paid-out',           [\App\Controllers\TrainerCommissionsController::class, 'markPaidOut']);

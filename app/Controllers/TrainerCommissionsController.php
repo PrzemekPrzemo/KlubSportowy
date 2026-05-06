@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Helpers\Auth;
 use App\Helpers\Csrf;
 use App\Helpers\CsvExporter;
 use App\Helpers\Session;
@@ -84,6 +85,54 @@ class TrainerCommissionsController extends BaseController
             'rows'  => $rows,
             'year'  => $year,
             'month' => $month,
+        ]);
+    }
+
+    /**
+     * Widok trenera — moje prowizje (ograniczone do `trainer_user_id = Auth::id()`).
+     * Tylko własne wpisy + agregat. Bez bulk action (wypłatę robi zarząd).
+     */
+    public function my(): void
+    {
+        $this->requireRole(['trener', 'instruktor', 'zarzad', 'admin']);
+
+        $userId = (int)Auth::id();
+        $year   = (int)($_GET['year']  ?? date('Y'));
+        $month  = !empty($_GET['month']) ? (int)$_GET['month'] : (int)date('n');
+
+        $logModel = new TrainerCommissionLogModel();
+        $items    = $logModel->listForClub([
+            'trainer_user_id' => $userId,
+            'period_year'     => $year,
+            'period_month'    => $month,
+        ]);
+
+        // Aggregat dla TEGO trenera w roku — przefiltrowany w PHP, prosto.
+        $rangeYearItems = $logModel->listForClub([
+            'trainer_user_id' => $userId,
+            'period_year'     => $year,
+        ]);
+        $totals = [
+            'items'    => count($rangeYearItems),
+            'total'    => 0.0,
+            'accrued'  => 0.0,
+            'paid_out' => 0.0,
+        ];
+        foreach ($rangeYearItems as $r) {
+            if ($r['status'] === 'cancelled') continue;
+            $amt = (float)$r['commission_amount'];
+            $totals['total'] += $amt;
+            if ($r['status'] === 'accrued')  $totals['accrued']  += $amt;
+            if ($r['status'] === 'paid_out') $totals['paid_out'] += $amt;
+        }
+
+        $this->render('trainers/commissions/my', [
+            'title'    => 'Moje prowizje',
+            'items'    => $items,
+            'totals'   => $totals,
+            'year'     => $year,
+            'month'    => $month,
+            'statuses' => TrainerCommissionLogModel::$STATUSES,
         ]);
     }
 
