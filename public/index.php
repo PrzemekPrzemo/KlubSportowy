@@ -398,6 +398,13 @@ $router->post('/club/trainers/commissions/rates/:id/toggle',        [\App\Contro
 $router->post('/club/trainers/commissions/rates/:id/delete',        [\App\Controllers\TrainerCommissionsController::class, 'deleteRate']);
 
 // Per-klub bramki płatności (Faza P.5)
+// Q.2.2 — subskrypcja klubu + addons (dokup zasobów)
+$router->get('/club/subscription',                            [\App\Controllers\SubscriptionAddonsController::class, 'overview']);
+$router->get('/club/subscription/addons',                     [\App\Controllers\SubscriptionAddonsController::class, 'catalog']);
+$router->post('/club/subscription/addons/buy',                [\App\Controllers\SubscriptionAddonsController::class, 'buy']);
+$router->post('/club/subscription/addons/:id/cancel',         [\App\Controllers\SubscriptionAddonsController::class, 'cancel']);
+$router->post('/club/subscription/addons/:id/reactivate',     [\App\Controllers\SubscriptionAddonsController::class, 'reactivate']);
+
 $router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
 $router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
 $router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatewayController::class, 'save']);
