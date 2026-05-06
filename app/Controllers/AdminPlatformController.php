@@ -153,28 +153,16 @@ class AdminPlatformController extends BaseController
 
     /**
      * W.2: zapisuje plik logo klubu (3 warianty: logo / logo_alt / logo_dark).
-     * Zwraca ścieżkę względną do public/ (np. "uploads/clubs/12/logo_main_1715000000.png")
-     * albo null gdy walidacja zawiodła.
      */
     private function saveClubLogo(array $file, int $clubId, string $inputName): ?string
     {
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'], true)) {
-            Session::flash('error', 'Niedozwolone rozszerzenie pliku — dozwolone: png, jpg, jpeg, webp, svg.');
-            return null;
-        }
-        if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
-            Session::flash('error', 'Plik logo musi być mniejszy niż 2 MB.');
-            return null;
-        }
-        $dir = ROOT_PATH . '/public/uploads/clubs/' . $clubId;
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        $variant  = $inputName === 'logo' ? 'main' : str_replace('logo_', '', $inputName);
-        $filename = "logo_{$variant}_" . time() . '.' . $ext;
-        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
-            return null;
-        }
-        return "uploads/clubs/{$clubId}/{$filename}";
+        $variant = $inputName === 'logo' ? 'main' : str_replace('logo_', '', $inputName);
+        return \App\Helpers\LogoUploader::save(
+            $file,
+            ROOT_PATH . '/public/uploads/clubs/' . $clubId,
+            "uploads/clubs/{$clubId}",
+            $variant
+        );
     }
 
     // ── System branding (W.1) ───────────────────────────────
@@ -220,30 +208,15 @@ class AdminPlatformController extends BaseController
         $this->redirect('admin/platform/system-branding');
     }
 
-    /**
-     * Zapisuje plik do `public/uploads/system/`. Zwraca ścieżkę względną
-     * (np. "uploads/system/logo_color_1715000000.png") albo null gdy
-     * walidacja typu się nie powiodła.
-     */
+    /** Zapisuje plik do `public/uploads/system/` przez LogoUploader. */
     private function saveSystemLogo(array $file, string $variant): ?string
     {
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'], true)) {
-            Session::flash('error', 'Niedozwolone rozszerzenie pliku — dozwolone: png, jpg, jpeg, webp, svg.');
-            return null;
-        }
-        if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
-            Session::flash('error', 'Plik logo musi być mniejszy niż 2 MB.');
-            return null;
-        }
-        $dir = ROOT_PATH . '/public/uploads/system';
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        $filename = "logo_{$variant}_" . time() . '.' . $ext;
-        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
-            Session::flash('error', 'Nie udało się zapisać pliku.');
-            return null;
-        }
-        return 'uploads/system/' . $filename;
+        return \App\Helpers\LogoUploader::save(
+            $file,
+            ROOT_PATH . '/public/uploads/system',
+            'uploads/system',
+            $variant
+        );
     }
 
     // ── Support tickets ─────────────────────────────────────
