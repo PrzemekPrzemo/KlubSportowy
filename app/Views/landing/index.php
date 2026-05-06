@@ -113,7 +113,8 @@
         <div class="row g-4 justify-content-center">
             <?php if (!empty($plans)): ?>
                 <?php foreach ($plans as $plan):
-                    $isFeatured = ($plan['code'] ?? '') === 'standard';
+                    // Q.1: featured plan (poprzednio 'standard', teraz 'club' — najpopularniejszy)
+                    $isFeatured = in_array(($plan['code'] ?? ''), ['club','standard'], true);
                     $features = [];
                     if (!empty($plan['features'])) {
                         $decoded = is_string($plan['features']) ? json_decode($plan['features'], true) : $plan['features'];
