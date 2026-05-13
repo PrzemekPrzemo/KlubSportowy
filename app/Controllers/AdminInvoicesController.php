@@ -3,10 +3,13 @@
 namespace App\Controllers;
 
 use App\Helpers\Csrf;
+use App\Helpers\Pdf\InvoicePdf;
+use App\Helpers\PdfHelper;
 use App\Helpers\Session;
 use App\Models\ActivityLogModel;
 use App\Models\ClubModel;
 use App\Models\InvoiceModel;
+use App\Models\SettingModel;
 
 class AdminInvoicesController extends BaseController
 {
@@ -113,5 +116,67 @@ class AdminInvoicesController extends BaseController
         (new ActivityLogModel())->log('invoice_cancelled', 'invoice', $iid);
         Session::flash('success', 'Faktura anulowana.');
         $this->redirect('admin/invoices/' . $iid);
+    }
+
+    /**
+     * Eksport faktury do PDF (zgodny szablon FV).
+     */
+    public function pdf(string $id): void
+    {
+        $inv = (new InvoiceModel())->findWithClub((int)$id);
+        if (!$inv) {
+            Session::flash('error', 'Faktura nie istnieje.');
+            $this->redirect('admin/invoices');
+        }
+
+        $settings = new SettingModel();
+        $sellerName    = (string)$settings->get('platform_company_name', 'ClubDesk');
+        $sellerAddress = (string)$settings->get('platform_company_address', '');
+        $sellerCity    = (string)$settings->get('platform_company_city', '');
+        $sellerNip     = (string)$settings->get('platform_company_nip', '');
+        $sellerRegon   = (string)$settings->get('platform_company_regon', '');
+
+        $total = (float)$inv['total'];
+
+        InvoicePdf::download([
+            'seller' => [
+                'name'    => $sellerName,
+                'address' => $sellerAddress,
+                'city'    => $sellerCity,
+                'nip'     => $sellerNip,
+                'regon'   => $sellerRegon,
+            ],
+            'buyer' => [
+                'name'    => (string)($inv['club_name']    ?? ''),
+                'address' => (string)($inv['club_address'] ?? ''),
+                'city'    => (string)($inv['club_city']    ?? ''),
+                'nip'     => (string)($inv['club_nip']     ?? ''),
+            ],
+            'invoice' => [
+                'number'         => (string)$inv['number'],
+                'issue_date'     => (string)$inv['issue_date'],
+                'sale_date'      => (string)$inv['issue_date'],
+                'due_date'       => (string)$inv['due_date'],
+                'status'         => (string)$inv['status'],
+                'payment_method' => 'przelew bankowy',
+                'notes'          => (string)($inv['notes'] ?? ''),
+                'total'          => $total,
+            ],
+            'items' => [[
+                'name'        => 'Subskrypcja ClubDesk — okres rozliczeniowy',
+                'qty'         => 1,
+                'unit'        => 'szt.',
+                'net_price'   => round($total / 1.23, 2),
+                'vat_rate'    => 23,
+                'net_total'   => round($total / 1.23, 2),
+                'gross_total' => $total,
+            ]],
+            'totals' => [
+                'net'   => round($total / 1.23, 2),
+                'vat'   => round($total - $total / 1.23, 2),
+                'gross' => $total,
+            ],
+            'club_header_html' => PdfHelper::getSystemFooter(),
+        ], 'faktura-' . preg_replace('/[^a-z0-9_\-]/i', '_', (string)$inv['number']) . '.pdf');
     }
 }

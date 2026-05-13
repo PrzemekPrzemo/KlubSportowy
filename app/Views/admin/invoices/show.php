@@ -6,7 +6,12 @@
     <h4 class="mb-0"><i class="bi bi-receipt me-2"></i>Faktura <?= View::e($invoice['number']) ?>
         <span class="badge bg-<?= $statusColors[$invoice['status']] ?? 'secondary' ?> ms-2"><?= View::e($invoice['status']) ?></span>
     </h4>
-    <a href="<?= url('admin/invoices') ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Powrót</a>
+    <div class="d-flex gap-2">
+        <a href="<?= url('admin/invoices/' . (int)$invoice['id'] . '/pdf') ?>" class="btn btn-outline-primary btn-sm" target="_blank">
+            <i class="bi bi-file-earmark-pdf"></i> Pobierz PDF
+        </a>
+        <a href="<?= url('admin/invoices') ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Powrót</a>
+    </div>
 </div>
 
 <div class="row g-3">
