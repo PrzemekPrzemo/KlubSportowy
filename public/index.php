@@ -117,6 +117,9 @@ if ($baseDomain !== '') {
 // ============================================================
 $router = new \App\Helpers\Router();
 
+// Whitelabel — per-klub favicon (public, no auth)
+$router->get('/favicon.ico', [\App\Controllers\BrandingAssetController::class, 'favicon']);
+
 // Strona startowa → logowanie (landing page jest na clubdesk.pl)
 $router->get('/', [\App\Controllers\AuthController::class, 'showLogin']);
 
@@ -439,6 +442,12 @@ $router->get('/club/settings',            [\App\Controllers\ClubManagementContro
 $router->post('/club/settings/save',      [\App\Controllers\ClubManagementController::class, 'saveSettings']);
 $router->get('/club/customization',       [\App\Controllers\ClubManagementController::class, 'customization']);
 $router->post('/club/customization/save', [\App\Controllers\ClubManagementController::class, 'saveCustomization']);
+// Whitelabel — favicon / custom CSS / email header / komunikacja (osobne formularze)
+$router->post('/club/customization/favicon',         [\App\Controllers\ClubManagementController::class, 'uploadFavicon']);
+$router->post('/club/customization/favicon/delete',  [\App\Controllers\ClubManagementController::class, 'deleteFavicon']);
+$router->post('/club/customization/css',             [\App\Controllers\ClubManagementController::class, 'saveCustomCss']);
+$router->post('/club/customization/email-header',    [\App\Controllers\ClubManagementController::class, 'saveEmailHeader']);
+$router->post('/club/customization/communication',   [\App\Controllers\ClubManagementController::class, 'saveCommunication']);
 $router->get('/club/smtp',                [\App\Controllers\ClubManagementController::class, 'smtp']);
 $router->post('/club/smtp/save',          [\App\Controllers\ClubManagementController::class, 'saveSmtp']);
 $router->get('/club/users',               [\App\Controllers\ClubManagementController::class, 'users']);

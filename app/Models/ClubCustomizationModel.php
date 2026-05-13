@@ -47,16 +47,21 @@ class ClubCustomizationModel extends BaseModel
     public static function defaults(): array
     {
         return [
-            'club_id'        => null,
-            'logo_path'      => null,
-            'logo_alt_path'  => null,
-            'logo_dark_path' => null,
-            'primary_color'  => '#0d6efd',
-            'navbar_bg'      => '#212529',
-            'accent_color'   => '#198754',
-            'custom_css'     => null,
-            'subdomain'      => null,
-            'motto'          => null,
+            'club_id'               => null,
+            'logo_path'             => null,
+            'logo_alt_path'         => null,
+            'logo_dark_path'        => null,
+            'primary_color'         => '#0d6efd',
+            'navbar_bg'             => '#212529',
+            'accent_color'          => '#198754',
+            'custom_css'            => null,
+            'custom_css_updated_at' => null,
+            'favicon_path'          => null,
+            'email_header_html'     => null,
+            'email_from_name'       => null,
+            'sms_sender_id'         => null,
+            'subdomain'             => null,
+            'motto'                 => null,
         ];
     }
 }
