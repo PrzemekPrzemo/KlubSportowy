@@ -646,6 +646,17 @@ $router->get('/livestream/:id/watch',      [\App\Controllers\LivestreamControlle
 $router->post('/livestream/:id/status',    [\App\Controllers\LivestreamController::class, 'setStatus']);
 $router->post('/livestream/:id/delete',    [\App\Controllers\LivestreamController::class, 'delete']);
 
+// Live updates (Server-Sent Events) — real-time wyniki meczu/turnieju
+$router->get('/live',                          [\App\Controllers\LiveStreamController::class, 'index']);
+$router->get('/live/channels',                 [\App\Controllers\LiveStreamController::class, 'channels']);
+$router->get('/live/stream/:channel',          [\App\Controllers\LiveStreamController::class, 'stream']);
+$router->post('/live/publish/:channel',        [\App\Controllers\LiveStreamController::class, 'publish']);
+$router->post('/live/admin/create',            [\App\Controllers\LiveStreamController::class, 'adminCreate']);
+$router->post('/live/admin/start/:id',         [\App\Controllers\LiveStreamController::class, 'adminStart']);
+$router->post('/live/admin/end/:id',           [\App\Controllers\LiveStreamController::class, 'adminEnd']);
+$router->post('/live/admin/delete/:id',        [\App\Controllers\LiveStreamController::class, 'adminDelete']);
+$router->get('/club/:slug/live',               [\App\Controllers\LiveStreamController::class, 'publicClubLive']);
+
 // Treningi
 $router->get('/trainings',                        [\App\Controllers\TrainingsController::class, 'index']);
 $router->get('/trainings/create',                 [\App\Controllers\TrainingsController::class, 'create']);
