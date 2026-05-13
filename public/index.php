@@ -412,6 +412,13 @@ $router->post('/club/gateways/:provider/test',       [\App\Controllers\ClubGatew
 $router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatewayController::class, 'toggleActive']);
 $router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
 
+// Per-klub integracja wysyłki InPost (ShipX) — F.6
+$router->get('/club/shipping',              [\App\Controllers\ClubShippingController::class, 'index']);
+$router->get('/club/shipping/edit',         [\App\Controllers\ClubShippingController::class, 'edit']);
+$router->post('/club/shipping/save',        [\App\Controllers\ClubShippingController::class, 'save']);
+$router->post('/club/shipping/test',        [\App\Controllers\ClubShippingController::class, 'testConnection']);
+$router->post('/club/shipping/toggle',      [\App\Controllers\ClubShippingController::class, 'toggleActive']);
+
 // Powiadomienia (Faza S.1)
 $router->get('/club/notifications',                       [\App\Controllers\NotificationRulesController::class, 'index']);
 $router->post('/club/notifications/rules/store',          [\App\Controllers\NotificationRulesController::class, 'storeRule']);
