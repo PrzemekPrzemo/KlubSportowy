@@ -770,6 +770,8 @@ $router->post('/sport-licenses/:id/delete',  [\App\Controllers\SportLicensesCont
 $router->get('/sport-rankings',              [\App\Controllers\SportRankingsController::class, 'index']);
 $router->post('/sport-rankings/store',       [\App\Controllers\SportRankingsController::class, 'store']);
 $router->post('/sport-rankings/:id/delete',  [\App\Controllers\SportRankingsController::class, 'delete']);
+$router->post('/sport-rankings/recalculate', [\App\Controllers\SportRankingsController::class, 'recalculate']);
+$router->post('/rankings/recalculate',       [\App\Controllers\SportRankingsController::class, 'recalculate']);
 
 // ── Turnieje ───────────────────────────────────────────────
 $router->get('/tournaments',                         [\App\Controllers\TournamentsController::class, 'index']);
