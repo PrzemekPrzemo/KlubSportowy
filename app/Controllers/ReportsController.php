@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Helpers\CsvExporter;
+use App\Helpers\Feature;
 use App\Helpers\PdfHelper;
 use App\Helpers\View;
 use App\Models\ClubCustomizationModel;
@@ -35,6 +36,9 @@ class ReportsController extends BaseController
     {
         $this->requireLogin();
         $this->requireClubContext();
+        // Feature flag guard — kluby na planie bez `pdf_export` dostają 403.
+        // Master Admin może nadać override per klub (np. trial Pro feature).
+        Feature::requireEnabled('pdf_export');
 
         $clubId  = $this->currentClub();
         $members = $this->getMembersWithSports($clubId);
