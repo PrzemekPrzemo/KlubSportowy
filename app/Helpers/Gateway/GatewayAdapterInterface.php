@@ -38,4 +38,11 @@ interface GatewayAdapterInterface
      * Identyfikator providera (przelewy24/payu/stripe/tpay).
      */
     public function providerKey(): string;
+
+    /**
+     * Realny ping API providera weryfikujący credentials.
+     * Zwraca ['ok' => bool, 'message' => string, 'details' => array].
+     * Nie rzuca — błędy mapuje na ok=false z opisem.
+     */
+    public function testConnection(): array;
 }

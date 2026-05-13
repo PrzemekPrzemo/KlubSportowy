@@ -124,6 +124,29 @@ class Przelewy24Adapter implements GatewayAdapterInterface
         );
     }
 
+    public function testConnection(): array
+    {
+        try {
+            $this->assertConfigured();
+        } catch (GatewayException $e) {
+            return ['ok' => false, 'message' => $e->getMessage(), 'details' => []];
+        }
+
+        // P24 testAccess endpoint — wymaga HTTP Basic z merchant_id:api_key.
+        // Zwraca {"data": {"status": "success"}} przy poprawnych credentialach.
+        try {
+            $resp = $this->httpGet('/api/v1/testAccess');
+            $ok = ($resp['data']['status'] ?? null) === 'success';
+            return [
+                'ok'      => $ok,
+                'message' => $ok ? 'Połączenie OK' : 'API odpowiedziało, ale status != success',
+                'details' => ['sandbox' => !empty($this->config['is_sandbox']), 'response' => $resp],
+            ];
+        } catch (GatewayException $e) {
+            return ['ok' => false, 'message' => $e->getMessage(), 'details' => []];
+        }
+    }
+
     public function fetchStatus(string $externalId): TransactionStatus
     {
         $this->assertConfigured();

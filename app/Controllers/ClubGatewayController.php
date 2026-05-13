@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Auth;
 use App\Helpers\Csrf;
+use App\Helpers\Gateway\GatewayFactory;
 use App\Helpers\Session;
 use App\Helpers\ValidatesRequest;
 use App\Models\ClubPaymentGatewayModel;
@@ -120,24 +121,23 @@ class ClubGatewayController extends BaseController
             $this->json(['success' => false, 'error' => 'gateway_not_configured'], 404);
         }
 
-        // Provider-specific test — minimalna implementacja przez sanity check
-        // (faktyczny call do API gateway w przyszłości — wymaga SDK).
-        $hasCreds = !empty($config['api_key']) && !empty($config['merchant_id']);
-        if (!$hasCreds) {
-            $this->json(['success' => false, 'error' => 'missing_credentials']);
+        $adapter = GatewayFactory::forProvider($provider, $config);
+        if ($adapter === null) {
+            $this->json([
+                'success' => false,
+                'error'   => 'adapter_unavailable',
+                'message' => "Provider {$provider} nie ma adaptera (manual mode lub brak implementacji).",
+            ]);
         }
 
-        // TODO: real API ping per provider
-        // Przelewy24: GET /api/v1/testAccess (Bearer token)
-        // PayU: GET /api/v2_1/orders/{id}
-        // Stripe: list charges with limit=1
-        // Tpay: GET /transactions
+        $result = $adapter->testConnection();
         $this->json([
-            'success'  => true,
-            'message'  => 'Konfiguracja kompletna (sanity check). Pełny test API w przyszłości.',
+            'success'  => (bool)($result['ok'] ?? false),
+            'message'  => $result['message'] ?? '',
             'sandbox'  => (bool)$config['is_sandbox'],
             'merchant' => $config['merchant_id'],
-        ]);
+            'details'  => $result['details'] ?? [],
+        ], ($result['ok'] ?? false) ? 200 : 422);
     }
 
     public function toggleActive(string $provider): void
