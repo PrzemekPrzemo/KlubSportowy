@@ -212,6 +212,12 @@ $router->get('/admin/platform/support/:id',          [\App\Controllers\AdminPlat
 $router->post('/admin/platform/support/:id/reply',   [\App\Controllers\AdminPlatformController::class, 'replyTicket']);
 $router->post('/admin/platform/support/:id/close',   [\App\Controllers\AdminPlatformController::class, 'closeTicket']);
 
+// Admin: feature flags (per-klub boolean włącz/wyłącz feature'ów)
+$router->get('/admin/platform/feature-flags',                  [\App\Controllers\AdminFeatureFlagsController::class, 'index']);
+$router->get('/admin/platform/feature-flags/clubs/:clubId',    [\App\Controllers\AdminFeatureFlagsController::class, 'clubOverrides']);
+$router->post('/admin/platform/feature-flags/override',        [\App\Controllers\AdminFeatureFlagsController::class, 'saveOverride']);
+$router->post('/admin/platform/feature-flags/clear',           [\App\Controllers\AdminFeatureFlagsController::class, 'clearOverride']);
+
 // Support tickets (klub zarzad)
 $router->get('/support',          [\App\Controllers\SupportController::class, 'index']);
 $router->get('/support/create',   [\App\Controllers\SupportController::class, 'create']);

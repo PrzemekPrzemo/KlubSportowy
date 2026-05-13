@@ -209,6 +209,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
         <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
         <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
+        <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> Feature flags</a>
         <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> Logo systemu</a>
         <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
         <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
