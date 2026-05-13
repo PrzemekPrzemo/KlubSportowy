@@ -412,6 +412,14 @@ $router->post('/club/gateways/:provider/test',       [\App\Controllers\ClubGatew
 $router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatewayController::class, 'toggleActive']);
 $router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
 
+// Per-klub FederationExporter — credentials do federacji sportowych
+$router->get('/club/federations',                          [\App\Controllers\ClubFederationController::class, 'index']);
+$router->get('/club/federations/:code/edit',               [\App\Controllers\ClubFederationController::class, 'edit']);
+$router->post('/club/federations/:code/save',              [\App\Controllers\ClubFederationController::class, 'save']);
+$router->post('/club/federations/:code/test',              [\App\Controllers\ClubFederationController::class, 'testConnection']);
+$router->post('/club/federations/:code/toggle',            [\App\Controllers\ClubFederationController::class, 'toggleActive']);
+$router->post('/club/federations/:code/export-member',     [\App\Controllers\ClubFederationController::class, 'exportMember']);
+
 // Powiadomienia (Faza S.1)
 $router->get('/club/notifications',                       [\App\Controllers\NotificationRulesController::class, 'index']);
 $router->post('/club/notifications/rules/store',          [\App\Controllers\NotificationRulesController::class, 'storeRule']);
