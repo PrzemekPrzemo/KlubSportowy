@@ -121,6 +121,32 @@ class StripeAdapter implements GatewayAdapterInterface
         );
     }
 
+    public function testConnection(): array
+    {
+        if (empty($this->config['api_key'])) {
+            return ['ok' => false, 'message' => 'Stripe api_key not configured', 'details' => []];
+        }
+        if (!class_exists('\Stripe\Stripe')) {
+            return ['ok' => false, 'message' => 'Stripe SDK missing (composer require stripe/stripe-php)', 'details' => []];
+        }
+
+        try {
+            \Stripe\Stripe::setApiKey($this->config['api_key']);
+            $account = \Stripe\Account::retrieve();
+            return [
+                'ok'      => true,
+                'message' => 'Połączenie OK',
+                'details' => [
+                    'account_id' => $account->id ?? null,
+                    'country'    => $account->country ?? null,
+                    'mode'       => str_starts_with((string)$this->config['api_key'], 'sk_test_') ? 'test' : 'live',
+                ],
+            ];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => $e->getMessage(), 'details' => []];
+        }
+    }
+
     public function fetchStatus(string $externalId): TransactionStatus
     {
         if (empty($this->config['api_key'])) {

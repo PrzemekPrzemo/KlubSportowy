@@ -137,6 +137,21 @@ class TpayAdapter implements GatewayAdapterInterface
         );
     }
 
+    public function testConnection(): array
+    {
+        try {
+            $this->assertConfigured();
+            $token = $this->getOAuthToken();
+            return [
+                'ok'      => $token !== '',
+                'message' => 'OAuth OK — credentials prawidłowe',
+                'details' => ['sandbox' => !empty($this->config['is_sandbox'])],
+            ];
+        } catch (GatewayException $e) {
+            return ['ok' => false, 'message' => $e->getMessage(), 'details' => []];
+        }
+    }
+
     public function fetchStatus(string $externalId): TransactionStatus
     {
         $this->assertConfigured();
