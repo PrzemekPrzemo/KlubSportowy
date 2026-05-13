@@ -176,6 +176,10 @@ $router->post('/admin/clubs/:id/limits',       [\App\Controllers\AdminController
 $router->get('/admin/clubs/:id/analytics',     [\App\Controllers\AdminController::class, 'clubAnalytics']);
 $router->get('/admin/clubs/:id/export',        [\App\Controllers\ClubExportController::class, 'adminExport']);
 
+// Cross-sport overview dla zarzadu klubu (USP multi-sport)
+$router->get('/admin/clubs/cross-sport-overview', [\App\Controllers\ClubManagementController::class, 'crossSportOverview']);
+$router->get('/club/cross-sport-overview',        [\App\Controllers\ClubManagementController::class, 'crossSportOverview']);
+
 // Admin: demo tokeny
 $router->get('/admin/demos',           [\App\Controllers\DemoController::class, 'index']);
 $router->post('/admin/demos/create',   [\App\Controllers\DemoController::class, 'create']);
@@ -473,6 +477,8 @@ $router->get('/portal/login',            [\App\Controllers\MemberPortalControlle
 $router->post('/portal/login',           [\App\Controllers\MemberPortalController::class, 'login']);
 $router->get('/portal/logout',           [\App\Controllers\MemberPortalController::class, 'logout']);
 $router->get('/portal/dashboard',        [\App\Controllers\MemberPortalController::class, 'dashboard']);
+$router->get('/portal/dashboard/cross-sport', [\App\Controllers\MemberPortalController::class, 'crossSportDashboard']);
+$router->get('/member/dashboard/cross-sport', [\App\Controllers\MemberPortalController::class, 'crossSportDashboard']);
 $router->get('/portal/profile',          [\App\Controllers\MemberPortalController::class, 'profile']);
 $router->post('/portal/profile/update',  [\App\Controllers\MemberPortalController::class, 'updateProfile']);
 $router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);

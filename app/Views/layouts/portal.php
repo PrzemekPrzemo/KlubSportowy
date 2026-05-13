@@ -124,6 +124,9 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <a href="<?= url('portal/dashboard') ?>" class="<?= $isActive('dashboard') ?>">
                 <i class="bi bi-house me-1"></i>Dashboard
             </a>
+            <a href="<?= url('portal/dashboard/cross-sport') ?>" class="<?= $isActive('cross-sport') ?>">
+                <i class="bi bi-bar-chart-steps me-1"></i>Cross-sport
+            </a>
             <a href="<?= url('portal/member-card') ?>" class="<?= $isActive('member-card') ?>">
                 <i class="bi bi-person-badge me-1"></i>Karta zawodnika
             </a>
