@@ -16,5 +16,6 @@ return [
         ['label' => 'Wyniki',          'icon' => 'bi-bar-chart',     'url' => 'gymnastics/results'],
         ['label' => 'Zgody małoletnich','icon' => 'bi-shield-check', 'url' => 'gymnastics/minors'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

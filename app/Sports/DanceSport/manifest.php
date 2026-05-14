@@ -17,5 +17,6 @@ return [
         ['label' => 'Pary taneczne',  'icon' => 'bi-music-note-beamed', 'url' => 'dance_sport/couples'],
         ['label' => 'Wyniki zawodów', 'icon' => 'bi-trophy',            'url' => 'dance_sport/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

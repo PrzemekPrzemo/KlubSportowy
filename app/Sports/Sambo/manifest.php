@@ -18,5 +18,6 @@ return [
         ['label' => 'Pasy',             'icon' => 'bi-shield-shaded', 'url' => 'sambo/belts'],
         ['label' => 'Wyniki zawodów',   'icon' => 'bi-trophy',        'url' => 'sambo/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

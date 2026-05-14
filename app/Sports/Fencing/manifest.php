@@ -17,5 +17,6 @@ return [
         ['label' => 'Wyniki szermierki', 'icon' => 'bi-slash-lg', 'url' => 'fencing/results'],
         ['label' => 'Szermierze/ranking','icon' => 'bi-list-ol',  'url' => 'fencing/fencers'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

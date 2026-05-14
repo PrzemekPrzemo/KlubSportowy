@@ -18,5 +18,6 @@ return [
         ['label' => 'Pasy (kyu/dan)',   'icon' => 'bi-arrows-angle-expand', 'url' => 'aikido/belts'],
         ['label' => 'Wyniki/Pokazy',    'icon' => 'bi-trophy',              'url' => 'aikido/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

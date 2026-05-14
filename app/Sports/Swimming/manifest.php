@@ -15,5 +15,6 @@ return [
         ['label' => 'Wyniki pływania', 'icon' => 'bi-water',  'url' => 'swimming/results'],
         ['label' => 'Rekordy klubu',   'icon' => 'bi-trophy', 'url' => 'swimming/records'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

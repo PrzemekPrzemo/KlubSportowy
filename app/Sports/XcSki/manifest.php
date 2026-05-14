@@ -16,5 +16,6 @@ return [
     'nav' => [
         ['label' => 'Wyniki biegowe', 'icon' => 'bi-stopwatch', 'url' => 'xcski/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

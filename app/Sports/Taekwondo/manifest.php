@@ -22,5 +22,6 @@ return [
         ['label' => 'Frekwencja',     'icon' => 'bi-calendar-check', 'url' => 'taekwondo/attendance'],
         ['label' => 'Kalendarz',      'icon' => 'bi-calendar3',      'url' => 'taekwondo/calendar'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

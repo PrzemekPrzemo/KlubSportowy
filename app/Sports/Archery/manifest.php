@@ -17,5 +17,6 @@ return [
         ['label' => 'Sprzęt (łuki)',      'icon' => 'bi-bullseye', 'url' => 'archery/bows'],
         ['label' => 'Wyniki strzelań',    'icon' => 'bi-trophy',   'url' => 'archery/scores'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

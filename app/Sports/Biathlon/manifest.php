@@ -16,5 +16,6 @@ return [
     'nav' => [
         ['label' => 'Wyniki biathlonu', 'icon' => 'bi-bullseye', 'url' => 'biathlon/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

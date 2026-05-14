@@ -17,5 +17,6 @@ return [
         ['label' => 'Zawodnicy MMA', 'icon' => 'bi-person-bounding-box', 'url' => 'mma/fighters'],
         ['label' => 'Walki MMA',     'icon' => 'bi-trophy',              'url' => 'mma/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

@@ -17,5 +17,6 @@ return [
         ['label' => 'Pasy kickboxing', 'icon' => 'bi-award',  'url' => 'kickboxing/belts'],
         ['label' => 'Walki',           'icon' => 'bi-trophy', 'url' => 'kickboxing/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

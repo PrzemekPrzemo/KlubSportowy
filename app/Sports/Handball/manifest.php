@@ -19,5 +19,6 @@ return [
         ['label' => 'Drużyny piłki ręcznej', 'icon' => 'bi-people-fill', 'url' => 'handball/teams'],
         ['label' => 'Mecze',                 'icon' => 'bi-calendar3',    'url' => 'handball/matches'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

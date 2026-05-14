@@ -16,5 +16,6 @@ return [
     'nav' => [
         ['label' => 'Wyniki snowboard', 'icon' => 'bi-snow2', 'url' => 'snowboard/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

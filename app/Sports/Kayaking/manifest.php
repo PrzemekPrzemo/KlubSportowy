@@ -17,5 +17,6 @@ return [
         ['label' => 'Łodzie kajakowe', 'icon' => 'bi-water',          'url' => 'kayaking/boats'],
         ['label' => 'Wyniki',          'icon' => 'bi-stopwatch-fill', 'url' => 'kayaking/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

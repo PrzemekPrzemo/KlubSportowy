@@ -17,5 +17,6 @@ return [
         ['label' => 'Pasy BJJ',       'icon' => 'bi-award',    'url' => 'bjj/belts'],
         ['label' => 'Wyniki walk',    'icon' => 'bi-trophy',   'url' => 'bjj/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

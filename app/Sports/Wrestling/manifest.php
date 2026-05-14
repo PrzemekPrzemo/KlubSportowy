@@ -16,5 +16,6 @@ return [
     'nav' => [
         ['label' => 'Wyniki zawodów', 'icon' => 'bi-people-fill', 'url' => 'wrestling/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

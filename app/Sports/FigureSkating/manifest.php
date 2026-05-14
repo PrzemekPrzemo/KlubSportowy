@@ -16,5 +16,6 @@ return [
     'nav' => [
         ['label' => 'Wyniki figurowe', 'icon' => 'bi-star-half', 'url' => 'figureskating/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

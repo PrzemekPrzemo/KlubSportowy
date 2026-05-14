@@ -16,5 +16,6 @@ return [
     'nav' => [
         ['label' => 'Wyniki skoków', 'icon' => 'bi-arrow-up-right-circle', 'url' => 'skijump/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

@@ -17,5 +17,6 @@ return [
         ['label' => 'Walki (rekord W-L)', 'icon' => 'bi-trophy',      'url' => 'boxing/results'],
         ['label' => 'Badania lekarskie',  'icon' => 'bi-heart-pulse', 'url' => 'boxing/medicals'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

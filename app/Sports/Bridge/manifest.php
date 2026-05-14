@@ -17,5 +17,6 @@ return [
         ['label' => 'Pary brydżowe',  'icon' => 'bi-people',    'url' => 'bridge/partnerships'],
         ['label' => 'Turnieje brydża','icon' => 'bi-trophy',     'url' => 'bridge/tournaments'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

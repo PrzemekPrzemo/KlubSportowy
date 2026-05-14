@@ -32,5 +32,6 @@ return [
         ['label' => 'Zawody',         'icon' => 'bi-flag',            'url' => 'equestrian/competitions'],
         ['label' => 'Wyniki',         'icon' => 'bi-trophy',          'url' => 'equestrian/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

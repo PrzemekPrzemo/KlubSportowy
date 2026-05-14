@@ -17,5 +17,6 @@ return [
         ['label' => 'Wyniki zawodów', 'icon' => 'bi-bar-chart-steps', 'url' => 'weightlifting/results'],
         ['label' => 'Rekordy',        'icon' => 'bi-trophy-fill',     'url' => 'weightlifting/records'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

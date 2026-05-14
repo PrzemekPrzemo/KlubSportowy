@@ -16,5 +16,6 @@ return [
     'nav' => [
         ['label' => 'Wyniki alpejskie', 'icon' => 'bi-triangle-fill', 'url' => 'alpineski/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

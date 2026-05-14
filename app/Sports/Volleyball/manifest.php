@@ -45,5 +45,6 @@ return [
         ['label' => 'Transfery',  'icon' => 'bi-arrow-left-right', 'url' => 'volleyball/transfers'],
         ['label' => 'Statystyki', 'icon' => 'bi-bar-chart',        'url' => 'volleyball/stats'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

@@ -19,5 +19,6 @@ return [
         ['label' => 'Łodzie / Jachty', 'icon' => 'bi-water',   'url' => 'sailing/boats'],
         ['label' => 'Regaty',          'icon' => 'bi-trophy',  'url' => 'sailing/races'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];
