@@ -76,9 +76,8 @@ class HelpController extends BaseController
         ]);
     }
 
-    public function page(array $params = []): void
+    public function page(string $slug = ''): void
     {
-        $slug     = (string)($params['slug'] ?? '');
         $sections = $this->sections();
 
         if ($slug === '' || !isset($sections[$slug])) {
