@@ -23,7 +23,7 @@ class SupportReportController extends BaseController
     private const ALLOWED_MIME = ['image/png', 'image/jpeg', 'image/jpg'];
     private const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 
-    private const RATE_LIMIT_PER_HOUR = 5;
+    private const RATE_LIMIT_PER_HOUR = 20;
 
     public function __construct()
     {
@@ -55,9 +55,11 @@ class SupportReportController extends BaseController
         $memberId = MemberAuth::check() ? MemberAuth::id() : null;
         $clubId   = $this->detectClubId();
 
-        // Rate limit
+        // Rate limit — super admin bez limitu (admin testuje/zglasza w naszym imieniu)
         $model = new SupportReportModel();
-        if ($model->countRecentBySubmitter($userId, $memberId, 60) >= self::RATE_LIMIT_PER_HOUR) {
+        $isSuperAdmin = Auth::isSuperAdmin();
+        if (!$isSuperAdmin
+            && $model->countRecentBySubmitter($userId, $memberId, 60) >= self::RATE_LIMIT_PER_HOUR) {
             Session::flash('error', 'Zbyt wiele zgloszen w ciagu ostatniej godziny. Sprobuj ponownie pozniej.');
             $this->redirect('support/report');
         }
