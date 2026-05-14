@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Models\EmailEventCatalogModel;
 use App\Models\EmailQueueModel;
 use App\Models\EmailTemplateModel;
 
@@ -19,9 +20,19 @@ class EmailTemplatesController extends BaseController
     public function index(): void
     {
         $templates = (new EmailTemplateModel())->listForClub($this->currentClub());
+        $eventCatalog = (new EmailEventCatalogModel())->listByCategory();
+
+        // Indeks zarejestrowanych template_type (per-klub lub global) — by pokazac status w katalogu
+        $registered = [];
+        foreach ($templates as $t) {
+            $registered[$t['template_type']] = $t;
+        }
+
         $this->render('email/templates', [
-            'title'     => 'Szablony e-mail',
-            'templates' => $templates,
+            'title'        => 'Szablony e-mail',
+            'templates'    => $templates,
+            'eventCatalog' => $eventCatalog,
+            'registered'   => $registered,
         ]);
     }
 
@@ -29,10 +40,22 @@ class EmailTemplatesController extends BaseController
     {
         $clubId   = $this->currentClub();
         $template = (new EmailTemplateModel())->resolve($type, $clubId);
+        $event    = (new EmailEventCatalogModel())->findByCode($type);
+
+        // Jesli brak template'u dla tego klubu — pre-fill z default z event catalog
+        if ($template === null && $event !== null) {
+            $template = [
+                'name'    => $event['name'] ?? $type,
+                'subject' => $event['default_subject'] ?? '',
+                'body'    => $event['default_body'] ?? '',
+            ];
+        }
+
         $this->render('email/template_form', [
             'title'        => 'Edycja szablonu: ' . $type,
             'template'     => $template,
             'template_type'=> $type,
+            'event'        => $event,
         ]);
     }
 
