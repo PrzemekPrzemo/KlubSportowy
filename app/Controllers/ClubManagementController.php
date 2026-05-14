@@ -203,4 +203,25 @@ class ClubManagementController extends BaseController
         }
         $this->redirect('club/users');
     }
+
+    /**
+     * Cross-sport overview dla zarzadu klubu — top 10 najaktywniejszych
+     * czlonkow, rozklad czlonkow per sport + trend rejestracji 12m.
+     *
+     * GET /admin/clubs/cross-sport-overview
+     * Rola: zarzad (sprawdzane w konstruktorze).
+     */
+    public function crossSportOverview(): void
+    {
+        $topActive       = \App\Helpers\CrossSportStats::topActiveForClub(10);
+        $perSport        = \App\Helpers\CrossSportStats::membersPerSportForClub();
+        $registrationTr  = \App\Helpers\CrossSportStats::registrationTrendForClub();
+
+        $this->render('admin/club_management/cross_sport_overview', [
+            'title'             => 'Cross-sport overview',
+            'topActive'         => $topActive,
+            'perSport'          => $perSport,
+            'registrationTrend' => $registrationTr,
+        ]);
+    }
 }
