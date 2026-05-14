@@ -141,3 +141,50 @@ Jeśli baza jest pusta — `cli/update.php` zatrzymuje się z błędem i prosi o
 | `--only=<plik>` | aplikuje tylko jeden plik (np. `055_inpost_shipping.sql` lub `Sports/Football/001_football.sql`) |
 
 Wszystkie operacje logowane do `storage/logs/migrations.log`.
+
+## 10. Diagnostyka integracji (health check)
+
+`cli/test_integrations.php` to diagnostyczny skrypt, ktory sprawdza per klub wszystkie skonfigurowane integracje (Stripe / Przelewy24 / PayU / Tpay / InPost / Google Calendar / federacje PZPN/PZSS/PZKosz/PZLA/...) wywolujac `testConnection()` na adapterach.
+
+### Najczestsze uzycia
+
+```bash
+# Pelny przeglad wszystkich klubow
+php cli/test_integrations.php
+
+# Tylko jeden klub
+php cli/test_integrations.php --club=42
+
+# Tylko jedna integracja (wszystkie kluby)
+php cli/test_integrations.php --integration=stripe
+
+# Output JSON (do parsowania)
+php cli/test_integrations.php --json
+```
+
+### Flagi
+
+| Flaga | Opis |
+|---|---|
+| `--club=N` | sprawdz tylko klub o id=N |
+| `--integration=stripe\|p24\|payu\|tpay\|inpost\|gcal\|federation` | tylko wybrana grupa |
+| `--verbose` | pokaz szczegoly (`account_id`, `organization_id`, `last_sync_at`) |
+| `--json` | output w formacie JSON (zamiast human-friendly) |
+| `--fail-on-error` | exit 1 gdy ktorakolwiek integracja fail (do cron / CI) |
+| `--timeout=N` | timeout HTTP per call (default 5s) |
+
+Exit codes: `0` = OK, `1` = co najmniej 1 fail (gdy `--fail-on-error`), `2` = init error.
+
+### Cron setup
+
+Co godzine sprawdzaj wszystkie integracje i alertuj mailem gdy ktoras zerwie:
+
+```cron
+0 * * * * /opt/plesk/php/8.2/bin/php /var/www/clubdesk/cli/test_integrations.php --fail-on-error --json > /tmp/clubdesk-health.json 2>&1 || mail -s "ClubDesk: zerwana integracja" admin@klubdesk.pl < /tmp/clubdesk-health.json
+```
+
+Alternatywa codzienna o 6:00 z pelnym raportem human-readable do logu:
+
+```cron
+0 6 * * * /opt/plesk/php/8.2/bin/php /var/www/clubdesk/cli/test_integrations.php >> /var/log/clubdesk-integrations.log 2>&1
+```
