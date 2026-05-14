@@ -189,6 +189,35 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <?php endif; ?>
     <?php endif; ?>
 
+    <?php
+    // ── FUNKCJE (cross-cutting features widoczne dla wszystkich zalogowanych
+    //   uzytkownikow klubu — bez wymogu roli zarzad/admin) ───────────────────
+    if (!empty($currentClubId)): ?>
+        <div class="section-label">FUNKCJE</div>
+        <?php if (\App\Helpers\Feature::enabled('live_score')): ?>
+            <a href="<?= url('live') ?>"><i class="bi bi-broadcast"></i> Live updates</a>
+        <?php endif; ?>
+        <?php if (\App\Helpers\Feature::enabled('cross_sport_stats')): ?>
+            <a href="<?= url('club/cross-sport-overview') ?>"><i class="bi bi-bar-chart-steps"></i> Statystyki cross-sport</a>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php
+    // ── INTEGRACJE — tylko zarzad/admin (zawieraja credentiale wrazliwe) ─────
+    if (!empty($currentClubId) && \App\Helpers\Auth::hasRole(['zarzad', 'admin'])): ?>
+        <div class="section-label">INTEGRACJE</div>
+        <a href="<?= url('club/gateways') ?>"><i class="bi bi-credit-card-2-front"></i> Bramki płatności</a>
+        <?php if (\App\Helpers\Feature::enabled('inpost_shipping')): ?>
+            <a href="<?= url('club/shipping') ?>"><i class="bi bi-truck"></i> Wysyłka InPost</a>
+            <a href="<?= url('club/shipping/shipments') ?>" style="padding-left:2rem;">
+                <i class="bi bi-list-ul"></i> <small>Przesyłki</small>
+            </a>
+        <?php endif; ?>
+        <?php if (\App\Helpers\Feature::enabled('federation_export')): ?>
+            <a href="<?= url('club/federations') ?>"><i class="bi bi-globe2"></i> Federacje sportowe</a>
+        <?php endif; ?>
+    <?php endif; ?>
+
     <?php // Club settings — only when a club is actually selected
     if (!empty($currentClubId) && ($allowed === null || in_array('club', $allowed, true))): ?>
         <div class="section-label"><?= __('nav.club_settings') ?></div>

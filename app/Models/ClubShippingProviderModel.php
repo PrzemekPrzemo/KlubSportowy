@@ -81,6 +81,16 @@ class ClubShippingProviderModel extends ClubScopedModel
     }
 
     /**
+     * Alias dla activeProvider() — nazwa analogiczna do
+     * ClubPaymentGatewayModel::activeGateway(). Uzywana przez
+     * ClubShippingController::storeShipment() przy nadawaniu paczek.
+     */
+    public function activeForClub(): ?array
+    {
+        return $this->activeProvider();
+    }
+
+    /**
      * Zwraca config gotowy do podania InPostAdapter (zdeszyfrowane creds +
      * wszystkie pola sender_*).
      */

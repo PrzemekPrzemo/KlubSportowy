@@ -440,6 +440,11 @@ $router->get('/club/shipping/edit',         [\App\Controllers\ClubShippingContro
 $router->post('/club/shipping/save',        [\App\Controllers\ClubShippingController::class, 'save']);
 $router->post('/club/shipping/test',        [\App\Controllers\ClubShippingController::class, 'testConnection']);
 $router->post('/club/shipping/toggle',      [\App\Controllers\ClubShippingController::class, 'toggleActive']);
+// Tworzenie przesyłek z karty członka + lista + download etykiety (UI gap fix)
+$router->get('/club/shipping/create',       [\App\Controllers\ClubShippingController::class, 'create']);
+$router->post('/club/shipping/create',      [\App\Controllers\ClubShippingController::class, 'storeShipment']);
+$router->get('/club/shipping/shipments',    [\App\Controllers\ClubShippingController::class, 'listShipments']);
+$router->get('/club/shipping/label/:id',    [\App\Controllers\ClubShippingController::class, 'downloadLabel']);
 
 // Powiadomienia (Faza S.1)
 $router->get('/club/notifications',                       [\App\Controllers\NotificationRulesController::class, 'index']);

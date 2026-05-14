@@ -69,6 +69,20 @@
             </form>
         </div>
 
+        <?php if (\App\Helpers\Auth::hasRole(['zarzad', 'admin']) && \App\Helpers\Feature::enabled('inpost_shipping')): ?>
+        <div class="card p-3 mt-3">
+            <h6><i class="bi bi-truck"></i> Wysyłka InPost</h6>
+            <p class="small text-muted mb-2">
+                Utwórz przesyłkę paczkomatową lub kuriera dla tego zawodnika.
+                Dane odbiorcy zostaną pre-wypełnione z karty.
+            </p>
+            <a href="<?= url('club/shipping/create?member_id=' . (int)$member['id']) ?>"
+               class="btn btn-sm btn-outline-primary w-100">
+                <i class="bi bi-box-arrow-up-right"></i> Utwórz przesyłkę
+            </a>
+        </div>
+        <?php endif; ?>
+
         <div class="card p-3 mt-3">
             <h6><i class="bi bi-file-earmark-pdf"></i> Dokumenty PDF</h6>
             <div class="d-grid gap-2">
