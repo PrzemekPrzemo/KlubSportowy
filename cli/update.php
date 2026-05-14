@@ -138,8 +138,16 @@ usort($all, function (array $a, array $b): int {
 // Jeśli tabela schema_migrations dopiero powstała (lub jest pusta) ALE
 // w bazie są tabele 'clubs' i 'members' → to legacy instalacja: oznacz
 // wszystkie istniejące migracje jako pre-applied baseline.
-$appliedCountStmt = $pdo->query("SELECT COUNT(*) FROM `schema_migrations`");
-$appliedCount = (int) $appliedCountStmt->fetchColumn();
+//
+// W trybie --dry-run tabela mogła nie zostać utworzona w sekcji wyżej —
+// wtedy traktujemy applied_count jako 0 (nic nie ma w trackingu).
+if (!$tableExists && $dryRun) {
+    $appliedCount = 0;
+    echo $yellow("  (dry-run: pomijam odczyt schema_migrations — tabela jeszcze nie istnieje)\n");
+} else {
+    $appliedCountStmt = $pdo->query("SELECT COUNT(*) FROM `schema_migrations`");
+    $appliedCount = (int) $appliedCountStmt->fetchColumn();
+}
 
 $coreTablesExist = (function () use ($pdo, $config): bool {
     $stmt = $pdo->prepare(
@@ -181,8 +189,13 @@ if ($appliedCount === 0 && $coreTablesExist) {
 
 // --------------------- Load applied set -----------------
 $applied = [];
-$rows = $pdo->query("SELECT migration_file FROM `schema_migrations` WHERE status = 'success'");
-foreach ($rows as $r) $applied[$r['migration_file']] = true;
+if (!$tableExists && $dryRun) {
+    // dry-run + brak tabeli: nic nie zostało jeszcze zaaplikowane wg trackingu
+    // — wszystkie migracje będą w planie. To realistyczny preview.
+} else {
+    $rows = $pdo->query("SELECT migration_file FROM `schema_migrations` WHERE status = 'success'");
+    foreach ($rows as $r) $applied[$r['migration_file']] = true;
+}
 
 // --------------------- Plan & execute -------------------
 $toApply = [];
