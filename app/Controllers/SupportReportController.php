@@ -341,6 +341,87 @@ class SupportReportController extends BaseController
         ];
     }
 
+    /**
+     * Manualne wymuszenie sync statusu zgloszen z Todoistem.
+     * Endpoint: POST /admin/support/sync-now
+     * Wykonuje to samo co cron `cli/todoist_sync_status.php`, ale inline.
+     */
+    public function syncNow(): void
+    {
+        Auth::requireLogin();
+        if (!Auth::isSuperAdmin() && !Auth::hasRole(['zarzad', 'admin'])) {
+            http_response_code(403);
+            die('Brak uprawnien.');
+        }
+        Csrf::verify();
+
+        $client = new TodoistClient();
+        if (!$client->isConfigured()) {
+            Session::flash('error', 'Todoist nie jest skonfigurowany (config/todoist.local.php).');
+            $this->redirect('admin/support');
+        }
+
+        $db = \App\Helpers\Database::pdo();
+        // Super admin sync wszystkie, zarzad/admin tylko z aktywnego klubu
+        $clubId = ClubContext::current();
+        $where = "todoist_task_id IS NOT NULL AND todoist_task_id <> '' AND status IN ('new','in_progress')";
+        $params = [];
+        if (!Auth::isSuperAdmin() && $clubId !== null) {
+            $where .= " AND club_id = ?";
+            $params[] = (int)$clubId;
+        }
+        $stmt = $db->prepare("SELECT id, todoist_task_id FROM support_reports WHERE {$where} ORDER BY id ASC LIMIT 100");
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+
+        $processed = 0; $resolved = 0; $deleted = 0; $stillOpen = 0; $errors = 0;
+        $upd = $db->prepare(
+            "UPDATE support_reports
+                SET status = ?, resolved_at = ?, resolution_notes = ?, todoist_synced_at = ?, todoist_sync_error = NULL
+              WHERE id = ?"
+        );
+        $touchSync = $db->prepare(
+            "UPDATE support_reports SET todoist_synced_at = ?, todoist_sync_error = NULL WHERE id = ?"
+        );
+        $touchErr = $db->prepare("UPDATE support_reports SET todoist_sync_error = ? WHERE id = ?");
+
+        foreach ($rows as $row) {
+            $processed++;
+            $ticketId = (int)$row['id'];
+            $taskId   = (string)$row['todoist_task_id'];
+            try {
+                $task = $client->getTask($taskId);
+                if ($task === null) {
+                    $upd->execute(['resolved', date('Y-m-d H:i:s'), 'Task deleted in Todoist', date('Y-m-d H:i:s'), $ticketId]);
+                    $deleted++;
+                    continue;
+                }
+                $isCompleted = !empty($task['is_completed']) || !empty($task['completed_at']) || !empty($task['checked']);
+                if ($isCompleted) {
+                    $upd->execute(['resolved', date('Y-m-d H:i:s'), 'Closed in Todoist', date('Y-m-d H:i:s'), $ticketId]);
+                    $resolved++;
+                } else {
+                    $touchSync->execute([date('Y-m-d H:i:s'), $ticketId]);
+                    $stillOpen++;
+                }
+            } catch (\Throwable $e) {
+                $errors++;
+                try { $touchErr->execute([mb_substr($e->getMessage(), 0, 1000), $ticketId]); } catch (\Throwable) {}
+            }
+            // Light throttle — 50ms
+            usleep(50000);
+        }
+
+        $msg = "Sync zakonczony: sprawdzono {$processed}, zamknieto {$resolved}, usunieto z Todoist {$deleted}, wciaz otwarte {$stillOpen}";
+        if ($errors > 0) {
+            $msg .= ", bledy: {$errors}";
+            Session::flash('warning', $msg);
+        } else {
+            Session::flash('success', $msg . '.');
+        }
+        $this->redirect('admin/support');
+    }
+
     public function updateStatus(string $id): void
     {
         Auth::requireLogin();

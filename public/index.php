@@ -237,6 +237,7 @@ $router->get('/support/report',            [\App\Controllers\SupportReportContro
 $router->post('/support/report',           [\App\Controllers\SupportReportController::class, 'submitReport']);
 $router->get('/support/my-reports',        [\App\Controllers\SupportReportController::class, 'myReports']);
 $router->get('/admin/support',             [\App\Controllers\SupportReportController::class, 'adminIndex']);
+$router->post('/admin/support/sync-now',    [\App\Controllers\SupportReportController::class, 'syncNow']);
 $router->get('/support/tickets',           [\App\Controllers\SupportReportController::class, 'adminIndex']);
 $router->post('/admin/support/:id/status', [\App\Controllers\SupportReportController::class, 'updateStatus']);
 $router->get('/admin/support/:id',         [\App\Controllers\SupportReportController::class, 'adminDetail']);

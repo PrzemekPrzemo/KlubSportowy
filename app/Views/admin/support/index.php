@@ -41,9 +41,18 @@ $maxByType = max(1, ...array_map('intval', array_values($stats['by_type'] ?? [1]
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h1 class="h3 mb-0"><i class="bi bi-bug"></i> Zgloszenia bledow i propozycji</h1>
-        <a href="<?= url('support/report') ?>" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-plus"></i> Nowe zgloszenie
-        </a>
+        <div class="d-flex gap-2">
+            <form method="POST" action="<?= url('admin/support/sync-now') ?>" class="m-0"
+                  onsubmit="return confirm('Wymusic synchronizacje statusow zgloszen z Todoistem? Moze potrwac do 30s.');">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn btn-outline-secondary btn-sm" title="Wymus sync statusow zgloszen z Todoistem">
+                    <i class="bi bi-arrow-repeat"></i> Synchronizuj z Todoist
+                </button>
+            </form>
+            <a href="<?= url('support/report') ?>" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-plus"></i> Nowe zgloszenie
+            </a>
+        </div>
     </div>
 
     <?php if (!empty($flashSuccess)): ?>
