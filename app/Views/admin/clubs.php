@@ -38,8 +38,11 @@
                         <a href="<?= url('admin/platform/feature-flags/clubs/' . (int)$c['id']) ?>" class="btn btn-sm btn-outline-warning" title="Feature flags">
                             <i class="bi bi-toggles2"></i>
                         </a>
-                        <a href="<?= url('admin/clubs/' . (int)$c['id'] . '/edit') ?>" class="btn btn-sm btn-outline-secondary">
+                        <a href="<?= url('admin/clubs/' . (int)$c['id'] . '/edit') ?>" class="btn btn-sm btn-outline-secondary" title="Edytuj">
                             <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="<?= url('admin/clubs/' . (int)$c['id'] . '/delete') ?>" class="btn btn-sm btn-outline-danger" title="Usun klub">
+                            <i class="bi bi-trash"></i>
                         </a>
                     </td>
                 </tr>
