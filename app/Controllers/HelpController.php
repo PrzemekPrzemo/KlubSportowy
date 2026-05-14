@@ -42,12 +42,9 @@ class HelpController extends BaseController
                 'icon'  => 'bi-braces',
                 'desc'  => 'REST API ClubDesk — endpointy, autoryzacja, przykłady requestów.',
             ],
-            'installation' => [
-                'file'  => 'plesk-installation.md',
-                'title' => 'Instalacja na Plesk',
-                'icon'  => 'bi-server',
-                'desc'  => 'Krok po kroku: deploy ClubDesk na własnym serwerze Plesk.',
-            ],
+            // 'installation' — celowo wyłączone w trybie SaaS (instrukcje deploy
+            // nie powinny być widoczne dla klientów portalu klubdesk.pl).
+            // Plik docs/plesk-installation.md istnieje w repo dla self-hosting.
             'pricing' => [
                 'file'  => 'CLUBDESK_PL_PRICING.md',
                 'title' => 'Cennik i plany',
@@ -124,9 +121,8 @@ class HelpController extends BaseController
         ]);
     }
 
-    public function page(array $params = []): void
+    public function page(string $slug = ''): void
     {
-        $slug     = (string)($params['slug'] ?? '');
         $sections = $this->sections();
 
         if ($slug === '' || !isset($sections[$slug])) {
