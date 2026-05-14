@@ -173,6 +173,9 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <a href="<?= url('portal/sport-history') ?>" class="<?= $isActive('sport-history') ?>">
                 <i class="bi bi-clock-history me-1"></i>Historia
             </a>
+            <a href="<?= url('help') ?>">
+                <i class="bi bi-question-circle me-1"></i>Pomoc
+            </a>
             <?php
             $sportKeys = ['bjj','gymnastics','floorball','padel','sailing','triathlon','crossfit',
                           'swimming','tennis','boxing','handball','cycling','icehockey','fencing',

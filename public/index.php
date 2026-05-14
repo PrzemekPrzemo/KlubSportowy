@@ -120,6 +120,10 @@ $router = new \App\Helpers\Router();
 // Whitelabel — per-klub favicon (public, no auth)
 $router->get('/favicon.ico', [\App\Controllers\BrandingAssetController::class, 'favicon']);
 
+// In-app help center (publiczne — dostępne dla zalogowanych i anonimowych)
+$router->get('/help',        [\App\Controllers\HelpController::class, 'index']);
+$router->get('/help/:slug',  [\App\Controllers\HelpController::class, 'page']);
+
 // Strona startowa → logowanie (landing page jest na clubdesk.pl)
 $router->get('/', [\App\Controllers\AuthController::class, 'showLogin']);
 
