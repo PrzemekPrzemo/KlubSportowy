@@ -43,6 +43,20 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         .sidebar a.active { background: rgba(255,255,255,.08); border-left-color: var(--app-primary); color: #fff; font-weight: 600; }
         .sidebar .brand { padding: .5rem 1rem 1rem 1rem; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: .5rem; }
         .sidebar .section-label { text-transform: uppercase; font-size: .7rem; color: #7f849c; padding: 1rem 1rem .3rem 1rem; letter-spacing: .1em; }
+
+        /* Collapsible sections (Z.3 — sidebar grupy) */
+        .sidebar .section-toggle {
+            background: transparent; border: 0; width: 100%; text-align: left;
+            color: #7f849c; text-transform: uppercase; font-size: .7rem;
+            letter-spacing: .1em; padding: 1rem 1rem .3rem 1rem;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; font-family: inherit;
+        }
+        .sidebar .section-toggle:hover { color: rgba(255,255,255,.85); }
+        .sidebar .section-toggle .bi-chevron-down { transition: transform .2s ease; font-size: .65rem; opacity: .6; }
+        .sidebar .section-toggle[aria-expanded="false"] .bi-chevron-down { transform: rotate(-90deg); }
+        .sidebar .section-items { overflow: hidden; max-height: 2000px; transition: max-height .25s ease; }
+        .sidebar .section-toggle[aria-expanded="false"] + .section-items { max-height: 0; }
         .main-content { margin-left: 260px; padding: 1.5rem; min-height: 100vh; background: var(--cd-slate, #F0F2F5); }
         .btn-primary, .bg-primary { background-color: var(--app-primary) !important; border-color: var(--app-primary) !important; }
         .text-primary { color: var(--app-primary) !important; }
@@ -92,50 +106,72 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     $isSuperAdminNoClub = !empty($isSuperAdmin) && empty($currentClubId);
     ?>
 
-    <?php if (!$isSuperAdminNoClub): ?>
-    <div class="section-label"><?= __('nav.club') ?></div>
-    <?php
-    $navItems = [
-        'dashboard'     => ['url' => 'dashboard',     'icon' => 'bi-speedometer2',           'label' => __('nav.dashboard'),       'mod' => null],
-        'members'       => ['url' => 'members',       'icon' => 'bi-people',                 'label' => __('nav.members'),         'mod' => 'members'],
-        'members_all'   => ['url' => 'members-all',   'icon' => 'bi-people-fill',            'label' => 'Wszyscy zawodnicy',       'mod' => 'members'],
-        'import'        => ['url' => 'import',        'icon' => 'bi-upload',                 'label' => __('nav.import_csv'),      'mod' => 'members'],
-        'sports'        => ['url' => 'sports',        'icon' => 'bi-trophy',                 'label' => __('nav.sports_sections'), 'mod' => 'sports'],
-        'calendar'      => ['url' => 'calendar',      'icon' => 'bi-calendar3',              'label' => __('nav.calendar'),        'mod' => 'calendar'],
-        'events'        => ['url' => 'events',        'icon' => 'bi-calendar-event',         'label' => __('nav.events'),          'mod' => 'events'],
-        'trainings'     => ['url' => 'trainings',     'icon' => 'bi-stopwatch',              'label' => __('nav.trainings'),       'mod' => 'trainings'],
-        'fees'          => ['url' => 'fees',          'icon' => 'bi-cash-coin',              'label' => __('nav.finances'),        'mod' => 'fees'],
-        'fees_rates'    => ['url' => 'fees/rates',    'icon' => 'bi-tag',                    'label' => __('nav.fee_rates'),       'mod' => 'fees'],
-        'medical'       => ['url' => 'medical',       'icon' => 'bi-heart-pulse',            'label' => __('nav.medical'),         'mod' => 'medical',         'sensitive' => true],
-        'compliance'    => ['url' => 'admin/compliance','icon' => 'bi-shield-check',         'label' => 'Zgodność WADA',           'mod' => 'medical',         'sensitive' => true],
-        'equipment'     => ['url' => 'equipment',     'icon' => 'bi-box-seam',               'label' => 'Sprzęt klubowy',          'mod' => null],
-        'certifications'=> ['url' => 'certifications','icon' => 'bi-patch-check',            'label' => 'Uprawnienia trenerskie',  'mod' => null],
-        'commissions'   => ['url' => 'club/trainers/commissions', 'icon' => 'bi-cash-coin',  'label' => 'Prowizje trenerów',       'mod' => 'fees'],
-        'announcements' => ['url' => 'announcements', 'icon' => 'bi-megaphone',              'label' => __('nav.announcements'),   'mod' => 'announcements'],
-        'gallery'       => ['url' => 'gallery',       'icon' => 'bi-images',                 'label' => __('nav.gallery'),         'mod' => null],
-        'messages'      => ['url' => 'messages',      'icon' => 'bi-chat-dots',              'label' => __('nav.messages'),        'mod' => null],
-        'analytics'     => ['url' => 'analytics',     'icon' => 'bi-graph-up',               'label' => __('nav.analytics'),       'mod' => null],
-        'bookings'      => ['url' => 'bookings',      'icon' => 'bi-calendar-check',         'label' => __('nav.bookings'),        'mod' => null],
-        'reports'       => ['url' => 'reports',       'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),         'mod' => 'reports'],
-        'documents'     => ['url' => 'documents',     'icon' => 'bi-file-earmark-pdf',       'label' => __('nav.documents'),       'mod' => null],
-        'gdpr'          => ['url' => 'gdpr',          'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
-        'subscription'  => ['url' => 'club/subscription', 'icon' => 'bi-credit-card-2-front', 'label' => 'Subskrypcja klubu',     'mod' => null],
+    <?php if (!$isSuperAdminNoClub):
+    // ── Pogrupowane sekcje klubu (Z.3) ────────────────────────────
+    // Każda pod-sekcja jest collapsible — stan w localStorage 'cd_nav_collapsed'.
+    $allItems = [
+        'dashboard'      => ['url' => 'dashboard',                  'icon' => 'bi-speedometer2',           'label' => __('nav.dashboard'),       'mod' => null],
+        'members'        => ['url' => 'members',                    'icon' => 'bi-people',                 'label' => __('nav.members'),         'mod' => 'members'],
+        'members_all'    => ['url' => 'members-all',                'icon' => 'bi-people-fill',            'label' => 'Wszyscy zawodnicy',       'mod' => 'members'],
+        'sports'         => ['url' => 'sports',                     'icon' => 'bi-trophy',                 'label' => __('nav.sports_sections'), 'mod' => 'sports'],
+        'calendar'       => ['url' => 'calendar',                   'icon' => 'bi-calendar3',              'label' => __('nav.calendar'),        'mod' => 'calendar'],
+        'import'         => ['url' => 'import',                     'icon' => 'bi-upload',                 'label' => __('nav.import_csv'),      'mod' => 'members'],
+        'events'         => ['url' => 'events',                     'icon' => 'bi-calendar-event',         'label' => __('nav.events'),          'mod' => 'events'],
+        'trainings'      => ['url' => 'trainings',                  'icon' => 'bi-stopwatch',              'label' => __('nav.trainings'),       'mod' => 'trainings'],
+        'bookings'       => ['url' => 'bookings',                   'icon' => 'bi-calendar-check',         'label' => __('nav.bookings'),        'mod' => null],
+        'announcements'  => ['url' => 'announcements',              'icon' => 'bi-megaphone',              'label' => __('nav.announcements'),   'mod' => 'announcements'],
+        'messages'       => ['url' => 'messages',                   'icon' => 'bi-chat-dots',              'label' => __('nav.messages'),        'mod' => null],
+        'fees'           => ['url' => 'fees',                       'icon' => 'bi-cash-coin',              'label' => __('nav.finances'),        'mod' => 'fees'],
+        'fees_rates'     => ['url' => 'fees/rates',                 'icon' => 'bi-tag',                    'label' => __('nav.fee_rates'),       'mod' => 'fees'],
+        'commissions'    => ['url' => 'club/trainers/commissions',  'icon' => 'bi-cash-coin',              'label' => 'Prowizje trenerów',       'mod' => 'fees'],
+        'subscription'   => ['url' => 'club/subscription',          'icon' => 'bi-credit-card-2-front',    'label' => 'Subskrypcja klubu',       'mod' => null],
+        'medical'        => ['url' => 'medical',                    'icon' => 'bi-heart-pulse',            'label' => __('nav.medical'),         'mod' => 'medical',          'sensitive' => true],
+        'compliance'     => ['url' => 'admin/compliance',           'icon' => 'bi-shield-check',           'label' => 'Zgodność WADA',           'mod' => 'medical',          'sensitive' => true],
+        'certifications' => ['url' => 'certifications',             'icon' => 'bi-patch-check',            'label' => 'Uprawnienia trenerskie',  'mod' => null],
+        'equipment'      => ['url' => 'equipment',                  'icon' => 'bi-box-seam',               'label' => 'Sprzęt klubowy',          'mod' => null],
+        'analytics'      => ['url' => 'analytics',                  'icon' => 'bi-graph-up',               'label' => __('nav.analytics'),       'mod' => null],
+        'reports'        => ['url' => 'reports',                    'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),         'mod' => 'reports'],
+        'documents'      => ['url' => 'documents',                  'icon' => 'bi-file-earmark-pdf',       'label' => __('nav.documents'),       'mod' => null],
+        'gallery'        => ['url' => 'gallery',                    'icon' => 'bi-images',                 'label' => __('nav.gallery'),         'mod' => null],
+        'gdpr'           => ['url' => 'gdpr',                       'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
+    ];
+    $clubGroups = [
+        'core'      => ['label' => __('nav.club'),       'items' => ['dashboard', 'members', 'members_all', 'sports', 'calendar', 'import']],
+        'schedule'  => ['label' => 'Działania',          'items' => ['events', 'trainings', 'bookings', 'announcements', 'messages']],
+        'finance'   => ['label' => 'Finanse',            'items' => ['fees', 'fees_rates', 'commissions', 'subscription']],
+        'health'    => ['label' => 'Zdrowie i compliance', 'items' => ['medical', 'compliance', 'certifications', 'equipment']],
+        'reports'   => ['label' => 'Raporty i media',    'items' => ['analytics', 'reports', 'documents', 'gallery', 'gdpr']],
     ];
     $allowed = $navModules ?? null;
     $canSensitive = \App\Helpers\Auth::canAccessSensitiveData();
-    foreach ($navItems as $item):
-        // Ukryj pozycje z danymi wrażliwymi gdy rola bez dostępu
-        if (!empty($item['sensitive']) && !$canSensitive) continue;
-        if ($item['mod'] === null || $allowed === null || in_array($item['mod'], $allowed, true)):
+    foreach ($clubGroups as $groupKey => $group):
+        // Filter group items by allowed module + sensitive role
+        $visible = [];
+        foreach ($group['items'] as $k) {
+            $item = $allItems[$k] ?? null;
+            if (!$item) continue;
+            if (!empty($item['sensitive']) && !$canSensitive) continue;
+            if ($item['mod'] !== null && $allowed !== null && !in_array($item['mod'], $allowed, true)) continue;
+            $visible[$k] = $item;
+        }
+        if (empty($visible)) continue;
+        $sectionId = 'club-' . $groupKey;
     ?>
-        <a href="<?= url($item['url']) ?>"><i class="bi <?= View::e($item['icon']) ?>"></i> <?= View::e($item['label']) ?></a>
-    <?php endif; endforeach; ?>
-    <?php
-    // V.0 — link "moje prowizje" tylko dla trenera/instruktora
-    if (\App\Helpers\Auth::hasRole(['trener', 'instruktor'])):
-    ?>
-        <a href="<?= url('trainer/commissions/my') ?>"><i class="bi bi-wallet2"></i> Moje prowizje</a>
-    <?php endif; ?>
+        <div class="nav-section" data-section="<?= $sectionId ?>">
+            <button type="button" class="section-toggle" aria-expanded="true" aria-controls="sec-<?= $sectionId ?>">
+                <span class="section-label" style="padding:0;"><?= View::e($group['label']) ?></span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-<?= $sectionId ?>">
+            <?php foreach ($visible as $item): ?>
+                <a href="<?= url($item['url']) ?>"><i class="bi <?= View::e($item['icon']) ?>"></i> <?= View::e($item['label']) ?></a>
+            <?php endforeach; ?>
+            <?php if ($groupKey === 'finance' && \App\Helpers\Auth::hasRole(['trener', 'instruktor'])): ?>
+                <a href="<?= url('trainer/commissions/my') ?>"><i class="bi bi-wallet2"></i> Moje prowizje</a>
+            <?php endif; ?>
+            </div>
+        </div>
+    <?php endforeach; ?>
     <?php endif; // end !$isSuperAdminNoClub ?>
 
     <!-- Z.2 — Recent items (zarządzane przez JS, ukryte gdy puste) -->
@@ -192,80 +228,160 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     <?php
     // ── FUNKCJE (cross-cutting features widoczne dla wszystkich zalogowanych
     //   uzytkownikow klubu — bez wymogu roli zarzad/admin) ───────────────────
-    if (!empty($currentClubId)): ?>
-        <div class="section-label">FUNKCJE</div>
-        <?php if (\App\Helpers\Feature::enabled('live_score')): ?>
-            <a href="<?= url('live') ?>"><i class="bi bi-broadcast"></i> Live updates</a>
-        <?php endif; ?>
-        <?php if (\App\Helpers\Feature::enabled('cross_sport_stats')): ?>
-            <a href="<?= url('club/cross-sport-overview') ?>"><i class="bi bi-bar-chart-steps"></i> Statystyki cross-sport</a>
-        <?php endif; ?>
+    $hasFeatures = !empty($currentClubId) && (
+        \App\Helpers\Feature::enabled('live_score') ||
+        \App\Helpers\Feature::enabled('cross_sport_stats')
+    );
+    if ($hasFeatures): ?>
+        <div class="nav-section" data-section="features">
+            <button type="button" class="section-toggle" aria-expanded="true" aria-controls="sec-features">
+                <span class="section-label" style="padding:0;">Funkcje</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-features">
+                <?php if (\App\Helpers\Feature::enabled('live_score')): ?>
+                    <a href="<?= url('live') ?>"><i class="bi bi-broadcast"></i> Live updates</a>
+                <?php endif; ?>
+                <?php if (\App\Helpers\Feature::enabled('cross_sport_stats')): ?>
+                    <a href="<?= url('club/cross-sport-overview') ?>"><i class="bi bi-bar-chart-steps"></i> Statystyki cross-sport</a>
+                <?php endif; ?>
+            </div>
+        </div>
     <?php endif; ?>
 
     <?php
     // ── INTEGRACJE — tylko zarzad/admin (zawieraja credentiale wrazliwe) ─────
     if (!empty($currentClubId) && \App\Helpers\Auth::hasRole(['zarzad', 'admin'])): ?>
-        <div class="section-label">INTEGRACJE</div>
-        <a href="<?= url('club/gateways') ?>"><i class="bi bi-credit-card-2-front"></i> Bramki płatności</a>
-        <?php if (\App\Helpers\Feature::enabled('inpost_shipping')): ?>
-            <a href="<?= url('club/shipping') ?>"><i class="bi bi-truck"></i> Wysyłka InPost</a>
-            <a href="<?= url('club/shipping/shipments') ?>" style="padding-left:2rem;">
-                <i class="bi bi-list-ul"></i> <small>Przesyłki</small>
-            </a>
-        <?php endif; ?>
-        <?php if (\App\Helpers\Feature::enabled('federation_export')): ?>
-            <a href="<?= url('club/federations') ?>"><i class="bi bi-globe2"></i> Federacje sportowe</a>
-        <?php endif; ?>
+        <div class="nav-section" data-section="integrations">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-integrations">
+                <span class="section-label" style="padding:0;">Integracje</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-integrations">
+                <a href="<?= url('club/gateways') ?>"><i class="bi bi-credit-card-2-front"></i> Bramki płatności</a>
+                <?php if (\App\Helpers\Feature::enabled('inpost_shipping')): ?>
+                    <a href="<?= url('club/shipping') ?>"><i class="bi bi-truck"></i> Wysyłka InPost</a>
+                    <a href="<?= url('club/shipping/shipments') ?>" style="padding-left:2rem;">
+                        <i class="bi bi-list-ul"></i> <small>Przesyłki</small>
+                    </a>
+                <?php endif; ?>
+                <?php if (\App\Helpers\Feature::enabled('federation_export')): ?>
+                    <a href="<?= url('club/federations') ?>"><i class="bi bi-globe2"></i> Federacje sportowe</a>
+                <?php endif; ?>
+                <?php if (\App\Helpers\Feature::enabled('google_calendar_sync')): ?>
+                    <a href="<?= url('club/google-calendar') ?>"><i class="bi bi-calendar-event"></i> Google Calendar</a>
+                <?php endif; ?>
+            </div>
+        </div>
     <?php endif; ?>
 
-    <?php // Club settings — only when a club is actually selected
+    <?php // Club settings — podzielone na 3 pod-grupy zamiast 11 itemów w ciągu
     if (!empty($currentClubId) && ($allowed === null || in_array('club', $allowed, true))): ?>
-        <div class="section-label"><?= __('nav.club_settings') ?></div>
-        <a href="<?= url('club/settings') ?>"><i class="bi bi-gear"></i> <?= __('nav.club_data') ?></a>
-        <a href="<?= url('club/customization') ?>"><i class="bi bi-palette"></i> <?= __('nav.branding') ?></a>
-        <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> <?= __('nav.smtp_sms') ?></a>
-        <a href="<?= url('club/users') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.users') ?></a>
-        <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> <?= __('nav.email_templates') ?></a>
-        <a href="<?= url('club/webhooks') ?>"><i class="bi bi-plug"></i> <?= __('nav.webhooks') ?></a>
-        <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.plan_billing') ?></a>
-        <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
-        <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> <?= __('nav.api_keys') ?></a>
-        <a href="<?= url('federation') ?>"><i class="bi bi-globe"></i> <?= __('nav.federations') ?></a>
-        <a href="<?= url('support') ?>"><i class="bi bi-headset"></i> Wsparcie techniczne</a>
+        <div class="nav-section" data-section="settings-data">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-settings-data">
+                <span class="section-label" style="padding:0;">Ustawienia klubu</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-settings-data">
+                <a href="<?= url('club/settings') ?>"><i class="bi bi-gear"></i> <?= __('nav.club_data') ?></a>
+                <a href="<?= url('club/customization') ?>"><i class="bi bi-palette"></i> <?= __('nav.branding') ?></a>
+                <a href="<?= url('club/users') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.users') ?></a>
+                <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> <?= __('nav.smtp_sms') ?></a>
+                <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> <?= __('nav.email_templates') ?></a>
+            </div>
+        </div>
+        <div class="nav-section" data-section="settings-billing">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-settings-billing">
+                <span class="section-label" style="padding:0;">Plan i rozliczenia</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-settings-billing">
+                <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.plan_billing') ?></a>
+                <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
+            </div>
+        </div>
+        <div class="nav-section" data-section="settings-dev">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-settings-dev">
+                <span class="section-label" style="padding:0;">Developer i wsparcie</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-settings-dev">
+                <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> <?= __('nav.api_keys') ?></a>
+                <a href="<?= url('club/webhooks') ?>"><i class="bi bi-plug"></i> <?= __('nav.webhooks') ?></a>
+                <a href="<?= url('federation') ?>"><i class="bi bi-globe"></i> <?= __('nav.federations') ?></a>
+                <a href="<?= url('support') ?>"><i class="bi bi-headset"></i> Wsparcie techniczne</a>
+            </div>
+        </div>
     <?php endif; ?>
 
     <?php if (!empty($isSuperAdmin)): ?>
-        <div class="section-label">PLATFORMA</div>
-        <a href="<?= url('admin/dashboard') ?>"><i class="bi bi-speedometer2"></i> Pulpit admina</a>
-        <a href="<?= url('admin/clubs') ?>"><i class="bi bi-building"></i> <?= __('nav.clubs') ?></a>
-        <a href="<?= url('admin/demos') ?>"><i class="bi bi-rocket-takeoff"></i> Konta demo</a>
-        <a href="<?= url('admin/sports/catalog') ?>"><i class="bi bi-grid-3x3-gap"></i> Katalog sportów</a>
-        <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> Plany</a>
-        <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
-        <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
-        <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
-        <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> Feature flags</a>
-        <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> Logo systemu</a>
-        <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
-        <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
-        <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> Log aktywności</a>
-        <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> Kopie zapasowe</a>
-
-        <div class="section-label" style="font-size:.65rem;opacity:.6;">BEZPIECZEŃSTWO + MONITORING</div>
-        <a href="<?= url('admin/errors') ?>"><i class="bi bi-bug-fill"></i> Dziennik błędów</a>
-        <a href="<?= url('admin/security') ?>"><i class="bi bi-shield-lock-fill"></i> Dziennik bezpieczeństwa</a>
-        <a href="<?= url('admin/audit/isolation') ?>"><i class="bi bi-shield-check"></i> Audyt izolacji</a>
-        <a href="<?= url('admin/health') ?>"><i class="bi bi-heart-pulse"></i> Zdrowie systemu</a>
-        <a href="<?= url('admin/users') ?>"><i class="bi bi-shield-fill-check"></i> Super admini</a>
+        <div class="nav-section" data-section="platform-core">
+            <button type="button" class="section-toggle" aria-expanded="true" aria-controls="sec-platform-core">
+                <span class="section-label" style="padding:0;">Platforma</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-platform-core">
+                <a href="<?= url('admin/dashboard') ?>"><i class="bi bi-speedometer2"></i> Pulpit admina</a>
+                <a href="<?= url('admin/clubs') ?>"><i class="bi bi-building"></i> <?= __('nav.clubs') ?></a>
+                <a href="<?= url('admin/demos') ?>"><i class="bi bi-rocket-takeoff"></i> Konta demo</a>
+                <a href="<?= url('admin/users') ?>"><i class="bi bi-shield-fill-check"></i> Super admini</a>
+            </div>
+        </div>
+        <div class="nav-section" data-section="platform-commerce">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-commerce">
+                <span class="section-label" style="padding:0;">Komercja</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-platform-commerce">
+                <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> Plany</a>
+                <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
+                <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
+                <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
+                <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
+            </div>
+        </div>
+        <div class="nav-section" data-section="platform-config">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-config">
+                <span class="section-label" style="padding:0;">Konfiguracja platformy</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-platform-config">
+                <a href="<?= url('admin/sports/catalog') ?>"><i class="bi bi-grid-3x3-gap"></i> Katalog sportów</a>
+                <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> Feature flags</a>
+                <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> Logo systemu</a>
+                <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
+                <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> Log aktywności</a>
+                <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> Kopie zapasowe</a>
+            </div>
+        </div>
+        <div class="nav-section" data-section="platform-security">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-security">
+                <span class="section-label" style="padding:0;">Bezpieczeństwo i monitoring</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-platform-security">
+                <a href="<?= url('admin/errors') ?>"><i class="bi bi-bug-fill"></i> Dziennik błędów</a>
+                <a href="<?= url('admin/security') ?>"><i class="bi bi-shield-lock-fill"></i> Dziennik bezpieczeństwa</a>
+                <a href="<?= url('admin/audit/isolation') ?>"><i class="bi bi-shield-check"></i> Audyt izolacji</a>
+                <a href="<?= url('admin/health') ?>"><i class="bi bi-heart-pulse"></i> Zdrowie systemu</a>
+            </div>
+        </div>
 
         <?php if (!empty($currentClubId)): ?>
-            <div class="section-label" style="font-size:.65rem;opacity:.6;">BIEŻĄCY KLUB</div>
-            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> Konfiguracja</a>
-            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> Feature flags</a>
-            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/permissions') ?>"><i class="bi bi-key-fill"></i> Uprawnienia</a>
-            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/sports') ?>"><i class="bi bi-trophy"></i> Sporty (config)</a>
-            <a href="<?= url('admin/platform/branding/' . (int)$currentClubId) ?>"><i class="bi bi-palette2"></i> Branding klubu</a>
-            <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/analytics') ?>"><i class="bi bi-bar-chart-line"></i> Analityka klubu</a>
+        <div class="nav-section" data-section="platform-current-club">
+            <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-current-club">
+                <span class="section-label" style="padding:0;">Bieżący klub</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-platform-current-club">
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> Konfiguracja</a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> Feature flags</a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/permissions') ?>"><i class="bi bi-key-fill"></i> Uprawnienia</a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/sports') ?>"><i class="bi bi-trophy"></i> Sporty (config)</a>
+                <a href="<?= url('admin/platform/branding/' . (int)$currentClubId) ?>"><i class="bi bi-palette2"></i> Branding klubu</a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/analytics') ?>"><i class="bi bi-bar-chart-line"></i> Analityka klubu</a>
+            </div>
+        </div>
         <?php endif; ?>
     <?php endif; ?>
 
@@ -383,6 +499,44 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     if (overlay) overlay.addEventListener('click', function() {
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
+    });
+})();
+// Z.3 — Sidebar sections collapse z persystencja w localStorage
+(function() {
+    var STORAGE_KEY = 'cd_nav_collapsed';
+    var saved;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch (e) { saved = {}; }
+    var sections = document.querySelectorAll('.sidebar .nav-section');
+    sections.forEach(function(sec) {
+        var key = sec.dataset.section;
+        var btn = sec.querySelector('.section-toggle');
+        if (!key || !btn) return;
+        // Apply saved state — overrides default aria-expanded
+        if (Object.prototype.hasOwnProperty.call(saved, key)) {
+            btn.setAttribute('aria-expanded', saved[key] ? 'true' : 'false');
+        }
+        btn.addEventListener('click', function() {
+            var expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            saved[key] = !expanded;
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch (e) {}
+        });
+    });
+    // Auto-expand sekcji zawierajacej aktywny link (jesli zwiniete)
+    var here = window.location.pathname.replace(/^\/+|\/+$/g, '');
+    sections.forEach(function(sec) {
+        var hit = Array.prototype.some.call(sec.querySelectorAll('a[href]'), function(a) {
+            var target = a.getAttribute('href') || '';
+            target = target.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/+|\/+$/g, '');
+            return target && target === here;
+        });
+        if (hit) {
+            var btn = sec.querySelector('.section-toggle');
+            if (btn && btn.getAttribute('aria-expanded') === 'false') {
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        }
     });
 })();
 // Service Worker
