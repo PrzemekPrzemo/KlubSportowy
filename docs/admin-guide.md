@@ -105,3 +105,39 @@ Funkcja pozwala super administratorowi zalogować się jako dowolny użytkownik 
 - Przed przywróceniem system automatycznie tworzy kopię bieżącą jako punkt przywracania.
 
 > **Bezpieczeństwo:** Dostęp do modułu kopii zapasowych posiada wyłącznie rola `super_admin`. Pobieranie plików jest chronione walidacją ścieżki (realpath).
+
+---
+
+## 9. Aktualizacja istniejącej instalacji
+
+Po `git pull` (nowa wersja kodu z nowymi migracjami):
+
+```bash
+php cli/update.php --dry-run   # pokaże co zostanie zaaplikowane
+php cli/update.php              # właściwy update
+```
+
+Tabela `schema_migrations` zapamiętuje co już zaaplikowano — bezpiecznie puszczać wielokrotnie. Runner skanuje:
+
+- `database/migrations/*.sql` (migracje rdzeniowe),
+- `app/Sports/*/migrations/*.sql` (migracje per-sport).
+
+### Pierwsze uruchomienie na istniejącej bazie (bootstrap)
+
+Jeśli baza powstała przed wprowadzeniem trackingu (`schema_migrations`), pierwszy run `cli/update.php`:
+
+1. Wykrywa tabele `clubs` i `members` → instalacja legacy.
+2. Wstawia wszystkie obecne migracje do `schema_migrations` jako **baseline** (`status=success`, `error_message='baseline (pre-existing DB)'`).
+3. Kończy bez aplikowania niczego. Kolejny run zaaplikuje już tylko prawdziwie nowe migracje.
+
+Jeśli baza jest pusta — `cli/update.php` zatrzymuje się z błędem i prosi o wcześniejsze uruchomienie `php cli/migrate.php` (fresh install ze `schema.sql`).
+
+### Dodatkowe flagi
+
+| Flaga | Opis |
+|---|---|
+| `--dry-run` | pokazuje plan, nic nie wykonuje |
+| `--force` | re-aplikuje migracje już oznaczone jako `success` |
+| `--only=<plik>` | aplikuje tylko jeden plik (np. `055_inpost_shipping.sql` lub `Sports/Football/001_football.sql`) |
+
+Wszystkie operacje logowane do `storage/logs/migrations.log`.
