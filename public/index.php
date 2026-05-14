@@ -647,15 +647,15 @@ $router->post('/livestream/:id/status',    [\App\Controllers\LivestreamControlle
 $router->post('/livestream/:id/delete',    [\App\Controllers\LivestreamController::class, 'delete']);
 
 // Live updates (Server-Sent Events) — real-time wyniki meczu/turnieju
-$router->get('/live',                          [\App\Controllers\LiveStreamController::class, 'index']);
-$router->get('/live/channels',                 [\App\Controllers\LiveStreamController::class, 'channels']);
-$router->get('/live/stream/:channel',          [\App\Controllers\LiveStreamController::class, 'stream']);
-$router->post('/live/publish/:channel',        [\App\Controllers\LiveStreamController::class, 'publish']);
-$router->post('/live/admin/create',            [\App\Controllers\LiveStreamController::class, 'adminCreate']);
-$router->post('/live/admin/start/:id',         [\App\Controllers\LiveStreamController::class, 'adminStart']);
-$router->post('/live/admin/end/:id',           [\App\Controllers\LiveStreamController::class, 'adminEnd']);
-$router->post('/live/admin/delete/:id',        [\App\Controllers\LiveStreamController::class, 'adminDelete']);
-$router->get('/club/:slug/live',               [\App\Controllers\LiveStreamController::class, 'publicClubLive']);
+$router->get('/live',                          [\App\Controllers\LiveUpdatesController::class, 'index']);
+$router->get('/live/channels',                 [\App\Controllers\LiveUpdatesController::class, 'channels']);
+$router->get('/live/stream/:channel',          [\App\Controllers\LiveUpdatesController::class, 'stream']);
+$router->post('/live/publish/:channel',        [\App\Controllers\LiveUpdatesController::class, 'publish']);
+$router->post('/live/admin/create',            [\App\Controllers\LiveUpdatesController::class, 'adminCreate']);
+$router->post('/live/admin/start/:id',         [\App\Controllers\LiveUpdatesController::class, 'adminStart']);
+$router->post('/live/admin/end/:id',           [\App\Controllers\LiveUpdatesController::class, 'adminEnd']);
+$router->post('/live/admin/delete/:id',        [\App\Controllers\LiveUpdatesController::class, 'adminDelete']);
+$router->get('/club/:slug/live',               [\App\Controllers\LiveUpdatesController::class, 'publicClubLive']);
 
 // Treningi
 $router->get('/trainings',                        [\App\Controllers\TrainingsController::class, 'index']);

@@ -25,7 +25,7 @@ use App\Models\LiveEventUpdateModel;
  *  POST /live/admin/create          tworzenie kanalu
  *  GET  /club/:slug/live            publiczna strona: live channels klubu
  */
-class LiveStreamController extends BaseController
+class LiveUpdatesController extends BaseController
 {
     /** Role uprawnione do publikowania update'ow */
     private const PUBLISHER_ROLES = ['zarzad', 'trener', 'instruktor'];
