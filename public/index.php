@@ -426,6 +426,14 @@ $router->post('/club/gateways/:provider/test',       [\App\Controllers\ClubGatew
 $router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatewayController::class, 'toggleActive']);
 $router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
 
+// Per-klub FederationExporter — credentials do federacji sportowych
+$router->get('/club/federations',                          [\App\Controllers\ClubFederationController::class, 'index']);
+$router->get('/club/federations/:code/edit',               [\App\Controllers\ClubFederationController::class, 'edit']);
+$router->post('/club/federations/:code/save',              [\App\Controllers\ClubFederationController::class, 'save']);
+$router->post('/club/federations/:code/test',              [\App\Controllers\ClubFederationController::class, 'testConnection']);
+$router->post('/club/federations/:code/toggle',            [\App\Controllers\ClubFederationController::class, 'toggleActive']);
+$router->post('/club/federations/:code/export-member',     [\App\Controllers\ClubFederationController::class, 'exportMember']);
+
 // Per-klub integracja wysyłki InPost (ShipX) — F.6
 $router->get('/club/shipping',              [\App\Controllers\ClubShippingController::class, 'index']);
 $router->get('/club/shipping/edit',         [\App\Controllers\ClubShippingController::class, 'edit']);
