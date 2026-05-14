@@ -215,6 +215,212 @@ class AdminController extends BaseController
         $this->redirect('admin/clubs');
     }
 
+    /**
+     * Strona potwierdzenia usuwania klubu — pokazuje statystyki tego co
+     * zostanie usuniete + wymaga wpisania nazwy klubu jako confirmation.
+     */
+    public function confirmDeleteClub(string $id): void
+    {
+        $club = (new ClubModel())->findById((int)$id);
+        if (!$club) {
+            Session::flash('error', 'Nie znaleziono klubu.');
+            $this->redirect('admin/clubs');
+        }
+
+        // Zbierz statystyki — co dokladnie zostanie usuniete
+        $pdo = Database::pdo();
+        $clubId = (int)$id;
+        $stats = [];
+        // Lista tabel z FK club_id ktore CASCADE'uja
+        $tables = [
+            'members'                    => 'Czlonkowie',
+            'club_users'                 => 'Uzytkownicy admin',
+            'club_subscriptions'         => 'Subskrypcje',
+            'club_payment_gateways'      => 'Bramki platnosci',
+            'club_shipping_providers'    => 'Konfiguracja InPost',
+            'shipments'                  => 'Przesylki',
+            'club_federation_credentials'=> 'Credentiale federacji',
+            'club_google_calendar'       => 'Google Calendar',
+            'club_addons'                => 'Dodatki (addons)',
+            'fee_assignments'            => 'Przydzialy skladek',
+            'events'                     => 'Wydarzenia',
+            'trainings'                  => 'Treningi',
+            'tournaments'                => 'Turnieje',
+            'sport_rankings'             => 'Rankingi sportowe',
+            'announcements'              => 'Ogloszenia',
+            'live_channels'              => 'Kanaly live',
+            'club_feature_overrides'     => 'Feature overrides',
+            'club_customization'         => 'Customizacja brandingu',
+        ];
+        foreach ($tables as $table => $label) {
+            try {
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM `{$table}` WHERE club_id = ?");
+                $stmt->execute([$clubId]);
+                $cnt = (int)$stmt->fetchColumn();
+                if ($cnt > 0) {
+                    $stats[$table] = ['label' => $label, 'count' => $cnt];
+                }
+            } catch (\Throwable) {
+                // tabela nie istnieje lub brak kolumny club_id — pomin
+            }
+        }
+
+        $this->render('admin/club_delete', [
+            'title' => 'Usun klub: ' . ($club['name'] ?? ''),
+            'club'  => $club,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Wykonanie nieodwracalnego usuniecia klubu wraz z danymi.
+     *
+     * Wymagania bezpieczenstwa:
+     * - requireSuperAdmin (w __construct)
+     * - CSRF token
+     * - Type-in confirmation: nazwa klubu musi zgadzac sie znak w znak
+     * - Audit log do `tenant_access_log` (severity=critical) PRZED delete
+     * - Opcjonalny backup przez `cli/backup_club.php` PRZED delete
+     *
+     * Cascade DB (FK ON DELETE CASCADE) usuwa 99% danych powiazanych.
+     * Pozostale (uploaded files w storage/) czyscimy oddzielnie po DB tx.
+     */
+    public function deleteClub(string $id): void
+    {
+        Csrf::verify();
+        $clubId = (int)$id;
+        $club = (new ClubModel())->findById($clubId);
+        if (!$club) {
+            Session::flash('error', 'Nie znaleziono klubu.');
+            $this->redirect('admin/clubs');
+        }
+
+        // Type-in confirmation: nazwa musi zgadzac sie dokladnie
+        $confirmName = trim($_POST['confirm_name'] ?? '');
+        if ($confirmName !== ($club['name'] ?? '')) {
+            Session::flash('error',
+                'Nazwa klubu nie zgadza sie — wpisana wartosc musi byc identyczna z "'
+                . ($club['name'] ?? '') . '". Anulowano.'
+            );
+            $this->redirect('admin/clubs/' . $clubId . '/delete');
+        }
+
+        // Audit log PRZED delete — gdy delete sie powiedzie, nie bedzie sie juz logu
+        // mozna stworzyc (FK constraint), wiec robimy to wczesniej
+        try {
+            (new \App\Models\TenantAccessLogModel())->logBypass(
+                tableName:  'clubs',
+                operation:  'delete_club',
+                callerFile: __FILE__,
+                callerLine: __LINE__,
+                callerClass: self::class,
+                severity:   'critical',
+                notes:      'club_id=' . $clubId . ' name=' . substr((string)$club['name'], 0, 80)
+            );
+        } catch (\Throwable) {
+            // non-blocking
+        }
+
+        // Opcjonalny backup PRZED usunieciem (zalecane)
+        $backupOk = null;
+        if (!empty($_POST['backup_first'])) {
+            $backupOk = $this->triggerClubBackup($clubId);
+        }
+
+        // Wykonaj DELETE — cascade w DB usunie powiazane rekordy
+        try {
+            $pdo = Database::pdo();
+            $stmt = $pdo->prepare("DELETE FROM clubs WHERE id = ?");
+            $stmt->execute([$clubId]);
+            $deleted = $stmt->rowCount();
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Blad usuwania klubu z bazy: ' . $e->getMessage());
+            $this->redirect('admin/clubs/' . $clubId . '/delete');
+        }
+
+        if ($deleted === 0) {
+            Session::flash('error', 'Klub nie zostal usuniety (rowCount=0). Sprawdz logi.');
+            $this->redirect('admin/clubs');
+        }
+
+        // Cleanup uploaded files po udanym DB delete
+        $this->cleanupClubFiles($clubId);
+
+        $msg = 'Klub "' . ($club['name'] ?? '') . '" zostal usuniety wraz z danymi.';
+        if ($backupOk === true) {
+            $msg .= ' Backup zapisany w storage/backups/.';
+        } elseif ($backupOk === false) {
+            $msg .= ' UWAGA: backup nie powiodl sie — sprawdz storage/logs/backup_*.log.';
+        }
+        Session::flash('success', $msg);
+        $this->redirect('admin/clubs');
+    }
+
+    /**
+     * Trigger asynchronously `cli/backup_club.php <id>` (non-blocking).
+     * Zwraca true gdy udalo sie zakolejkowac, false gdy nie.
+     */
+    private function triggerClubBackup(int $clubId): bool
+    {
+        $phpBin = PHP_BINARY;
+        $script = ROOT_PATH . '/cli/backup_club.php';
+        $logDir = ROOT_PATH . '/storage/logs';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0775, true);
+        }
+        $logFile = $logDir . '/backup_predelete_club_' . $clubId . '_' . date('Ymd_His') . '.log';
+        // Synchronously — backup_club.php uzywa mysqldump per tabela, zwykle <60s nawet dla duzych klubow
+        $cmd = escapeshellcmd($phpBin) . ' ' . escapeshellarg($script) . ' ' . (int)$clubId
+             . ' > ' . escapeshellarg($logFile) . ' 2>&1';
+        $exitCode = null;
+        @exec($cmd, $output, $exitCode);
+        return ($exitCode === 0);
+    }
+
+    /**
+     * Usuwa pliki uploadow zwiazane z klubem (logo, favicon, branding, dokumenty).
+     * Wywolac PO DB delete.
+     */
+    private function cleanupClubFiles(int $clubId): void
+    {
+        // Per-club folder uploadow
+        $folders = [
+            ROOT_PATH . '/storage/uploads/club_' . $clubId,
+            ROOT_PATH . '/public/uploads/club_' . $clubId,
+        ];
+        foreach ($folders as $folder) {
+            if (is_dir($folder)) {
+                $this->rmdirRecursive($folder);
+            }
+        }
+        // Glob branding files z prefiksem club_<id>_
+        $patterns = [
+            ROOT_PATH . '/public/uploads/branding/club_' . $clubId . '_*',
+            ROOT_PATH . '/storage/uploads/branding/club_' . $clubId . '_*',
+        ];
+        foreach ($patterns as $pattern) {
+            foreach (glob($pattern) ?: [] as $f) {
+                if (is_file($f)) @unlink($f);
+            }
+        }
+    }
+
+    private function rmdirRecursive(string $dir): void
+    {
+        if (!is_dir($dir)) return;
+        $entries = @scandir($dir) ?: [];
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') continue;
+            $path = $dir . '/' . $entry;
+            if (is_dir($path)) {
+                $this->rmdirRecursive($path);
+            } else {
+                @unlink($path);
+            }
+        }
+        @rmdir($dir);
+    }
+
     public function switchClub(string $id): void
     {
         Csrf::verify();

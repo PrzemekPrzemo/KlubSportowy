@@ -163,6 +163,8 @@ $router->get('/admin/clubs/create',         [\App\Controllers\AdminController::c
 $router->post('/admin/clubs/create',        [\App\Controllers\AdminController::class, 'storeClub']);
 $router->get('/admin/clubs/:id/edit',       [\App\Controllers\AdminController::class, 'editClub']);
 $router->post('/admin/clubs/:id/edit',      [\App\Controllers\AdminController::class, 'updateClub']);
+$router->get('/admin/clubs/:id/delete',     [\App\Controllers\AdminController::class, 'confirmDeleteClub']);
+$router->post('/admin/clubs/:id/delete',    [\App\Controllers\AdminController::class, 'deleteClub']);
 $router->post('/admin/switch-club/:id',     [\App\Controllers\AdminController::class, 'switchClub']);
 $router->get('/admin/sports',               [\App\Controllers\AdminController::class, 'sportsCatalog']);
 $router->get('/admin/sports/catalog',       [\App\Controllers\AdminPlatformController::class, 'sportsCatalog']);
