@@ -2,9 +2,12 @@
 
 namespace App\Controllers;
 
+use App\Helpers\ClubBranding;
 use App\Helpers\Csrf;
 use App\Helpers\Database;
 use App\Helpers\Session;
+use App\Helpers\WhitelabelSanitizer;
+use App\Models\ActivityLogModel;
 use App\Models\ClubCustomizationModel;
 use App\Models\ClubModel;
 use App\Models\ClubSettingsModel;
@@ -75,10 +78,24 @@ class ClubManagementController extends BaseController
             'primary_color' => trim($_POST['primary_color'] ?? '#0d6efd'),
             'navbar_bg'     => trim($_POST['navbar_bg'] ?? '#212529'),
             'accent_color'  => trim($_POST['accent_color'] ?? '#198754'),
-            'custom_css'    => trim($_POST['custom_css'] ?? '') ?: null,
             'motto'         => trim($_POST['motto'] ?? '') ?: null,
             'subdomain'     => trim($_POST['subdomain'] ?? '') ?: null,
         ];
+
+        // Custom CSS — sanitization OBLIGATORY przy zapisie.
+        $cssRaw = (string)($_POST['custom_css'] ?? '');
+        if ($cssRaw !== '') {
+            $clean = WhitelabelSanitizer::sanitizeCss($cssRaw);
+            if ($clean === null) {
+                Session::flash('error', 'Custom CSS zostal odrzucony: zawiera niedozwolone konstrukcje (np. <script>, javascript:, expression(), @import).');
+                $this->redirect('club/customization');
+            }
+            $data['custom_css']            = $clean;
+            $data['custom_css_updated_at'] = date('Y-m-d H:i:s');
+        } else {
+            $data['custom_css']            = null;
+            $data['custom_css_updated_at'] = null;
+        }
 
         // Upload logo (public/uploads/clubs/{id}/logo_*.ext — serwowane bezpośrednio)
         if (!empty($_FILES['logo']['tmp_name'])) {
@@ -95,7 +112,206 @@ class ClubManagementController extends BaseController
         }
 
         (new ClubCustomizationModel())->upsert($clubId, $data);
+        ClubBranding::flushCache($clubId);
         Session::flash('success', 'Branding zaktualizowany.');
+        $this->redirect('club/customization');
+    }
+
+    // ── Whitelabel: favicon upload ───────────────────────────────────────────
+
+    public function uploadFavicon(): void
+    {
+        Csrf::verify();
+        $clubId = $this->currentClub();
+
+        if (empty($_FILES['favicon']['tmp_name'])) {
+            Session::flash('error', 'Nie wybrano pliku favicon.');
+            $this->redirect('club/customization');
+        }
+
+        $file = $_FILES['favicon'];
+        $err  = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($err !== UPLOAD_ERR_OK) {
+            Session::flash('error', 'Blad uploadu favicon (kod ' . $err . ').');
+            $this->redirect('club/customization');
+        }
+        if (((int)($file['size'] ?? 0)) > 50 * 1024) {
+            Session::flash('error', 'Favicon musi byc mniejszy niz 50 KB.');
+            $this->redirect('club/customization');
+        }
+        if (!is_uploaded_file($file['tmp_name'])) {
+            Session::flash('error', 'Nieprawidlowy upload pliku.');
+            $this->redirect('club/customization');
+        }
+
+        // Sprawdz magic bytes — Content-Type od klienta jest niewiarygodne.
+        $fh = @fopen($file['tmp_name'], 'rb');
+        if (!$fh) {
+            Session::flash('error', 'Nie udalo sie odczytac pliku.');
+            $this->redirect('club/customization');
+        }
+        $bytes = (string)fread($fh, 8);
+        fclose($fh);
+
+        $ext = null;
+        if (strncmp($bytes, "\x89PNG\r\n\x1a\n", 8) === 0) {
+            $ext = 'png';
+        } elseif (strncmp($bytes, "\x00\x00\x01\x00", 4) === 0) {
+            $ext = 'ico';
+        }
+        if ($ext === null) {
+            Session::flash('error', 'Favicon musi byc plikiem PNG lub ICO (sprawdzono magic bytes).');
+            $this->redirect('club/customization');
+        }
+
+        // Zapisz do storage/uploads/branding/club_:id_favicon.{ext}
+        $dir = ROOT_PATH . '/public/uploads/branding';
+        if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
+            Session::flash('error', 'Nie udalo sie utworzyc katalogu dla favicon.');
+            $this->redirect('club/customization');
+        }
+        $filename = 'club_' . $clubId . '_favicon.' . $ext;
+        $absPath  = $dir . '/' . $filename;
+
+        // Usun stary favicon (inne rozszerzenie) jesli istnieje.
+        foreach (['png', 'ico'] as $oldExt) {
+            $old = $dir . '/club_' . $clubId . '_favicon.' . $oldExt;
+            if ($oldExt !== $ext && is_file($old)) @unlink($old);
+        }
+
+        if (!@move_uploaded_file($file['tmp_name'], $absPath)) {
+            Session::flash('error', 'Nie udalo sie zapisac favicon.');
+            $this->redirect('club/customization');
+        }
+
+        $relPath = 'uploads/branding/' . $filename;
+        (new ClubCustomizationModel())->upsert($clubId, ['favicon_path' => $relPath]);
+        ClubBranding::flushCache($clubId);
+        (new ActivityLogModel())->log('club_branding_favicon', 'club', $clubId, $relPath);
+        Session::flash('success', 'Favicon zaktualizowany.');
+        $this->redirect('club/customization');
+    }
+
+    public function deleteFavicon(): void
+    {
+        Csrf::verify();
+        $clubId = $this->currentClub();
+
+        $row = (new ClubCustomizationModel())->findForClub($clubId);
+        if ($row && !empty($row['favicon_path'])) {
+            $abs = ROOT_PATH . '/public/' . ltrim((string)$row['favicon_path'], '/');
+            if (is_file($abs)) @unlink($abs);
+        }
+        (new ClubCustomizationModel())->upsert($clubId, ['favicon_path' => null]);
+        ClubBranding::flushCache($clubId);
+        Session::flash('success', 'Favicon usuniety.');
+        $this->redirect('club/customization');
+    }
+
+    // ── Whitelabel: custom CSS osobny endpoint ───────────────────────────────
+
+    public function saveCustomCss(): void
+    {
+        Csrf::verify();
+        $clubId = $this->currentClub();
+
+        $raw = (string)($_POST['custom_css'] ?? '');
+        if (strlen($raw) > 50 * 1024) {
+            Session::flash('error', 'Custom CSS przekracza limit 50 KB.');
+            $this->redirect('club/customization');
+        }
+
+        if (trim($raw) === '') {
+            (new ClubCustomizationModel())->upsert($clubId, [
+                'custom_css'            => null,
+                'custom_css_updated_at' => null,
+            ]);
+            ClubBranding::flushCache($clubId);
+            Session::flash('success', 'Custom CSS wyczyszczony.');
+            $this->redirect('club/customization');
+        }
+
+        $clean = WhitelabelSanitizer::sanitizeCss($raw);
+        if ($clean === null) {
+            Session::flash('error', 'CSS zostal odrzucony — zawiera niedozwolone konstrukcje.');
+            $this->redirect('club/customization');
+        }
+
+        (new ClubCustomizationModel())->upsert($clubId, [
+            'custom_css'            => $clean,
+            'custom_css_updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        ClubBranding::flushCache($clubId);
+        (new ActivityLogModel())->log('club_branding_css', 'club', $clubId, 'len=' . strlen($clean));
+        Session::flash('success', 'Custom CSS zapisany.');
+        $this->redirect('club/customization');
+    }
+
+    // ── Whitelabel: email header ─────────────────────────────────────────────
+
+    public function saveEmailHeader(): void
+    {
+        Csrf::verify();
+        $clubId = $this->currentClub();
+
+        $raw = (string)($_POST['email_header_html'] ?? '');
+        if (strlen($raw) > 5000) {
+            Session::flash('error', 'Email header przekracza limit 5000 znakow.');
+            $this->redirect('club/customization');
+        }
+
+        if (trim($raw) === '') {
+            (new ClubCustomizationModel())->upsert($clubId, ['email_header_html' => null]);
+            ClubBranding::flushCache($clubId);
+            Session::flash('success', 'Email header wyczyszczony (uzyty bedzie default).');
+            $this->redirect('club/customization');
+        }
+
+        $clean = WhitelabelSanitizer::sanitizeEmailHeaderHtml($raw);
+        (new ClubCustomizationModel())->upsert($clubId, ['email_header_html' => $clean]);
+        ClubBranding::flushCache($clubId);
+        Session::flash('success', 'Email header zapisany.');
+        $this->redirect('club/customization');
+    }
+
+    // ── Whitelabel: communication (from name + SMS sender) ───────────────────
+
+    public function saveCommunication(): void
+    {
+        Csrf::verify();
+        $clubId = $this->currentClub();
+
+        $fromName = trim((string)($_POST['email_from_name'] ?? ''));
+        $smsId    = strtoupper(trim((string)($_POST['sms_sender_id'] ?? '')));
+
+        $data = [];
+
+        if ($fromName === '') {
+            $data['email_from_name'] = null;
+        } elseif (strlen($fromName) > 120) {
+            Session::flash('error', 'Nazwa nadawcy emaila moze miec max 120 znakow.');
+            $this->redirect('club/customization');
+        } else {
+            // Wytnij znaki niedozwolone w From: header.
+            if (preg_match('/[\r\n\0]/', $fromName)) {
+                Session::flash('error', 'Nazwa nadawcy zawiera niedozwolone znaki (newline/null).');
+                $this->redirect('club/customization');
+            }
+            $data['email_from_name'] = $fromName;
+        }
+
+        if ($smsId === '') {
+            $data['sms_sender_id'] = null;
+        } elseif (preg_match('/^[A-Z0-9]{1,11}$/', $smsId) !== 1) {
+            Session::flash('error', 'SMS sender ID musi byc 1-11 znakow A-Z, 0-9.');
+            $this->redirect('club/customization');
+        } else {
+            $data['sms_sender_id'] = $smsId;
+        }
+
+        (new ClubCustomizationModel())->upsert($clubId, $data);
+        ClubBranding::flushCache($clubId);
+        Session::flash('success', 'Ustawienia komunikacji zapisane.');
         $this->redirect('club/customization');
     }
 
