@@ -1,12 +1,29 @@
-<?php use App\Helpers\View; ?>
-<div class="alert alert-info small">
-    <strong>Dostępne placeholdery:</strong>
-    <code>{first_name}</code>, <code>{last_name}</code>, <code>{member_number}</code>,
-    <code>{club_name}</code>, <code>{amount}</code>, <code>{license_type}</code>,
-    <code>{license_number}</code>, <code>{valid_until}</code>, <code>{days}</code>,
-    <code>{event_name}</code>, <code>{event_date}</code>, <code>{event_location}</code>,
-    <code>{reset_link}</code>
-</div>
+<?php
+use App\Helpers\View;
+$event = $event ?? null;
+?>
+<?php if ($event): ?>
+    <div class="alert alert-info small">
+        <strong><?= View::e($event['name']) ?>:</strong>
+        <?= View::e($event['description'] ?? '') ?>
+        <?php if (!empty($event['available_variables']) && is_array($event['available_variables'])): ?>
+            <hr class="my-2">
+            <strong>Dostepne placeholdery (skladnia <code>{{var.path}}</code>):</strong>
+            <?php foreach ($event['available_variables'] as $v): ?>
+                <code>{{<?= View::e($v) ?>}}</code>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+<?php else: ?>
+    <div class="alert alert-info small">
+        <strong>Dostepne placeholdery (klasyczna skladnia <code>{var}</code>):</strong>
+        <code>{first_name}</code>, <code>{last_name}</code>, <code>{member_number}</code>,
+        <code>{club_name}</code>, <code>{amount}</code>, <code>{license_type}</code>,
+        <code>{license_number}</code>, <code>{valid_until}</code>, <code>{days}</code>,
+        <code>{event_name}</code>, <code>{event_date}</code>, <code>{event_location}</code>,
+        <code>{reset_link}</code>
+    </div>
+<?php endif; ?>
 <form method="POST" action="<?= url('email/templates/' . $template_type . '/save') ?>" class="card p-4">
     <?= csrf_field() ?>
     <div class="row g-3">

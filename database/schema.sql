@@ -1947,4 +1947,72 @@ CREATE TABLE IF NOT EXISTS `support_reports` (
     FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- Migration 068: club_onboarding_config + member_custom_field_values + member_consent_acceptances
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `club_onboarding_config` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `club_id` INT UNSIGNED NOT NULL,
+    `require_pesel` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_address` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_emergency_contact` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_medical_consent` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_photo` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_parent_data_for_minors` TINYINT(1) NOT NULL DEFAULT 1,
+    `custom_consents` JSON NULL,
+    `auto_assign_sport_id` INT UNSIGNED NULL,
+    `auto_assign_fee_rate_id` INT UNSIGNED NULL,
+    `auto_send_welcome_email` TINYINT(1) NOT NULL DEFAULT 1,
+    `welcome_email_template` VARCHAR(80) NULL,
+    `min_age_years` TINYINT UNSIGNED NULL,
+    `max_age_years` TINYINT UNSIGNED NULL,
+    `require_parent_consent_under_age` TINYINT UNSIGNED NOT NULL DEFAULT 18,
+    `custom_fields` JSON NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uniq_club` (`club_id`),
+    FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `member_custom_field_values` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `club_id` INT UNSIGNED NOT NULL,
+    `member_id` INT UNSIGNED NOT NULL,
+    `field_key` VARCHAR(60) NOT NULL,
+    `field_value` TEXT NULL,
+    UNIQUE KEY `uniq_member_field` (`member_id`, `field_key`),
+    KEY `idx_mcfv_club` (`club_id`),
+    FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `member_consent_acceptances` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `club_id` INT UNSIGNED NOT NULL,
+    `member_id` INT UNSIGNED NOT NULL,
+    `consent_key` VARCHAR(60) NOT NULL,
+    `consent_version` VARCHAR(20) NULL,
+    `accepted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `accepted_ip` VARCHAR(45) NULL,
+    KEY `idx_member_consent` (`member_id`, `consent_key`),
+    KEY `idx_mca_club` (`club_id`),
+    FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Migration 069: email_event_catalog
+CREATE TABLE IF NOT EXISTS `email_event_catalog` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `code` VARCHAR(60) NOT NULL UNIQUE,
+    `name` VARCHAR(120) NOT NULL,
+    `description` VARCHAR(500) NULL,
+    `category` VARCHAR(40) NOT NULL DEFAULT 'general',
+    `default_subject` VARCHAR(200) NULL,
+    `default_body` TEXT NULL,
+    `available_variables` JSON NULL,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    KEY `idx_eec_category` (`category`, `sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET foreign_key_checks = 1;

@@ -359,6 +359,10 @@ $router->post('/gdpr/member/:memberId/revoke',    [\App\Controllers\GdprControll
 $router->get('/gdpr/member/:memberId/export',     [\App\Controllers\GdprController::class, 'exportData']);
 $router->post('/gdpr/member/:memberId/anonymize', [\App\Controllers\GdprController::class, 'anonymize']);
 
+// Konfiguracja onboardingu czlonka per klub (zarzad/admin)
+$router->get('/club/onboarding-config',       [\App\Controllers\ClubOnboardingConfigController::class, 'show']);
+$router->post('/club/onboarding-config/save', [\App\Controllers\ClubOnboardingConfigController::class, 'save']);
+
 // Zawodnicy
 $router->post('/members/bulk',        [\App\Controllers\MembersController::class, 'bulkAction']);
 // Z.3 — bulk message form + send
