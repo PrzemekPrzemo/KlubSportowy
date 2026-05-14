@@ -282,6 +282,7 @@ $router->get('/admin/invoices/:id/pdf',      [\App\Controllers\AdminInvoicesCont
 
 // Admin: audyt izolacji danych (Batch A6)
 $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController::class, 'isolation']);
+$router->get('/admin/audit/access-log',  [\App\Controllers\AdminAuditController::class, 'accessLog']);
 $router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController::class, 'exportReport']);
 
 // Admin: dashboard zdrowia systemu (Batch A7)
