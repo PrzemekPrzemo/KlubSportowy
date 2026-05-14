@@ -45,3 +45,6 @@ try {
 echo "\nDomyślny login: admin\n";
 echo "Domyślne hasło: Admin1234!\n";
 echo "(zmień po pierwszym logowaniu)\n";
+
+echo "\nWskazówka: aby zaaplikować migracje na ISTNIEJĄCĄ bazę użyj:\n";
+echo "  php cli/update.php\n";
