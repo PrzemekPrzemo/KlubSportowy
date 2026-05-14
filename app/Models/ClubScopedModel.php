@@ -14,6 +14,17 @@ use App\Helpers\ClubContext;
 abstract class ClubScopedModel extends BaseModel
 {
     private bool $scopeEnabled = true;
+    private bool $bypassLogged = false;
+
+    /**
+     * Globalny "soft mute" auditu — uzywany przez kod, ktory swiadomie
+     * pracuje cross-tenant w petli (np. cron, super-admin audit checks)
+     * i nie chce zalewac tenant_access_log identycznymi wpisami.
+     */
+    private static bool $auditEnabled = true;
+
+    public static function disableAudit(): void { self::$auditEnabled = false; }
+    public static function enableAudit():  void { self::$auditEnabled = true; }
 
     protected function clubId(): ?int
     {
@@ -23,16 +34,62 @@ abstract class ClubScopedModel extends BaseModel
         return ClubContext::current();
     }
 
+    /**
+     * Wylacz auto-filtr po club_id — uzywaj OSTROZNIE.
+     *
+     * Kazde wywolanie jest auditowane w tabeli `tenant_access_log`
+     * (chyba ze audit zostal globalnie wylaczony przez disableAudit()).
+     * Wzorzec inspirowany Hovera, ktore ma natywna izolacje DB-per-tenant.
+     * U nas (shared schema) audit daje obserwowalnosc i pomaga wylapac
+     * kod, ktory nieumyslnie omija scope.
+     */
     public function withoutScope(): static
     {
         $this->scopeEnabled = false;
+        $this->logBypassOnce('read');
         return $this;
     }
 
     public function withScope(): static
     {
         $this->scopeEnabled = true;
+        $this->bypassLogged = false;
         return $this;
+    }
+
+    /**
+     * Loguje fakt bypassu scope — raz na zycie instancji (per "withoutScope()" call site).
+     * Bezpieczne wzgledem brakujacej tabeli (logBypass swap-em throw'i).
+     */
+    private function logBypassOnce(string $operation): void
+    {
+        if (!self::$auditEnabled || $this->bypassLogged) {
+            return;
+        }
+        $this->bypassLogged = true;
+
+        try {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
+            // [0] logBypassOnce, [1] withoutScope/insert/update/etc, [2] CALLER
+            $caller = $trace[2] ?? $trace[1] ?? [];
+            $callerFile  = $caller['file']  ?? null;
+            $callerLine  = $caller['line']  ?? null;
+            $callerClass = $caller['class'] ?? null;
+
+            $severity = ClubContext::isSuperAdmin() ? 'info' : 'warning';
+
+            (new TenantAccessLogModel())->logBypass(
+                $this->table,
+                $operation,
+                $callerFile,
+                $callerLine,
+                $callerClass,
+                $severity,
+                static::class
+            );
+        } catch (\Throwable) {
+            // Audit nigdy nie crashuje requestu uzytkowego.
+        }
     }
 
     public function findById(int $id): ?array
@@ -68,6 +125,7 @@ abstract class ClubScopedModel extends BaseModel
     {
         $clubId = $this->clubId();
         if ($clubId === null) {
+            $this->logBypassOnce('delete');
             return parent::delete($id);
         }
         $stmt = $this->db->prepare(
@@ -95,6 +153,11 @@ abstract class ClubScopedModel extends BaseModel
         if ($clubId !== null && !isset($data['club_id'])) {
             $data['club_id'] = $clubId;
         }
+        if ($clubId === null) {
+            // Insert bez scope — kod jawnie zarzadza club_id (lub go nie podaje wcale).
+            // Audit z severity warning, bo to operacja write bez izolacji.
+            $this->logBypassOnce('write');
+        }
         return parent::insert($data);
     }
 
@@ -110,6 +173,7 @@ abstract class ClubScopedModel extends BaseModel
     {
         $clubId = $this->clubId();
         if ($clubId === null) {
+            $this->logBypassOnce('write');
             return parent::update($id, $data);
         }
         if (empty($data)) return true;

@@ -84,4 +84,58 @@ class ClubContext
         }
         return $id;
     }
+
+    /**
+     * Wykonaj $callback z tymczasowo aktywnym kontekstem klubu $clubId.
+     *
+     * Wzorzec zaczerpniety z hovera.app-sys TenantManager::execute() —
+     * Hovera uzywa tego do queue-jobow i super-admin impersonation aby
+     * tymczasowo przelaczyc tenant context i nigdy nie zostawic "wisiacego"
+     * przelaczenia po wyjsciu z bloku.
+     *
+     * Gwarancje:
+     *   - poprzedni club_id zostaje przywrocony nawet jesli $callback rzuci
+     *   - return-value $callback jest zwracany przez execute()
+     *   - thread-safe nie jest potrzebne — PHP request-per-process
+     *
+     * Uzycie:
+     *   ClubContext::execute($otherClubId, function () use ($id) {
+     *       return (new MemberModel())->findById($id); // dziala w scope $otherClubId
+     *   });
+     */
+    public static function execute(int $clubId, callable $callback): mixed
+    {
+        $previous = self::current();
+        self::set($clubId);
+        try {
+            return $callback();
+        } finally {
+            if ($previous === null) {
+                self::clear();
+            } else {
+                self::set($previous);
+            }
+        }
+    }
+
+    /**
+     * Hard-fail jesli brak aktywnego kontekstu — uzywaj w kodzie, ktory
+     * NIGDY nie powinien dzialac bez izolacji (np. controllery klubowe).
+     *
+     * Roznica wzgledem require(): rzuca dedykowany wyjatek z severity
+     * "critical" zamiast generycznego RuntimeException, dzieki czemu
+     * ErrorMonitor moze potraktowac to jako security-event.
+     */
+    public static function requireForRead(string $context = ''): int
+    {
+        $id = self::current();
+        if ($id === null) {
+            $msg = 'Tenant isolation violation: read attempted without active club context';
+            if ($context !== '') {
+                $msg .= ' (' . $context . ')';
+            }
+            throw new \RuntimeException($msg);
+        }
+        return $id;
+    }
 }

@@ -6,6 +6,7 @@ use App\Helpers\Csrf;
 use App\Helpers\Database;
 use App\Helpers\Session;
 use App\Models\ActivityLogModel;
+use App\Models\TenantAccessLogModel;
 use PDO;
 
 class AdminAuditController extends BaseController
@@ -87,6 +88,26 @@ class AdminAuditController extends BaseController
             'checks'   => $checks,
             'summary'  => ['pass' => $passed, 'fail' => $failed, 'warning' => $warned, 'total' => count($checks)],
             'ranAt'    => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
+     * Lista cross-tenant access (kazde withoutScope()). Defense-in-depth:
+     * super-admin widzi, kto i kiedy czyta/pisze dane bez filtra club_id.
+     */
+    public function accessLog(): void
+    {
+        $page    = max(1, (int)($_GET['page']    ?? 1));
+        $perPage = max(10, min(500, (int)($_GET['per_page'] ?? 50)));
+
+        $model    = new TenantAccessLogModel();
+        $listing  = $model->recent($page, $perPage);
+        $stats7d  = $model->statsLastDays(7);
+
+        $this->render('admin/audit/access_log', [
+            'title'   => 'Audyt cross-tenant access',
+            'listing' => $listing,
+            'stats'   => $stats7d,
         ]);
     }
 

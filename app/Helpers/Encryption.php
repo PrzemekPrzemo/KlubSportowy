@@ -79,6 +79,82 @@ class Encryption
         return hash('sha256', strtolower(trim($value)));
     }
 
+    /**
+     * Szyfrowanie z kluczem wyprowadzonym per klub (HKDF-SHA256).
+     *
+     * Wzorzec zaczerpniety z Billu-System Crypto.php (HKDF derive-by-context)
+     * — tam derive po nazwanym kontekscie ('sftp.password' itp.). My idziemy
+     * krok dalej: per-club derivation, dzieki czemu dump bazy klienta A nie
+     * pozwala zdeszyfrowac plaintextow klienta B nawet znajac master key,
+     * dopoki atakujacy nie ma takze (master key + club_id ofiary).
+     *
+     * Ciphertext jest binarnie kompatybilny z encrypt()/decrypt() — pierwsze
+     * dwa bajty to wersja klucza (0x01 = per-club HKDF). Stara wartosc bez
+     * prefiksu (encrypt()) dziala dalej w decrypt() — wsteczna kompatybilnosc.
+     */
+    public static function encryptForClub(?string $value, int $clubId): ?string
+    {
+        if ($value === null || $value === '') return null;
+
+        $key   = self::deriveKeyForClub($clubId);
+        $nonce = random_bytes(self::NONCE_LENGTH);
+        $tag   = '';
+
+        $ciphertext = openssl_encrypt(
+            $value, self::CIPHER, $key,
+            OPENSSL_RAW_DATA, $nonce, $tag, '', self::TAG_LENGTH
+        );
+
+        if ($ciphertext === false) {
+            throw new RuntimeException('Encryption failed: ' . openssl_error_string());
+        }
+
+        // Prefiks: 0x01 = per-club HKDF (wersjonowanie formatu)
+        return base64_encode("\x01" . $nonce . $ciphertext . $tag);
+    }
+
+    /** Deszyfruje wartosc zaszyfrowana przez encryptForClub(). */
+    public static function decryptForClub(?string $encrypted, int $clubId): ?string
+    {
+        if ($encrypted === null || $encrypted === '') return null;
+
+        $raw = base64_decode($encrypted, true);
+        if ($raw === false || strlen($raw) < 1 + self::NONCE_LENGTH + self::TAG_LENGTH + 1) {
+            return null;
+        }
+
+        $version = ord($raw[0]);
+        if ($version !== 0x01) {
+            // Format bez prefiksu — to klasyczne encrypt(). Spadamy do master key.
+            return self::decrypt($encrypted);
+        }
+
+        $body       = substr($raw, 1);
+        $nonce      = substr($body, 0, self::NONCE_LENGTH);
+        $tag        = substr($body, -self::TAG_LENGTH);
+        $ciphertext = substr($body, self::NONCE_LENGTH, -self::TAG_LENGTH);
+
+        $key       = self::deriveKeyForClub($clubId);
+        $plaintext = openssl_decrypt(
+            $ciphertext, self::CIPHER, $key,
+            OPENSSL_RAW_DATA, $nonce, $tag
+        );
+        return $plaintext === false ? null : $plaintext;
+    }
+
+    /** HKDF-SHA256(master_key, salt = "clubdesk:club:{id}") -> 32 bajty. */
+    private static function deriveKeyForClub(int $clubId): string
+    {
+        $master = self::getKey();
+        $info   = 'clubdesk:club:' . $clubId;
+        // hash_hkdf zwraca surowe bajty.
+        $derived = hash_hkdf('sha256', $master, 32, $info);
+        if ($derived === false || strlen($derived) !== 32) {
+            throw new RuntimeException('HKDF derivation failed for club ' . $clubId);
+        }
+        return $derived;
+    }
+
     /** Generuje nowy klucz szyfrowania (32 bajty, base64). */
     public static function generateKey(): string
     {
