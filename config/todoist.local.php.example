@@ -1,0 +1,7 @@
+<?php
+// Skopiuj jako config/todoist.local.php (gitignored) i uzupelnij token.
+// Token wygeneruj w: Todoist Settings -> Integrations -> API token
+return [
+    'api_token'  => 'YOUR_TODOIST_API_TOKEN_HERE',
+    'project_id' => '6gcqjmqj6QM9hQ2x', // ClubDesk.pl
+];

@@ -2,11 +2,14 @@
 /config/database.local.php
 /config/app.local.php
 /config/encryption.local.php
+/config/todoist.local.php
 /storage/logs/*
 /storage/uploads/*
 /storage/backups/*
 !/storage/logs/.gitkeep
 !/storage/uploads/.gitkeep
+!/storage/uploads/support/
+!/storage/uploads/support/.gitkeep
 !/storage/backups/.gitkeep
 .DS_Store
 Thumbs.db

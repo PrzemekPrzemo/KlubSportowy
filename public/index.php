@@ -231,7 +231,16 @@ $router->get('/admin/platform/feature-flags/clubs/:clubId',    [\App\Controllers
 $router->post('/admin/platform/feature-flags/override',        [\App\Controllers\AdminFeatureFlagsController::class, 'saveOverride']);
 $router->post('/admin/platform/feature-flags/clear',           [\App\Controllers\AdminFeatureFlagsController::class, 'clearOverride']);
 
-// Support tickets (klub zarzad)
+// Support: zglaszanie bledow / propozycji z synchronizacja do Todoist
+// (UWAGA: te routy MUSZA byc PRZED `/support/:id` zeby nie kolidowaly z wildcardem)
+$router->get('/support/report',            [\App\Controllers\SupportReportController::class, 'reportForm']);
+$router->post('/support/report',           [\App\Controllers\SupportReportController::class, 'submitReport']);
+$router->get('/support/my-reports',        [\App\Controllers\SupportReportController::class, 'myReports']);
+$router->get('/admin/support',             [\App\Controllers\SupportReportController::class, 'adminIndex']);
+$router->get('/support/tickets',           [\App\Controllers\SupportReportController::class, 'adminIndex']);
+$router->post('/admin/support/:id/status', [\App\Controllers\SupportReportController::class, 'updateStatus']);
+
+// Support tickets (klub zarzad -> platforma)
 $router->get('/support',          [\App\Controllers\SupportController::class, 'index']);
 $router->get('/support/create',   [\App\Controllers\SupportController::class, 'create']);
 $router->post('/support/store',   [\App\Controllers\SupportController::class, 'store']);
