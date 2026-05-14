@@ -239,6 +239,7 @@ $router->get('/support/my-reports',        [\App\Controllers\SupportReportContro
 $router->get('/admin/support',             [\App\Controllers\SupportReportController::class, 'adminIndex']);
 $router->get('/support/tickets',           [\App\Controllers\SupportReportController::class, 'adminIndex']);
 $router->post('/admin/support/:id/status', [\App\Controllers\SupportReportController::class, 'updateStatus']);
+$router->get('/admin/support/:id',         [\App\Controllers\SupportReportController::class, 'adminDetail']);
 
 // Support tickets (klub zarzad -> platforma)
 $router->get('/support',          [\App\Controllers\SupportController::class, 'index']);

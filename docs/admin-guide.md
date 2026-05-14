@@ -188,3 +188,64 @@ Alternatywa codzienna o 6:00 z pelnym raportem human-readable do logu:
 ```cron
 0 6 * * * /opt/plesk/php/8.2/bin/php /var/www/clubdesk/cli/test_integrations.php >> /var/log/clubdesk-integrations.log 2>&1
 ```
+
+## 11. Sync ze zgloszeniami w Todoist
+
+System `support_reports` (zgloszenia bledow i propozycji od uzytkownikow klubowych
+oraz portal-memberow) jest zsynchronizowany dwukierunkowo z Todoist:
+
+- **ClubDesk → Todoist** (push, online):
+  - Formularz `/support/report` tworzy zadanie w projekcie ClubDesk.pl.
+  - Zmiana statusu na `resolved`/`wont_fix`/`duplicate` w `/admin/support` zamyka task w Todoist.
+  - Zmiana na `in_progress` dodaje komentarz "Przyjete do realizacji przez {admin}".
+  - Reopen (status -> `new`) otwiera task ponownie.
+- **Todoist → ClubDesk** (pull, cron co 5 min):
+  - Skrypt `cli/todoist_sync_status.php` polluje tasky z `support_reports.todoist_task_id IS NOT NULL`.
+  - Jesli task w Todoist `is_completed = true` → lokalnie `status = resolved`, `resolution_notes = "Closed in Todoist"`.
+  - Jesli task zwroci 404 (usuniety) → `status = resolved`, `resolution_notes = "Task deleted in Todoist"`.
+  - Aktualizuje `todoist_synced_at` przy kazdym sprawdzeniu, `todoist_sync_error` na bledach API.
+
+### Konfiguracja
+
+Token Todoista wpisz w `config/todoist.local.php` (plik gitignored):
+
+```php
+<?php
+return [
+    'api_token'  => 'twoj-personal-token-tutaj',
+    'project_id' => '6gcqjmqj6QM9hQ2x', // ClubDesk.pl
+];
+```
+
+Token wygenerujesz w Todoist: Settings → Integrations → Developer → API token.
+
+### Cron setup
+
+Co 5 min sprawdzaj tasky Todoist i synchronizuj status do bazy:
+
+```cron
+*/5 * * * * /opt/plesk/php/8.2/bin/php /var/www/vhosts/portal.clubdesk.pl/httpdocs/cli/todoist_sync_status.php >> /var/log/clubdesk-todoist-sync.log 2>&1
+```
+
+### Flagi CLI
+
+| Flaga | Opis |
+|---|---|
+| `--dry-run` | pokaz co zostanie zmienione, nie zapisuj |
+| `--verbose` | log per task (przydatne do debugu) |
+| `--limit=N` | sprawdz maksymalnie N tasków (default: wszystko, batch po 50) |
+
+Exit codes: `0` = OK, `1` = byly bledy API, `2` = blad inicjalizacji klienta.
+
+### Logi
+
+- Cron output: `/var/log/clubdesk-todoist-sync.log` (zalecane)
+- Per-ticket error: kolumna `support_reports.todoist_sync_error` (widoczna w `/admin/support` jako ikona warning)
+
+### Edge cases
+
+- Jesli token Todoista nie skonfigurowany — cron exit 0 z komunikatem `skipped: not configured`.
+- Rate limit Todoist: ~450 req/min. Skrypt batchuje po 50 z lekkim throttle ~50ms.
+- Konflikt: lokalnie zmieniony status na `resolved` → push do Todoist robi `tasks/{id}/close`. Jesli sie nie uda, blad ladowany do `todoist_sync_error` ale UI nie crashuje.
+- Idempotentnosc: jesli task wciaz `is_completed = false` w Todoist a lokalnie juz `resolved`, skrypt **nie** wraca lokalnie do `in_progress` (zostawiamy admin decision).
+
