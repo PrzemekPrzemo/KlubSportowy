@@ -18,5 +18,6 @@ return [
         ['label' => 'Pary / Ranking', 'icon' => 'bi-people',      'url' => 'padel/pairs'],
         ['label' => 'Rezerwacje',     'icon' => 'bi-calendar3',   'url' => 'padel/reservations'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

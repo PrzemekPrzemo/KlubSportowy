@@ -19,5 +19,6 @@ return [
         ['label' => 'Drużyny (trawa)', 'icon' => 'bi-people-fill', 'url' => 'fieldhockey/teams'],
         ['label' => 'Mecze',           'icon' => 'bi-trophy',       'url' => 'fieldhockey/matches'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

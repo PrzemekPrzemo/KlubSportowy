@@ -26,5 +26,6 @@ return [
         ['label' => 'Wyniki zawodów', 'icon' => 'bi-flag',   'url' => 'athletics/results'],
         ['label' => 'Zawody',         'icon' => 'bi-calendar-event', 'url' => 'athletics/competitions'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

@@ -19,5 +19,6 @@ return [
         ['label' => 'Sprzęt',  'icon' => 'bi-box-seam',  'url' => 'rollerskating/equipment'],
         ['label' => 'Pomiary', 'icon' => 'bi-stopwatch',  'url' => 'rollerskating/times'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

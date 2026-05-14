@@ -19,5 +19,6 @@ return [
         ['label' => 'Drużyny rugby', 'icon' => 'bi-people-fill', 'url' => 'rugby/teams'],
         ['label' => 'Mecze rugby',   'icon' => 'bi-trophy',       'url' => 'rugby/matches'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

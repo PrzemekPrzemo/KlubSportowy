@@ -18,5 +18,6 @@ return [
         ['label' => 'WOD Library',  'icon' => 'bi-lightning-charge', 'url' => 'crossfit/wods'],
         ['label' => 'Rekordy (PR)', 'icon' => 'bi-bar-chart-line',   'url' => 'crossfit/prs'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

@@ -19,5 +19,6 @@ return [
         ['label' => 'Drużyny hokejowe', 'icon' => 'bi-people-fill', 'url' => 'icehockey/teams'],
         ['label' => 'Mecze hokeja',     'icon' => 'bi-calendar3',   'url' => 'icehockey/matches'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

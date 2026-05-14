@@ -41,5 +41,6 @@ return [
         ['label' => 'Ligi',       'icon' => 'bi-table',            'url' => 'football/leagues'],
         ['label' => 'Statystyki', 'icon' => 'bi-bar-chart',        'url' => 'football/stats'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

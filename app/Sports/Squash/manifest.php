@@ -18,5 +18,6 @@ return [
         ['label' => 'Wyniki meczy',  'icon' => 'bi-circle',     'url' => 'squash/results'],
         ['label' => 'Ranking PSA',   'icon' => 'bi-bar-chart',  'url' => 'squash/rankings'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

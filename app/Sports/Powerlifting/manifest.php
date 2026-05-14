@@ -17,5 +17,6 @@ return [
         ['label' => 'Wyniki zawodów',  'icon' => 'bi-trophy',   'url' => 'powerlifting/results'],
         ['label' => 'Rekordy klubu',   'icon' => 'bi-star',     'url' => 'powerlifting/records'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

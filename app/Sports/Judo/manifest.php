@@ -22,5 +22,6 @@ return [
         ['label' => 'Frekwencja',     'icon' => 'bi-calendar-check', 'url' => 'judo/attendance'],
         ['label' => 'Kalendarz',      'icon' => 'bi-calendar3',      'url' => 'judo/calendar'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

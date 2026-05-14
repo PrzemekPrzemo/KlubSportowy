@@ -15,5 +15,6 @@ return [
         ['label' => 'Mecze tenisa',   'icon' => 'bi-bullseye', 'url' => 'tennis/matches'],
         ['label' => 'Ranking',        'icon' => 'bi-list-ol',  'url' => 'tennis/rankings'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

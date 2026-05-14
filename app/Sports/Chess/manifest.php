@@ -18,5 +18,6 @@ return [
         ['label' => 'Rankingi ELO',   'icon' => 'bi-bar-chart',  'url' => 'chess/ratings'],
         ['label' => 'Wyniki partii',  'icon' => 'bi-grid-3x3',   'url' => 'chess/results'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

@@ -17,5 +17,6 @@ return [
         ['label' => 'Handicap WHS', 'icon' => 'bi-graph-up-arrow',   'url' => 'golf/handicaps'],
         ['label' => 'Rundy',        'icon' => 'bi-circle-half',      'url' => 'golf/rounds'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

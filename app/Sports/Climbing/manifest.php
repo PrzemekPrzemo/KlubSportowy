@@ -18,5 +18,6 @@ return [
         ['label' => 'Wyniki wspinaczki',   'icon' => 'bi-triangle-fill', 'url' => 'climbing/results'],
         ['label' => 'Drogi klubowe',       'icon' => 'bi-list-columns',  'url' => 'climbing/routes'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

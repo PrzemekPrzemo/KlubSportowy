@@ -21,5 +21,6 @@ return [
         ['label' => 'Drużyny',    'icon' => 'bi-people-fill', 'url' => 'floorball/teams'],
         ['label' => 'Mecze',      'icon' => 'bi-calendar2-check', 'url' => 'floorball/matches'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

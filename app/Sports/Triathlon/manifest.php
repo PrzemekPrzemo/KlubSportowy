@@ -15,5 +15,6 @@ return [
         ['label' => 'Wyniki',     'icon' => 'bi-stopwatch',  'url' => 'triathlon/results'],
         ['label' => 'Zawodnicy',  'icon' => 'bi-person-badge', 'url' => 'triathlon/athletes'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];

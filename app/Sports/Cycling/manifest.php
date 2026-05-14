@@ -17,5 +17,6 @@ return [
         ['label' => 'Wyniki kolarstwa', 'icon' => 'bi-bicycle',      'url' => 'cycling/results'],
         ['label' => 'Testy FTP',        'icon' => 'bi-lightning-fill','url' => 'cycling/ftp'],
     ],
+    'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
 ];
