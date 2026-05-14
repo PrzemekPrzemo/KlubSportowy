@@ -441,6 +441,15 @@ $router->post('/club/shipping/save',        [\App\Controllers\ClubShippingContro
 $router->post('/club/shipping/test',        [\App\Controllers\ClubShippingController::class, 'testConnection']);
 $router->post('/club/shipping/toggle',      [\App\Controllers\ClubShippingController::class, 'toggleActive']);
 
+// Per-klub integracja Google Calendar (OAuth2 + Calendar API v3)
+$router->get('/club/google-calendar',              [\App\Controllers\ClubGoogleCalendarController::class, 'index']);
+$router->get('/club/google-calendar/connect',      [\App\Controllers\ClubGoogleCalendarController::class, 'connect']);
+$router->get('/club/google-calendar/callback',     [\App\Controllers\ClubGoogleCalendarController::class, 'callback']);
+$router->post('/club/google-calendar/save',        [\App\Controllers\ClubGoogleCalendarController::class, 'save']);
+$router->post('/club/google-calendar/test',        [\App\Controllers\ClubGoogleCalendarController::class, 'testConnection']);
+$router->post('/club/google-calendar/sync-now',    [\App\Controllers\ClubGoogleCalendarController::class, 'syncNow']);
+$router->post('/club/google-calendar/disconnect',  [\App\Controllers\ClubGoogleCalendarController::class, 'disconnect']);
+
 // Powiadomienia (Faza S.1)
 $router->get('/club/notifications',                       [\App\Controllers\NotificationRulesController::class, 'index']);
 $router->post('/club/notifications/rules/store',          [\App\Controllers\NotificationRulesController::class, 'storeRule']);
