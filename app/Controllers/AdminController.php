@@ -327,13 +327,48 @@ class AdminController extends BaseController
             $backupOk = $this->triggerClubBackup($clubId);
         }
 
-        // Wykonaj DELETE — cascade w DB usunie powiazane rekordy
+        // Wykonaj DELETE — manualnie wyczysc wszystkie tabele z `club_id` poniewaz
+        // nie wszystkie FK maja `ON DELETE CASCADE` (np. members_ibfk_1).
+        // Wylaczamy FK_CHECKS na czas operacji + jawnie DELETE z kazdej tabeli.
+        $deleted = 0;
+        $tablesAffected = [];
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
         try {
-            $pdo = Database::pdo();
-            $stmt = $pdo->prepare("DELETE FROM clubs WHERE id = ?");
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+
+            // Lista wszystkich tabel z kolumna club_id (oprocz samej `clubs`)
+            $tablesStmt = $pdo->prepare(
+                'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND COLUMN_NAME = ?
+                   AND TABLE_NAME != ?'
+            );
+            $tablesStmt->execute(['club_id', 'clubs']);
+            $tables = $tablesStmt->fetchAll(\PDO::FETCH_COLUMN);
+
+            foreach ($tables as $table) {
+                // sanity check: dozwolone tylko nazwy [a-zA-Z0-9_]
+                if (!preg_match('/^[a-zA-Z0-9_]+$/', (string)$table)) continue;
+                $del = $pdo->prepare("DELETE FROM `{$table}` WHERE club_id = ?");
+                $del->execute([$clubId]);
+                $rows = $del->rowCount();
+                if ($rows > 0) {
+                    $tablesAffected[$table] = $rows;
+                }
+            }
+
+            // Wreszcie usun sam wpis klubu
+            $stmt = $pdo->prepare('DELETE FROM clubs WHERE id = ?');
             $stmt->execute([$clubId]);
             $deleted = $stmt->rowCount();
+
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+            $pdo->commit();
         } catch (\Throwable $e) {
+            $pdo->rollBack();
+            // belt and suspenders — przywroc FK check niezaleznie
+            try { $pdo->exec('SET FOREIGN_KEY_CHECKS = 1'); } catch (\Throwable) {}
             Session::flash('error', 'Blad usuwania klubu z bazy: ' . $e->getMessage());
             $this->redirect('admin/clubs/' . $clubId . '/delete');
         }
@@ -346,7 +381,9 @@ class AdminController extends BaseController
         // Cleanup uploaded files po udanym DB delete
         $this->cleanupClubFiles($clubId);
 
-        $msg = 'Klub "' . ($club['name'] ?? '') . '" zostal usuniety wraz z danymi.';
+        $totalRows = array_sum($tablesAffected);
+        $msg = 'Klub "' . ($club['name'] ?? '') . '" zostal usuniety. '
+             . 'Usunieto ' . $totalRows . ' rekordow z ' . count($tablesAffected) . ' tabel.';
         if ($backupOk === true) {
             $msg .= ' Backup zapisany w storage/backups/.';
         } elseif ($backupOk === false) {
