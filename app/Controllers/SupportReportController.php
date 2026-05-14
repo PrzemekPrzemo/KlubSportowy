@@ -170,29 +170,175 @@ class SupportReportController extends BaseController
         $clubId = ClubContext::current();
         $model  = new SupportReportModel();
 
-        $statusFilter = isset($_GET['status']) ? (string)$_GET['status'] : null;
         $allowedStatus = ['new', 'in_progress', 'resolved', 'wont_fix', 'duplicate'];
-        if ($statusFilter !== null && !in_array($statusFilter, $allowedStatus, true)) {
-            $statusFilter = null;
+        $allowedTypes  = self::ALLOWED_TYPES;
+
+        $statusFilter = isset($_GET['status']) ? trim((string)$_GET['status']) : '';
+        if ($statusFilter !== '' && !in_array($statusFilter, $allowedStatus, true)) {
+            $statusFilter = '';
+        }
+        $typeFilter = isset($_GET['type']) ? trim((string)$_GET['type']) : '';
+        if ($typeFilter !== '' && !in_array($typeFilter, $allowedTypes, true)) {
+            $typeFilter = '';
+        }
+        $searchQ    = isset($_GET['q']) ? mb_substr(trim((string)$_GET['q']), 0, 100) : '';
+        $period     = isset($_GET['period']) ? (string)$_GET['period'] : 'all';
+        if (!in_array($period, ['7', '30', 'all'], true)) {
+            $period = 'all';
         }
 
-        if (Auth::isSuperAdmin() && $clubId === null) {
-            // super-admin without club context -> all clubs
-            $sql = "SELECT * FROM `support_reports`" . ($statusFilter ? " WHERE `status` = ?" : "")
-                . " ORDER BY `created_at` DESC LIMIT 200";
-            $stmt = $model->getDb()->prepare($sql);
-            $stmt->execute($statusFilter ? [$statusFilter] : []);
-            $reports = $stmt->fetchAll();
-        } else {
-            $reports = $model->listForClub((int)$clubId, $statusFilter, 200);
+        $isSuper = Auth::isSuperAdmin();
+        $useGlobal = $isSuper && $clubId === null;
+
+        // Build WHERE clause
+        $where = [];
+        $params = [];
+
+        if (!$useGlobal) {
+            $where[]  = '`club_id` = ?';
+            $params[] = (int)$clubId;
         }
+        if ($statusFilter !== '') {
+            $where[]  = '`status` = ?';
+            $params[] = $statusFilter;
+        }
+        if ($typeFilter !== '') {
+            $where[]  = '`type` = ?';
+            $params[] = $typeFilter;
+        }
+        if ($searchQ !== '') {
+            $where[]  = '`title` LIKE ?';
+            $params[] = '%' . $searchQ . '%';
+        }
+        if ($period !== 'all') {
+            $where[]  = '`created_at` >= (NOW() - INTERVAL ? DAY)';
+            $params[] = (int)$period;
+        }
+
+        $sqlWhere = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+        $sql = "SELECT * FROM `support_reports`" . $sqlWhere . " ORDER BY `created_at` DESC LIMIT 200";
+        $stmt = $model->getDb()->prepare($sql);
+        $stmt->execute($params);
+        $reports = $stmt->fetchAll();
+
+        // Stats panel (per current club scope; super-admin global => global stats)
+        $stats = $this->computeStats($model->getDb(), $useGlobal ? null : (int)$clubId);
 
         $this->render('admin/support/index', [
             'title'         => 'Zgloszenia bledow i propozycji',
             'reports'       => $reports,
             'statusFilter'  => $statusFilter,
+            'typeFilter'    => $typeFilter,
+            'searchQ'       => $searchQ,
+            'period'        => $period,
+            'allowedStatus' => $allowedStatus,
+            'allowedTypes'  => $allowedTypes,
+            'stats'         => $stats,
+        ]);
+    }
+
+    /**
+     * Szczegolowy widok zgloszenia.
+     */
+    public function adminDetail(string $id): void
+    {
+        Auth::requireLogin();
+        if (!Auth::isSuperAdmin() && !Auth::hasRole(['zarzad', 'admin'])) {
+            http_response_code(403);
+            die('Brak uprawnien.');
+        }
+
+        $ticketId = (int)$id;
+        $model = new SupportReportModel();
+        $row = $model->findById($ticketId);
+        if (!$row) {
+            Session::flash('error', 'Zgloszenie nie istnieje.');
+            $this->redirect('admin/support');
+        }
+
+        // Authorization
+        if (!Auth::isSuperAdmin()) {
+            $clubId = ClubContext::current();
+            if ((int)($row['club_id'] ?? 0) !== (int)$clubId) {
+                http_response_code(403);
+                die('Brak uprawnien do tego zgloszenia.');
+            }
+        }
+
+        // Resolver name (jesli ustawiony)
+        $resolverName = null;
+        if (!empty($row['resolved_by'])) {
+            try {
+                $stmt = $model->getDb()->prepare('SELECT username, full_name FROM `users` WHERE id = ? LIMIT 1');
+                $stmt->execute([(int)$row['resolved_by']]);
+                $u = $stmt->fetch();
+                if ($u) {
+                    $resolverName = (string)($u['full_name'] ?? $u['username'] ?? '');
+                }
+            } catch (\Throwable) {}
+        }
+
+        $allowedStatus = ['new', 'in_progress', 'resolved', 'wont_fix', 'duplicate'];
+
+        $this->render('admin/support/detail', [
+            'title'         => 'Zgloszenie #' . $ticketId,
+            'report'        => $row,
+            'resolverName'  => $resolverName,
             'allowedStatus' => $allowedStatus,
         ]);
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function computeStats(\PDO $db, ?int $clubId): array
+    {
+        $scopeWhere = $clubId !== null ? ' WHERE `club_id` = ?' : '';
+        $scopeParams = $clubId !== null ? [$clubId] : [];
+
+        // Counts per status
+        $sql = "SELECT `status`, COUNT(*) AS c FROM `support_reports`" . $scopeWhere . " GROUP BY `status`";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($scopeParams);
+        $byStatus = ['new' => 0, 'in_progress' => 0, 'resolved' => 0, 'wont_fix' => 0, 'duplicate' => 0];
+        foreach ($stmt->fetchAll() as $r) {
+            $byStatus[(string)$r['status']] = (int)$r['c'];
+        }
+
+        // Counts per type
+        $sql = "SELECT `type`, COUNT(*) AS c FROM `support_reports`" . $scopeWhere . " GROUP BY `type`";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($scopeParams);
+        $byType = ['bug' => 0, 'feature' => 0, 'question' => 0, 'other' => 0];
+        foreach ($stmt->fetchAll() as $r) {
+            $byType[(string)$r['type']] = (int)$r['c'];
+        }
+
+        // Resolved last 30d
+        $where30 = $clubId !== null
+            ? "WHERE `club_id` = ? AND `resolved_at` >= (NOW() - INTERVAL 30 DAY)"
+            : "WHERE `resolved_at` >= (NOW() - INTERVAL 30 DAY)";
+        $stmt = $db->prepare("SELECT COUNT(*) FROM `support_reports` {$where30}");
+        $stmt->execute($scopeParams);
+        $resolvedLast30 = (int)$stmt->fetchColumn();
+
+        // Avg resolution time (godziny) — z ostatnich 90 dni
+        $where90 = $clubId !== null
+            ? "WHERE `club_id` = ? AND `resolved_at` IS NOT NULL AND `created_at` >= (NOW() - INTERVAL 90 DAY)"
+            : "WHERE `resolved_at` IS NOT NULL AND `created_at` >= (NOW() - INTERVAL 90 DAY)";
+        $stmt = $db->prepare(
+            "SELECT AVG(TIMESTAMPDIFF(HOUR, `created_at`, `resolved_at`)) FROM `support_reports` {$where90}"
+        );
+        $stmt->execute($scopeParams);
+        $avgHours = $stmt->fetchColumn();
+        $avgHours = $avgHours === false || $avgHours === null ? null : (float)$avgHours;
+
+        return [
+            'by_status'         => $byStatus,
+            'by_type'           => $byType,
+            'resolved_last_30d' => $resolvedLast30,
+            'avg_resolution_h'  => $avgHours,
+        ];
     }
 
     public function updateStatus(string $id): void
@@ -228,6 +374,8 @@ class SupportReportController extends BaseController
             }
         }
 
+        $oldStatus = (string)($row['status'] ?? 'new');
+
         $update = ['status' => $newStatus];
         if (in_array($newStatus, ['resolved', 'wont_fix', 'duplicate'], true)) {
             $update['resolved_at'] = date('Y-m-d H:i:s');
@@ -237,10 +385,84 @@ class SupportReportController extends BaseController
                 $update['resolution_notes'] = mb_substr($notes, 0, 2000);
             }
         }
+        // Reopen — wyczysc resolved_at jesli wracamy do 'new' lub 'in_progress'
+        if (in_array($newStatus, ['new', 'in_progress'], true) && in_array($oldStatus, ['resolved', 'wont_fix', 'duplicate'], true)) {
+            $update['resolved_at']      = null;
+            $update['resolved_by']      = null;
+        }
         $model->update($ticketId, $update);
 
+        // Push do Todoist (best-effort)
+        $this->pushStatusToTodoist($ticketId, $row, $newStatus, $oldStatus);
+
         Session::flash('success', 'Status zaktualizowany.');
+
+        $returnTo = (string)($_POST['return'] ?? '');
+        if ($returnTo !== '' && str_starts_with($returnTo, '/')) {
+            header('Location: ' . $returnTo);
+            exit;
+        }
         $this->redirect('admin/support');
+    }
+
+    /**
+     * Push zmiany statusu do Todoist (close / reopen / comment).
+     * Bledy zapisuje do todoist_sync_error, nie crashuje.
+     *
+     * @param array<string,mixed> $row aktualny support_report (przed update)
+     */
+    private function pushStatusToTodoist(int $ticketId, array $row, string $newStatus, string $oldStatus): void
+    {
+        $taskId = (string)($row['todoist_task_id'] ?? '');
+        if ($taskId === '') return;
+
+        $model = new SupportReportModel();
+        try {
+            $client = new TodoistClient();
+            if (!$client->isConfigured()) return;
+
+            $closedStatuses = ['resolved', 'wont_fix', 'duplicate'];
+            $isOldClosed = in_array($oldStatus, $closedStatuses, true);
+            $isNewClosed = in_array($newStatus, $closedStatuses, true);
+
+            if ($isNewClosed && !$isOldClosed) {
+                // Close task
+                $ok = $client->closeTask($taskId);
+                if (!$ok) {
+                    throw new \RuntimeException('closeTask returned false');
+                }
+                $model->update($ticketId, [
+                    'todoist_synced_at'  => date('Y-m-d H:i:s'),
+                    'todoist_sync_error' => null,
+                ]);
+            } elseif (!$isNewClosed && $isOldClosed) {
+                // Reopen
+                $ok = $client->reopenTask($taskId);
+                if (!$ok) {
+                    throw new \RuntimeException('reopenTask returned false');
+                }
+                $model->update($ticketId, [
+                    'todoist_synced_at'  => date('Y-m-d H:i:s'),
+                    'todoist_sync_error' => null,
+                ]);
+            } elseif ($newStatus === 'in_progress' && $oldStatus !== 'in_progress') {
+                // Comment "przyjete do realizacji"
+                $user = Auth::user();
+                $adminName = (string)($user['full_name'] ?? $user['username'] ?? 'admin');
+                $client->addComment($taskId, "Przyjete do realizacji przez {$adminName}.");
+                $model->update($ticketId, [
+                    'todoist_synced_at'  => date('Y-m-d H:i:s'),
+                    'todoist_sync_error' => null,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            try {
+                $model->update($ticketId, [
+                    'todoist_sync_error' => mb_substr('push: ' . $e->getMessage(), 0, 1000),
+                ]);
+            } catch (\Throwable) {}
+            error_log('[support_reports] Todoist push failed ticket=' . $ticketId . ': ' . $e->getMessage());
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────

@@ -15,6 +15,10 @@ namespace App\Helpers;
  *  - createTask(content, description, priority): tworzy task, zwraca task_id lub null
  *  - uploadFile(path, name): upload do /api/v1/uploads/upload, zwraca attachment array
  *  - addCommentWithAttachment(taskId, content, attachment): dodaje komentarz z plikiem
+ *  - addComment(taskId, content): dodaje zwykly komentarz tekstowy
+ *  - getTask(taskId): GET /tasks/{id}, zwraca array lub null gdy 404
+ *  - closeTask(taskId): POST /tasks/{id}/close
+ *  - reopenTask(taskId): POST /tasks/{id}/reopen
  */
 class TodoistClient
 {
@@ -120,6 +124,130 @@ class TodoistClient
             return true;
         } catch (\Throwable) {
             return false;
+        }
+    }
+
+    /**
+     * Dodaj zwykly tekstowy komentarz do taska.
+     */
+    public function addComment(string $taskId, string $content): bool
+    {
+        if (!$this->isConfigured()) return false;
+        $payload = [
+            'task_id' => $taskId,
+            'content' => mb_substr($content, 0, 15000),
+        ];
+        try {
+            $this->httpJson('POST', self::API_URL . '/comments', $payload);
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Pobierz task z Todoist po ID.
+     *
+     * @return array<string,mixed>|null array tasku, null gdy 404 (zostal usuniety w Todoist)
+     * @throws \RuntimeException przy innym bledzie HTTP lub konfiguracji
+     */
+    public function getTask(string $taskId): ?array
+    {
+        if (!$this->isConfigured()) {
+            throw new \RuntimeException('Todoist API token not configured.');
+        }
+
+        $url = self::API_URL . '/tasks/' . rawurlencode($taskId);
+        $ch = curl_init($url);
+        if ($ch === false) {
+            throw new \RuntimeException('Cannot init cURL');
+        }
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => $this->timeout,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $this->token,
+                'Accept: application/json',
+            ],
+        ]);
+        $body = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
+        curl_close($ch);
+
+        if ($code === 404) {
+            return null;
+        }
+        if ($body === false || $err !== '') {
+            throw new \RuntimeException("Todoist cURL error: {$err}");
+        }
+        if ($code < 200 || $code >= 300) {
+            throw new \RuntimeException("Todoist HTTP {$code}: " . substr((string)$body, 0, 300));
+        }
+        $data = json_decode((string)$body, true);
+        if (!is_array($data)) {
+            throw new \RuntimeException('Todoist invalid JSON response');
+        }
+        return $data;
+    }
+
+    /**
+     * Zamknij task w Todoist (POST /tasks/{id}/close).
+     * Zwraca true gdy 2xx (lub 204 No Content), false przy bledzie.
+     */
+    public function closeTask(string $taskId): bool
+    {
+        if (!$this->isConfigured()) return false;
+        try {
+            $this->httpNoContent('POST', self::API_URL . '/tasks/' . rawurlencode($taskId) . '/close');
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Otworz ponownie zamkniety task (POST /tasks/{id}/reopen).
+     */
+    public function reopenTask(string $taskId): bool
+    {
+        if (!$this->isConfigured()) return false;
+        try {
+            $this->httpNoContent('POST', self::API_URL . '/tasks/' . rawurlencode($taskId) . '/reopen');
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Request bez wymaganej response body (POST close/reopen zwracaja 204).
+     */
+    private function httpNoContent(string $method, string $url): void
+    {
+        $ch = curl_init($url);
+        if ($ch === false) {
+            throw new \RuntimeException('Cannot init cURL');
+        }
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => $this->timeout,
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $this->token,
+                'Content-Type: application/json',
+            ],
+        ]);
+        $body = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
+        curl_close($ch);
+
+        if ($body === false || $err !== '') {
+            throw new \RuntimeException("Todoist cURL error: {$err}");
+        }
+        if ($code < 200 || $code >= 300) {
+            throw new \RuntimeException("Todoist HTTP {$code}: " . substr((string)$body, 0, 300));
         }
     }
 
