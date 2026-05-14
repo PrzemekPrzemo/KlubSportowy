@@ -547,5 +547,24 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="<?= url('js/cookie-consent.js') ?>"></script>
+
+<!-- Floating "Zglos problem" button (support_reports + Todoist sync) -->
+<a href="<?= url('support/report?return=' . urlencode($_SERVER['REQUEST_URI'] ?? '/')) ?>"
+   class="support-fab"
+   title="Zglos blad lub propozycje">
+    <i class="bi bi-bug"></i>
+</a>
+<style>
+.support-fab {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1040;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #f59e0b; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    text-decoration: none; transition: transform .15s ease;
+}
+.support-fab:hover { transform: scale(1.1); color: #fff; }
+@media (max-width: 768px) { .support-fab { bottom: 1rem; right: 1rem; width: 48px; height: 48px; font-size: 1.25rem; } }
+</style>
 </body>
 </html>
