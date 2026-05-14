@@ -54,6 +54,54 @@ class HelpController extends BaseController
                 'icon'  => 'bi-currency-exchange',
                 'desc'  => 'Przegląd dostępnych planów subskrypcyjnych i ich limitów.',
             ],
+            'guide-common' => [
+                'file'  => 'guides/common.md',
+                'title' => 'Konto i podstawy',
+                'icon'  => 'bi-person-circle',
+                'desc'  => 'Logowanie, 2FA, dark mode, język, instalacja PWA — wspólne dla każdej roli.',
+            ],
+            'guide-zarzad' => [
+                'file'  => 'guides/zarzad.md',
+                'title' => 'Przewodnik: zarząd klubu',
+                'icon'  => 'bi-shield-fill-check',
+                'desc'  => 'Pełna konfiguracja klubu — branding, składki, bramki, federacje, integracje.',
+            ],
+            'guide-trener' => [
+                'file'  => 'guides/trener.md',
+                'title' => 'Przewodnik: trener',
+                'icon'  => 'bi-stopwatch',
+                'desc'  => 'Treningi, zawodnicy, składy, statystyki, wydarzenia, komunikacja.',
+            ],
+            'guide-instruktor' => [
+                'file'  => 'guides/instruktor.md',
+                'title' => 'Przewodnik: instruktor',
+                'icon'  => 'bi-clipboard-check',
+                'desc'  => 'Asysta przy zajęciach — obecność, lista zawodników, komunikacja.',
+            ],
+            'guide-sedzia' => [
+                'file'  => 'guides/sedzia.md',
+                'title' => 'Przewodnik: sędzia',
+                'icon'  => 'bi-flag-fill',
+                'desc'  => 'Wyniki meczów i turniejów, drabinki, protokoły, live updates.',
+            ],
+            'guide-ksiegowy' => [
+                'file'  => 'guides/ksiegowy.md',
+                'title' => 'Przewodnik: księgowy',
+                'icon'  => 'bi-cash-coin',
+                'desc'  => 'Składki, płatności, faktury, raporty, prowizje trenerów.',
+            ],
+            'guide-lekarz' => [
+                'file'  => 'guides/lekarz.md',
+                'title' => 'Przewodnik: lekarz',
+                'icon'  => 'bi-heart-pulse',
+                'desc'  => 'Karty medyczne, badania okresowe, kontuzje, zgodność WADA.',
+            ],
+            'guide-czlonek' => [
+                'file'  => 'guides/czlonek.md',
+                'title' => 'Przewodnik: członek (portal)',
+                'icon'  => 'bi-person-badge',
+                'desc'  => 'Mój profil, składki, kalendarz, wyniki, dokumenty, PWA.',
+            ],
         ];
     }
 

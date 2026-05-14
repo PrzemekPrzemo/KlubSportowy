@@ -3,6 +3,41 @@
  * @var array<string, array{file:string,title:string,icon:string,desc:string,available:bool}> $sections
  */
 use App\Helpers\View;
+use App\Helpers\Auth;
+
+// ── Podział sekcji: per-rola vs. ogólne ─────────────────────────
+$guideSlugs = [
+    'guide-common', 'guide-zarzad', 'guide-trener', 'guide-instruktor',
+    'guide-sedzia', 'guide-ksiegowy', 'guide-lekarz', 'guide-czlonek',
+];
+$roleGuides    = [];
+$otherSections = [];
+foreach ($sections as $slug => $sec) {
+    if (in_array($slug, $guideSlugs, true)) {
+        $roleGuides[$slug] = $sec;
+    } else {
+        $otherSections[$slug] = $sec;
+    }
+}
+
+// ── Wyróżnienie przewodnika dla aktualnej roli zalogowanego ─────
+$highlightSlug = null;
+if (Auth::id()) {
+    $roleMap = [
+        'zarzad'     => 'guide-zarzad',
+        'trener'     => 'guide-trener',
+        'instruktor' => 'guide-instruktor',
+        'sedzia'     => 'guide-sedzia',
+        'ksiegowy'   => 'guide-ksiegowy',
+        'lekarz'     => 'guide-lekarz',
+    ];
+    foreach ($roleMap as $role => $slug) {
+        if (Auth::hasRole($role)) {
+            $highlightSlug = $slug;
+            break;
+        }
+    }
+}
 ?>
 <div class="container py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
@@ -18,8 +53,45 @@ use App\Helpers\View;
         </form>
     </div>
 
+    <?php if (!empty($roleGuides)): ?>
+    <h2 class="h5 mt-2 mb-3"><i class="bi bi-people"></i> Przewodniki per rola</h2>
+    <div class="row g-3 mb-4">
+        <?php foreach ($roleGuides as $slug => $sec): ?>
+            <?php $isHighlighted = ($slug === $highlightSlug); ?>
+            <div class="col-12 col-md-6 col-lg-3">
+                <a href="<?= url('help/' . $slug) ?>"
+                   class="card h-100 text-decoration-none text-body position-relative <?= $sec['available'] ? '' : 'opacity-50' ?>"
+                   style="border:<?= $isHighlighted ? '2px solid var(--app-primary, #EE2C28)' : '1px solid #e5e7eb' ?>;
+                          <?= $isHighlighted ? 'box-shadow: 0 0 0 3px rgba(238,44,40,0.12);' : '' ?>">
+                    <?php if ($isHighlighted): ?>
+                        <span class="badge bg-primary position-absolute"
+                              style="top:-10px; right:10px; font-size:.7rem;">
+                            <i class="bi bi-star-fill"></i> Twój przewodnik
+                        </span>
+                    <?php endif; ?>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi <?= View::e($sec['icon']) ?> fs-3 text-primary"></i>
+                            <h5 class="card-title mb-0"><?= View::e($sec['title']) ?></h5>
+                        </div>
+                        <p class="card-text text-muted small mb-0"><?= View::e($sec['desc']) ?></p>
+                        <?php if (!$sec['available']): ?>
+                            <span class="badge bg-warning text-dark mt-2">Wkrótce</span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <small class="text-primary">Otwórz <i class="bi bi-arrow-right"></i></small>
+                    </div>
+                </a>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($otherSections)): ?>
+    <h2 class="h5 mt-4 mb-3"><i class="bi bi-book"></i> Dokumentacja ogólna</h2>
     <div class="row g-3">
-        <?php foreach ($sections as $slug => $sec): ?>
+        <?php foreach ($otherSections as $slug => $sec): ?>
             <div class="col-12 col-md-6 col-lg-4">
                 <a href="<?= url('help/' . $slug) ?>"
                    class="card h-100 text-decoration-none text-body <?= $sec['available'] ? '' : 'opacity-50' ?>"
@@ -41,6 +113,7 @@ use App\Helpers\View;
             </div>
         <?php endforeach; ?>
     </div>
+    <?php endif; ?>
 
     <div class="alert alert-info mt-4 small mb-0">
         <i class="bi bi-info-circle"></i>
