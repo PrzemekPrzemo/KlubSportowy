@@ -3,11 +3,14 @@
 namespace App\Controllers;
 
 use App\Helpers\Csrf;
+use App\Helpers\Feature;
 use App\Helpers\Session;
 use App\Helpers\Shipping\InPostAdapter;
 use App\Helpers\Shipping\ShipmentException;
+use App\Helpers\Shipping\ShipmentRequest;
 use App\Helpers\ValidatesRequest;
 use App\Models\ClubShippingProviderModel;
+use App\Models\MemberModel;
 use App\Models\ShipmentModel;
 
 /**
@@ -132,6 +135,211 @@ class ClubShippingController extends BaseController
                 'message' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Formularz tworzenia przesylki — pre-fill z adresu czlonka (jesli ?member_id=N).
+     *
+     * Gate: feature flag `inpost_shipping` + aktywna konfiguracja InPost klubu.
+     */
+    public function create(): void
+    {
+        Feature::requireEnabled('inpost_shipping');
+
+        $config = (new ClubShippingProviderModel())->activeForClub();
+        if (!$config) {
+            Session::flash('error',
+                'Skonfiguruj i aktywuj InPost zanim nadasz przesylke.');
+            $this->redirect('club/shipping');
+        }
+
+        $memberId = isset($_GET['member_id']) ? (int)$_GET['member_id'] : 0;
+        $member   = $memberId > 0 ? (new MemberModel())->findById($memberId) : null;
+
+        $this->render('club_shipping/create', [
+            'title'    => 'Nowa przesylka InPost',
+            'config'   => $config,
+            'member'   => $member,
+            'sizes'    => ClubShippingProviderModel::$SIZES,
+            'services' => ClubShippingProviderModel::$SERVICES,
+        ]);
+    }
+
+    /**
+     * POST /club/shipping/create — utworz przesylke przez InPost ShipX.
+     *
+     * Sekwencja:
+     *  1. CSRF + feature flag check
+     *  2. Pobierz aktywna konfiguracje (decrypted creds)
+     *  3. Zwaliduj minimalne pola (recipient_*, size, service, target_locker_id dla paczkomatu)
+     *  4. Zbuduj ShipmentRequest DTO
+     *  5. InPostAdapter::createShipment()
+     *  6. INSERT do shipments
+     *  7. Flash + redirect na liste
+     */
+    public function storeShipment(): void
+    {
+        Csrf::verify();
+        Feature::requireEnabled('inpost_shipping');
+
+        $config = (new ClubShippingProviderModel())->activeForClub();
+        if (!$config) {
+            Session::flash('error', 'Brak aktywnej konfiguracji InPost.');
+            $this->redirect('club/shipping');
+        }
+
+        $memberId = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
+        $member   = $memberId > 0 ? (new MemberModel())->findById($memberId) : null;
+
+        $size = $_POST['size'] ?? ($config['default_size'] ?? 'A');
+        if (!array_key_exists($size, ClubShippingProviderModel::$SIZES)) {
+            $size = 'A';
+        }
+        $service = $_POST['service'] ?? ($config['default_service'] ?? 'inpost_locker_standard');
+        if (!array_key_exists($service, ClubShippingProviderModel::$SERVICES)) {
+            $service = 'inpost_locker_standard';
+        }
+        $isLocker = str_contains($service, 'locker');
+
+        $recipientName  = trim((string)($_POST['recipient_name']  ?? ''));
+        $recipientEmail = trim((string)($_POST['recipient_email'] ?? ''));
+        $recipientPhone = trim((string)($_POST['recipient_phone'] ?? ''));
+        $targetLocker   = trim((string)($_POST['target_locker_id'] ?? ''));
+        $street         = trim((string)($_POST['recipient_street']    ?? ''));
+        $building       = trim((string)($_POST['recipient_building']  ?? ''));
+        $city           = trim((string)($_POST['recipient_city']      ?? ''));
+        $postCode       = trim((string)($_POST['recipient_post_code'] ?? ''));
+        $note           = trim((string)($_POST['internal_note'] ?? ''));
+
+        if ($recipientName === '' || $recipientEmail === '' || $recipientPhone === '') {
+            Session::flash('error', 'Wypelnij dane odbiorcy (imie/nazwisko, email, telefon).');
+            $this->redirect('club/shipping/create' . ($memberId > 0 ? '?member_id=' . $memberId : ''));
+        }
+        if ($isLocker && $targetLocker === '') {
+            Session::flash('error', 'Wybierz docelowy paczkomat (target_locker_id).');
+            $this->redirect('club/shipping/create' . ($memberId > 0 ? '?member_id=' . $memberId : ''));
+        }
+        if (!$isLocker && ($street === '' || $city === '' || $postCode === '')) {
+            Session::flash('error', 'Dla kuriera wymagany jest pelny adres odbiorcy.');
+            $this->redirect('club/shipping/create' . ($memberId > 0 ? '?member_id=' . $memberId : ''));
+        }
+
+        $req = new ShipmentRequest(
+            clubId:            (int)$this->currentClub(),
+            recipientName:     $recipientName,
+            recipientEmail:    $recipientEmail,
+            recipientPhone:    $recipientPhone,
+            size:              $size,
+            service:           $service,
+            targetLockerId:    $isLocker ? ($targetLocker !== '' ? $targetLocker : null) : null,
+            recipientStreet:   $street    !== '' ? $street    : null,
+            recipientBuilding: $building  !== '' ? $building  : null,
+            recipientCity:     $city      !== '' ? $city      : null,
+            recipientPostCode: $postCode  !== '' ? $postCode  : null,
+            memberId:          $memberId > 0 ? $memberId : null,
+            internalNote:      $note !== '' ? $note : null,
+        );
+
+        try {
+            $adapter = new InPostAdapter($config);
+            $result  = $adapter->createShipment($req);
+        } catch (ShipmentException $e) {
+            Session::flash('error', 'InPost: ' . $e->getMessage());
+            $this->redirect('club/shipping/create' . ($memberId > 0 ? '?member_id=' . $memberId : ''));
+        }
+
+        (new ShipmentModel())->insert([
+            'provider'         => 'inpost',
+            'external_id'      => $result->externalId,
+            'tracking_number'  => $result->trackingNumber,
+            'label_url'        => $result->labelUrl,
+            'recipient_name'   => $recipientName,
+            'recipient_email'  => $recipientEmail,
+            'recipient_phone'  => $recipientPhone,
+            'target_locker_id' => $isLocker ? $targetLocker : null,
+            'size'             => $size,
+            'status'           => $result->status,
+            'member_id'        => $memberId > 0 ? $memberId : null,
+            'internal_note'    => $note !== '' ? $note : null,
+        ]);
+
+        Session::flash('success',
+            'Przesylka utworzona (tracking: ' . ($result->trackingNumber ?? $result->externalId) . ').');
+        $this->redirect('club/shipping/shipments');
+    }
+
+    /**
+     * Lista wszystkich przesylek klubu — pelna (nie tylko top 20 jak index).
+     */
+    public function listShipments(): void
+    {
+        Feature::requireEnabled('inpost_shipping');
+
+        $shipments = (new ShipmentModel())->recentForClub(500);
+        $this->render('club_shipping/shipments', [
+            'title'     => 'Przesylki InPost',
+            'shipments' => $shipments,
+        ]);
+    }
+
+    /**
+     * GET /club/shipping/label/:id — przekierowanie na InPost-owy URL etykiety PDF.
+     *
+     * InPost zwraca PDF bezposrednio z swojego API (z auth Bearer w nagłowku),
+     * wiec nie mozemy po prostu zrobic 302. Pobieramy binarke przez cURL
+     * i streamujemy do klienta.
+     */
+    public function downloadLabel(string $id): void
+    {
+        Feature::requireEnabled('inpost_shipping');
+
+        $shipmentId = (int)$id;
+        $clubId     = $this->currentClub();
+
+        $stmt = \App\Helpers\Database::pdo()->prepare(
+            "SELECT * FROM shipments WHERE id = ? AND club_id = ? LIMIT 1"
+        );
+        $stmt->execute([$shipmentId, $clubId]);
+        $shipment = $stmt->fetch();
+        if (!$shipment || empty($shipment['external_id'])) {
+            Session::flash('error', 'Przesylka nieznaleziona lub brak external_id.');
+            $this->redirect('club/shipping/shipments');
+        }
+
+        $config = (new ClubShippingProviderModel())->activeForClub();
+        if (!$config) {
+            Session::flash('error', 'Brak aktywnej konfiguracji InPost.');
+            $this->redirect('club/shipping/shipments');
+        }
+
+        $adapter = new InPostAdapter($config);
+        $url     = $adapter->fetchLabel((string)$shipment['external_id']);
+
+        // Pobierz PDF z InPost API z Bearer auth i streamuj
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $config['api_token'],
+                'Accept: application/pdf',
+            ],
+        ]);
+        $pdf  = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($pdf === false || $code < 200 || $code >= 300) {
+            Session::flash('error', 'InPost: nie udalo sie pobrac etykiety (HTTP ' . $code . ').');
+            $this->redirect('club/shipping/shipments');
+        }
+
+        $filename = 'inpost-label-' . preg_replace('/[^a-zA-Z0-9_-]/', '', (string)$shipment['external_id']) . '.pdf';
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . strlen((string)$pdf));
+        echo $pdf;
+        exit;
     }
 
     public function toggleActive(): void
