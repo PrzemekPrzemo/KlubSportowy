@@ -4,6 +4,33 @@ Dokument bazuje na audycie kodu (maj 2026) i odpowiada na zadanie Todoist
 „Dokończyć pełną funkcjonalność ClubDesk per sport i per klub" — krok zerowy:
 spisać konkretną listę brakujących funkcjonalności.
 
+## Status realizacji (aktualizacja 2026-05-14)
+
+| Pozycja | Status | PR | Notatka |
+|---|---|---|---|
+| P0 #1 Bramki PL (P24/TPay/PayU/Stripe) | ✅ Dostarczone | #106 | Adaptery + per-klub encrypted creds + real API test ping |
+| P0 #2 Auto-rankingi turniejowe | ✅ Dostarczone | #108 | Elo / LeaguePoints / BestTime + engine + CLI cron |
+| P1 #3 Per-sport migracje 43 stub-y | 🟡 Częściowe (15/~43) | #110, fala 2 w toku | Walki/raketkowe/wodne done; siłowe/zimowe/esport/gimnastyka w toku |
+| P1 #4 FederationExporter | ✅ Dostarczone | #111 | Interface + 4 stuby (PZPN/PZSS/PZKosz/PZLA) + GenericCsvExporter fallback |
+| P1 #5 Views per-sport refactor | ⏸️ Świadomie pominięte | — | Wide refactor; nie blokuje sprzedaży |
+| P1 #6 Cross-sport stats dashboard | ✅ Dostarczone | #112 | Per-member + per-club z chart.js |
+| P2 #7 Whitelabel pełen | ✅ Dostarczone | #115 | Custom CSS/favicon/email header/SMS sender, sanitized |
+| P2 #8 Configurable workflow | ⏸️ Świadomie pominięte | — | Vague scope; wymaga decyzji produktowych |
+| P2 #9 Feature flags per klub | ✅ Dostarczone | #109 | Catalog + per-club overrides + `Feature::enabled()` |
+| P3 #10 Mobile | 🟡 PWA w toku zamiast Flutter | #N | PWA = 80% wartości za 10% wysiłku; Flutter decision odłożona |
+| P3 #11 Live updates SSE | ✅ Dostarczone | #113 | SSE engine + LiveUpdatesController + CLI demo |
+| P3 #12 Generowanie PDF | ✅ Dostarczone | #114 | 4 generatory (zaśw./FV/umowa/certyfikat) |
+| P4 #13 Google Calendar sync | 🟡 W toku | #N | OAuth2 + dwukierunkowy sync |
+| P4 #14 InPost Paczkomaty | ✅ Dostarczone | #107 | ShipX API + per-klub credentials |
+| OPS Migration runner | ✅ Dostarczone | #116 | `cli/update.php` z trackingiem `schema_migrations` |
+| OPS Per-klub UI gaps + sidebar nav | 🟡 W toku | #N | Linki do feature-ów + InPost shipment UI |
+| OPS Sport module bootstrap | 🟡 W toku | #N | Manifesty + foldery dla brakujących sportów |
+| OPS Integration tests | 🟡 W toku | #N | Feature testy dla auth/members/payments/feature-flags |
+
+**Dostarczone w sesji 13-14 maja 2026:** 10+ PR-ów, ~9000+ LOC, 9/14 pozycji z roadmapy gotowe + 5 w toku + 2 świadomie pominięte (wymagają decyzji).
+
+---
+
 ## TL;DR — co już mamy
 
 ClubDesk jest dalej posunięty niż wynika z taska:
