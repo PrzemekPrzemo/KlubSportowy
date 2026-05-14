@@ -3,20 +3,22 @@
 namespace App\Helpers;
 
 /**
- * Klient REST + Sync API Todoista.
+ * Klient API Todoista (Unified API v1).
  *
  * Konfiguracja: config/todoist.php (defaults) + config/todoist.local.php (gitignored).
  *
+ * UWAGA: Todoist zdeprecował endpointy /rest/v2 i /sync/v9 (HTTP 410 od 2025).
+ * Klient używa nowych endpointów /api/v1/ — patrz https://developer.todoist.com/api/v1
+ *
  * Public methods:
- *  - isConfigured(): czy token + project_id sa ustawione
+ *  - isConfigured(): czy token + project_id są ustawione
  *  - createTask(content, description, priority): tworzy task, zwraca task_id lub null
- *  - uploadFile(path, name): upload do /sync/v9/uploads/add, zwraca attachment array
+ *  - uploadFile(path, name): upload do /api/v1/uploads/upload, zwraca attachment array
  *  - addCommentWithAttachment(taskId, content, attachment): dodaje komentarz z plikiem
  */
 class TodoistClient
 {
-    private const REST_URL = 'https://api.todoist.com/rest/v2';
-    private const SYNC_URL = 'https://api.todoist.com/sync/v9';
+    private const API_URL = 'https://api.todoist.com/api/v1';
 
     private string $token;
     private string $projectId;
@@ -64,7 +66,7 @@ class TodoistClient
             'priority'    => $priorityMap[$priority] ?? 2,
         ];
 
-        $resp = $this->httpJson('POST', self::REST_URL . '/tasks', $payload);
+        $resp = $this->httpJson('POST', self::API_URL . '/tasks', $payload);
         $id = $resp['id'] ?? null;
         return $id !== null ? (string)$id : null;
     }
@@ -81,7 +83,7 @@ class TodoistClient
             ? (mime_content_type($filePath) ?: 'application/octet-stream')
             : 'application/octet-stream';
 
-        $ch = curl_init(self::SYNC_URL . '/uploads/add');
+        $ch = curl_init(self::API_URL . '/uploads/upload');
         if ($ch === false) return null;
 
         $cfile = new \CURLFile($filePath, $mime, $fileName);
@@ -114,7 +116,7 @@ class TodoistClient
             'attachment' => $attachment,
         ];
         try {
-            $this->httpJson('POST', self::REST_URL . '/comments', $payload);
+            $this->httpJson('POST', self::API_URL . '/comments', $payload);
             return true;
         } catch (\Throwable) {
             return false;
