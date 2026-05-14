@@ -41,15 +41,20 @@ CREATE TABLE IF NOT EXISTS `clubs` (
 -- club_customization
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `club_customization` (
-  `club_id`       INT UNSIGNED  PRIMARY KEY,
-  `logo_path`     VARCHAR(255)  NULL,
-  `primary_color` VARCHAR(20)   NOT NULL DEFAULT '#0d6efd',
-  `navbar_bg`     VARCHAR(20)   NOT NULL DEFAULT '#212529',
-  `accent_color`  VARCHAR(20)   NOT NULL DEFAULT '#198754',
-  `custom_css`    TEXT          NULL,
-  `subdomain`     VARCHAR(80)   NULL UNIQUE COMMENT 'np. azs-warszawa -> azs-warszawa.system.pl',
-  `motto`         VARCHAR(255)  NULL,
-  `updated_at`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `club_id`               INT UNSIGNED  PRIMARY KEY,
+  `logo_path`             VARCHAR(255)  NULL,
+  `primary_color`         VARCHAR(20)   NOT NULL DEFAULT '#0d6efd',
+  `navbar_bg`             VARCHAR(20)   NOT NULL DEFAULT '#212529',
+  `accent_color`          VARCHAR(20)   NOT NULL DEFAULT '#198754',
+  `custom_css`            TEXT          NULL,
+  `custom_css_updated_at` DATETIME      NULL,
+  `favicon_path`          VARCHAR(255)  NULL COMMENT 'Sciezka per-klub favicon (PNG/ICO)',
+  `email_header_html`     TEXT          NULL COMMENT 'HTML do <header> w emailach (max 5000 chars)',
+  `email_from_name`       VARCHAR(120)  NULL COMMENT 'Display name w From: header',
+  `sms_sender_id`         VARCHAR(11)   NULL COMMENT 'Alphanum sender 1-11 znakow A-Z, 0-9',
+  `subdomain`             VARCHAR(80)   NULL UNIQUE COMMENT 'np. azs-warszawa -> azs-warszawa.system.pl',
+  `motto`                 VARCHAR(255)  NULL,
+  `updated_at`            DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Wygląd i branding per-klub';

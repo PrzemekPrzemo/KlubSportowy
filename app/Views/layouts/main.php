@@ -7,7 +7,13 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <?php $clubFavicon = $branding['favicon_path'] ?? null; ?>
+    <?php if (!empty($clubFavicon)): ?>
+        <?php $favExt = strtolower(pathinfo($clubFavicon, PATHINFO_EXTENSION)); ?>
+        <link rel="icon" type="<?= $favExt === 'png' ? 'image/png' : 'image/x-icon' ?>" href="<?= url($clubFavicon) ?>">
+    <?php else: ?>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <?php endif; ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#EE2C28">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -56,7 +62,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         }
     </style>
     <?php if (!empty($branding['custom_css'])): ?>
-    <style><?= $branding['custom_css'] ?></style>
+    <style id="club-custom-css"><?= $branding['custom_css'] /* sanitized at save (WhitelabelSanitizer::sanitizeCss) */ ?></style>
     <?php endif; ?>
 </head>
 <body>
@@ -209,6 +215,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
         <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
         <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
+        <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> Feature flags</a>
         <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> Logo systemu</a>
         <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
         <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>

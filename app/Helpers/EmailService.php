@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Helpers\ClubBranding;
 use App\Models\ClubSettingsModel;
 use App\Models\EmailQueueModel;
 use App\Models\EmailTemplateModel;
@@ -26,8 +27,13 @@ class EmailService
     {
         $config = self::resolveSmtpConfig($clubId);
 
+        // Whitelabel: per-klub email_from_name nadpisuje SMTP from_name.
+        $branding = ClubBranding::forClub($clubId);
+        $brandFromName = $branding->emailFromNameOrDefault('');
+
         $from = $config['from_email'] ?: ('noreply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
-        $fromName = $config['from_name'] ?: 'KlubSportowy';
+        $fromName = $brandFromName !== '' ? $brandFromName : ($config['from_name'] ?: 'KlubSportowy');
+        $config['from_name'] = $fromName; // przekaz do SMTP wrappera
 
         // Y.3 — Build HTML wrapper if body is plain (default) lub jest już HTML
         $isAlreadyHtml = str_starts_with(trim($body), '<') || str_contains($body, '<html');
@@ -103,18 +109,18 @@ class EmailService
                 . '" alt="' . $clubNameEsc . '" style="max-height:50px; max-width:160px; vertical-align:middle;">'
             : '';
 
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{$clubNameEsc}</title>
-</head>
-<body style="margin:0; padding:0; background:#f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#333;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;">
-<tr><td align="center" style="padding:24px 12px;">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.08);">
+        // Whitelabel: per-klub email_header_html nadpisuje domyslny header.
+        try {
+            $branding = ClubBranding::forClub($clubId);
+            $customHeader = $branding->__get('email_header_html');
+        } catch (\Throwable) {
+            $customHeader = null;
+        }
+        if (is_string($customHeader) && trim($customHeader) !== '') {
+            // Wartosc juz sanitized w zapisie (WhitelabelSanitizer::sanitizeEmailHeaderHtml).
+            $headerBlock = '<tr><td>' . $customHeader . '</td></tr>';
+        } else {
+            $headerBlock = <<<HTML_HEADER
 <!-- Header z logo -->
 <tr><td style="background:{$primaryColorEsc}; padding:20px 24px; color:#fff;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -128,6 +134,22 @@ class EmailService
 </tr>
 </table>
 </td></tr>
+HTML_HEADER;
+        }
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{$clubNameEsc}</title>
+</head>
+<body style="margin:0; padding:0; background:#f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#333;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.08);">
+{$headerBlock}
 <!-- Body -->
 <tr><td style="padding:32px 24px; line-height:1.6; font-size:15px; color:#222;">
 {$bodyHtml}

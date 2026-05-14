@@ -1015,6 +1015,28 @@ class MemberPortalController extends BaseController
         ]);
     }
 
+    /**
+     * Cross-sport stats dashboard — jednolity widok aktywnosci czlonka
+     * po wszystkich dyscyplinach (USP multi-sport).
+     *
+     * GET /portal/dashboard/cross-sport
+     */
+    public function crossSportDashboard(): void
+    {
+        MemberAuth::requireLogin();
+        $memberId = (int)MemberAuth::id();
+
+        $stats = \App\Helpers\CrossSportStats::forMember($memberId);
+
+        $this->view->setLayout('portal');
+        $this->view->render('member_portal/cross_sport_dashboard', [
+            'title'   => 'Cross-sport stats',
+            'member'  => MemberAuth::member(),
+            'stats'   => $stats,
+            'appName' => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
     public function belts(): void
     {
         MemberAuth::requireLogin();

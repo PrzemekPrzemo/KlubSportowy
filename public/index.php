@@ -117,6 +117,9 @@ if ($baseDomain !== '') {
 // ============================================================
 $router = new \App\Helpers\Router();
 
+// Whitelabel — per-klub favicon (public, no auth)
+$router->get('/favicon.ico', [\App\Controllers\BrandingAssetController::class, 'favicon']);
+
 // Strona startowa → logowanie (landing page jest na clubdesk.pl)
 $router->get('/', [\App\Controllers\AuthController::class, 'showLogin']);
 
@@ -176,6 +179,10 @@ $router->post('/admin/clubs/:id/limits',       [\App\Controllers\AdminController
 $router->get('/admin/clubs/:id/analytics',     [\App\Controllers\AdminController::class, 'clubAnalytics']);
 $router->get('/admin/clubs/:id/export',        [\App\Controllers\ClubExportController::class, 'adminExport']);
 
+// Cross-sport overview dla zarzadu klubu (USP multi-sport)
+$router->get('/admin/clubs/cross-sport-overview', [\App\Controllers\ClubManagementController::class, 'crossSportOverview']);
+$router->get('/club/cross-sport-overview',        [\App\Controllers\ClubManagementController::class, 'crossSportOverview']);
+
 // Admin: demo tokeny
 $router->get('/admin/demos',           [\App\Controllers\DemoController::class, 'index']);
 $router->post('/admin/demos/create',   [\App\Controllers\DemoController::class, 'create']);
@@ -211,6 +218,12 @@ $router->get('/admin/platform/support',              [\App\Controllers\AdminPlat
 $router->get('/admin/platform/support/:id',          [\App\Controllers\AdminPlatformController::class, 'viewTicket']);
 $router->post('/admin/platform/support/:id/reply',   [\App\Controllers\AdminPlatformController::class, 'replyTicket']);
 $router->post('/admin/platform/support/:id/close',   [\App\Controllers\AdminPlatformController::class, 'closeTicket']);
+
+// Admin: feature flags (per-klub boolean włącz/wyłącz feature'ów)
+$router->get('/admin/platform/feature-flags',                  [\App\Controllers\AdminFeatureFlagsController::class, 'index']);
+$router->get('/admin/platform/feature-flags/clubs/:clubId',    [\App\Controllers\AdminFeatureFlagsController::class, 'clubOverrides']);
+$router->post('/admin/platform/feature-flags/override',        [\App\Controllers\AdminFeatureFlagsController::class, 'saveOverride']);
+$router->post('/admin/platform/feature-flags/clear',           [\App\Controllers\AdminFeatureFlagsController::class, 'clearOverride']);
 
 // Support tickets (klub zarzad)
 $router->get('/support',          [\App\Controllers\SupportController::class, 'index']);
@@ -261,6 +274,7 @@ $router->post('/admin/invoices/store',       [\App\Controllers\AdminInvoicesCont
 $router->get('/admin/invoices/:id',          [\App\Controllers\AdminInvoicesController::class, 'show']);
 $router->post('/admin/invoices/:id/pay',     [\App\Controllers\AdminInvoicesController::class, 'markPaid']);
 $router->post('/admin/invoices/:id/cancel',  [\App\Controllers\AdminInvoicesController::class, 'markCancelled']);
+$router->get('/admin/invoices/:id/pdf',      [\App\Controllers\AdminInvoicesController::class, 'pdf']);
 
 // Admin: audyt izolacji danych (Batch A6)
 $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController::class, 'isolation']);
@@ -420,6 +434,13 @@ $router->post('/club/federations/:code/test',              [\App\Controllers\Clu
 $router->post('/club/federations/:code/toggle',            [\App\Controllers\ClubFederationController::class, 'toggleActive']);
 $router->post('/club/federations/:code/export-member',     [\App\Controllers\ClubFederationController::class, 'exportMember']);
 
+// Per-klub integracja wysyłki InPost (ShipX) — F.6
+$router->get('/club/shipping',              [\App\Controllers\ClubShippingController::class, 'index']);
+$router->get('/club/shipping/edit',         [\App\Controllers\ClubShippingController::class, 'edit']);
+$router->post('/club/shipping/save',        [\App\Controllers\ClubShippingController::class, 'save']);
+$router->post('/club/shipping/test',        [\App\Controllers\ClubShippingController::class, 'testConnection']);
+$router->post('/club/shipping/toggle',      [\App\Controllers\ClubShippingController::class, 'toggleActive']);
+
 // Powiadomienia (Faza S.1)
 $router->get('/club/notifications',                       [\App\Controllers\NotificationRulesController::class, 'index']);
 $router->post('/club/notifications/rules/store',          [\App\Controllers\NotificationRulesController::class, 'storeRule']);
@@ -447,6 +468,12 @@ $router->get('/club/settings',            [\App\Controllers\ClubManagementContro
 $router->post('/club/settings/save',      [\App\Controllers\ClubManagementController::class, 'saveSettings']);
 $router->get('/club/customization',       [\App\Controllers\ClubManagementController::class, 'customization']);
 $router->post('/club/customization/save', [\App\Controllers\ClubManagementController::class, 'saveCustomization']);
+// Whitelabel — favicon / custom CSS / email header / komunikacja (osobne formularze)
+$router->post('/club/customization/favicon',         [\App\Controllers\ClubManagementController::class, 'uploadFavicon']);
+$router->post('/club/customization/favicon/delete',  [\App\Controllers\ClubManagementController::class, 'deleteFavicon']);
+$router->post('/club/customization/css',             [\App\Controllers\ClubManagementController::class, 'saveCustomCss']);
+$router->post('/club/customization/email-header',    [\App\Controllers\ClubManagementController::class, 'saveEmailHeader']);
+$router->post('/club/customization/communication',   [\App\Controllers\ClubManagementController::class, 'saveCommunication']);
 $router->get('/club/smtp',                [\App\Controllers\ClubManagementController::class, 'smtp']);
 $router->post('/club/smtp/save',          [\App\Controllers\ClubManagementController::class, 'saveSmtp']);
 $router->get('/club/users',               [\App\Controllers\ClubManagementController::class, 'users']);
@@ -481,6 +508,8 @@ $router->get('/portal/login',            [\App\Controllers\MemberPortalControlle
 $router->post('/portal/login',           [\App\Controllers\MemberPortalController::class, 'login']);
 $router->get('/portal/logout',           [\App\Controllers\MemberPortalController::class, 'logout']);
 $router->get('/portal/dashboard',        [\App\Controllers\MemberPortalController::class, 'dashboard']);
+$router->get('/portal/dashboard/cross-sport', [\App\Controllers\MemberPortalController::class, 'crossSportDashboard']);
+$router->get('/member/dashboard/cross-sport', [\App\Controllers\MemberPortalController::class, 'crossSportDashboard']);
 $router->get('/portal/profile',          [\App\Controllers\MemberPortalController::class, 'profile']);
 $router->post('/portal/profile/update',  [\App\Controllers\MemberPortalController::class, 'updateProfile']);
 $router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);
@@ -654,6 +683,17 @@ $router->get('/livestream/:id/watch',      [\App\Controllers\LivestreamControlle
 $router->post('/livestream/:id/status',    [\App\Controllers\LivestreamController::class, 'setStatus']);
 $router->post('/livestream/:id/delete',    [\App\Controllers\LivestreamController::class, 'delete']);
 
+// Live updates (Server-Sent Events) — real-time wyniki meczu/turnieju
+$router->get('/live',                          [\App\Controllers\LiveUpdatesController::class, 'index']);
+$router->get('/live/channels',                 [\App\Controllers\LiveUpdatesController::class, 'channels']);
+$router->get('/live/stream/:channel',          [\App\Controllers\LiveUpdatesController::class, 'stream']);
+$router->post('/live/publish/:channel',        [\App\Controllers\LiveUpdatesController::class, 'publish']);
+$router->post('/live/admin/create',            [\App\Controllers\LiveUpdatesController::class, 'adminCreate']);
+$router->post('/live/admin/start/:id',         [\App\Controllers\LiveUpdatesController::class, 'adminStart']);
+$router->post('/live/admin/end/:id',           [\App\Controllers\LiveUpdatesController::class, 'adminEnd']);
+$router->post('/live/admin/delete/:id',        [\App\Controllers\LiveUpdatesController::class, 'adminDelete']);
+$router->get('/club/:slug/live',               [\App\Controllers\LiveUpdatesController::class, 'publicClubLive']);
+
 // Treningi
 $router->get('/trainings',                        [\App\Controllers\TrainingsController::class, 'index']);
 $router->get('/trainings/create',                 [\App\Controllers\TrainingsController::class, 'create']);
@@ -689,6 +729,9 @@ $router->get('/documents',                      [\App\Controllers\DocumentsContr
 $router->get('/documents/agreement/:memberId',  [\App\Controllers\DocumentsController::class, 'memberAgreement']);
 $router->get('/documents/consent/:memberId',    [\App\Controllers\DocumentsController::class, 'trainingConsent']);
 $router->get('/documents/waiver/:memberId',     [\App\Controllers\DocumentsController::class, 'liabilityWaiver']);
+$router->get('/documents/membership/:memberId', [\App\Controllers\DocumentsController::class, 'membershipCertificate']);
+$router->get('/documents/contract/:memberId',   [\App\Controllers\DocumentsController::class, 'membershipContract']);
+$router->get('/documents/certificate/:memberId',[\App\Controllers\DocumentsController::class, 'achievementCertificate']);
 
 // Statystyki i porównywarka zawodników
 $router->get('/stats/member/:memberId',  [\App\Controllers\PlayerStatsController::class, 'profile']);
@@ -778,6 +821,8 @@ $router->post('/sport-licenses/:id/delete',  [\App\Controllers\SportLicensesCont
 $router->get('/sport-rankings',              [\App\Controllers\SportRankingsController::class, 'index']);
 $router->post('/sport-rankings/store',       [\App\Controllers\SportRankingsController::class, 'store']);
 $router->post('/sport-rankings/:id/delete',  [\App\Controllers\SportRankingsController::class, 'delete']);
+$router->post('/sport-rankings/recalculate', [\App\Controllers\SportRankingsController::class, 'recalculate']);
+$router->post('/rankings/recalculate',       [\App\Controllers\SportRankingsController::class, 'recalculate']);
 
 // ── Turnieje ───────────────────────────────────────────────
 $router->get('/tournaments',                         [\App\Controllers\TournamentsController::class, 'index']);

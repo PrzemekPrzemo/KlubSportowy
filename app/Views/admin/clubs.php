@@ -35,6 +35,9 @@
                         <a href="<?= url('admin/clubs/' . (int)$c['id'] . '/users') ?>" class="btn btn-sm btn-outline-info" title="<?= __('admin.club_users') ?>">
                             <i class="bi bi-people"></i>
                         </a>
+                        <a href="<?= url('admin/platform/feature-flags/clubs/' . (int)$c['id']) ?>" class="btn btn-sm btn-outline-warning" title="Feature flags">
+                            <i class="bi bi-toggles2"></i>
+                        </a>
                         <a href="<?= url('admin/clubs/' . (int)$c['id'] . '/edit') ?>" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-pencil"></i>
                         </a>

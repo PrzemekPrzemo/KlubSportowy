@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Helpers\Csrf;
+use App\Helpers\Ranking\RankingEngine;
 use App\Helpers\Session;
 use App\Helpers\SportModuleLoader;
 use App\Models\MemberModel;
@@ -64,5 +65,32 @@ class SportRankingsController extends BaseController
         (new SportRankingModel())->delete((int)$id);
         Session::flash('success', 'Usunięto.');
         $this->redirect('sport-rankings');
+    }
+
+    /**
+     * Auto-recalc rankingu po wynikach turnieju lub dla całego sportu w sezonie.
+     * Wymaga roli: zarzad / trener / admin.
+     */
+    public function recalculate(): void
+    {
+        Csrf::verify();
+        $this->requireRole(['zarzad', 'trener', 'admin']);
+
+        $tournamentId = (int)($_POST['tournament_id'] ?? 0);
+        $sportKey     = trim((string)($_POST['sport_key'] ?? ''));
+        $season       = trim((string)($_POST['season'] ?? ''));
+
+        if ($tournamentId > 0) {
+            $result = RankingEngine::recalculateForTournament($tournamentId);
+        } elseif ($sportKey !== '') {
+            $result = RankingEngine::recalculateForSport($sportKey, $season !== '' ? $season : null);
+        } else {
+            Session::flash('error', 'Brak parametru: podaj tournament_id albo sport_key.');
+            $this->redirect('sport-rankings');
+            return;
+        }
+
+        Session::flash('success', 'Przeliczono ranking dla ' . count($result) . ' członków.');
+        $this->redirect('sport-rankings' . ($sportKey !== '' ? '?sport=' . urlencode($sportKey) : ''));
     }
 }

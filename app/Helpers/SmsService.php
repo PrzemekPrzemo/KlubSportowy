@@ -63,10 +63,22 @@ class SmsService
     {
         $cs = new ClubSettingsModel();
         $gs = new SettingModel();
+
+        // Domyslny "from" — globalny / per-klub setting.
+        $defaultFrom = $cs->get($clubId, 'sms_from', $gs->get('sms_from', 'KlubSport'));
+
+        // Whitelabel: sms_sender_id z club_customization nadpisuje sms_from.
+        try {
+            $whitelabel = \App\Helpers\ClubBranding::forClub($clubId);
+            $defaultFrom = $whitelabel->smsSenderOrDefault((string)$defaultFrom);
+        } catch (\Throwable) {
+            // ClubCustomizationModel niegotowy lub brak DB — degrade gracefully.
+        }
+
         return [
             'provider' => $cs->get($clubId, 'sms_provider', $gs->get('sms_provider', 'log')),
             'api_key'  => $cs->get($clubId, 'sms_api_key',  $gs->get('sms_api_key',  '')),
-            'from'     => $cs->get($clubId, 'sms_from',     $gs->get('sms_from',     'KlubSport')),
+            'from'     => $defaultFrom,
             'sid'      => $cs->get($clubId, 'sms_twilio_sid', $gs->get('sms_twilio_sid', '')),
         ];
     }
