@@ -125,4 +125,55 @@ class ClubBranding
         $s = $this->row['email_from_name'] ?? null;
         return is_string($s) && $s !== '' ? $s : $globalDefault;
     }
+
+    /** Primary color (CSS color) z fallbackiem na default. */
+    public function primaryColor(): string
+    {
+        $c = $this->row['primary_color'] ?? null;
+        if (is_string($c) && preg_match('/^#[0-9A-Fa-f]{3,8}$/', $c)) {
+            return $c;
+        }
+        return '#EE2C28';
+    }
+
+    /**
+     * Zwraca URL-e do ikon klubu w roznych rozmiarach (PWA manifest +
+     * apple-touch). Browser sam zeskaluje pojedynczy PNG do mniejszych
+     * rozmiarow, wiec nie generujemy w PHP — wskazujemy jeden URL z
+     * deklarowanymi rozmiarami.
+     *
+     * Fallback: domyslne ikony ClubDesk w /icons/.
+     *
+     * @return array{src:string,sizes:string,type:string,purpose?:string}[]
+     */
+    public function iconUrls(): array
+    {
+        $logo = $this->row['logo_path'] ?? null;
+        // PNG-y (raster) sa preferowane dla manifestu PWA — Chrome/Android
+        // wymaga 192 i 512. SVG akceptowane jako 'any maskable'.
+        $isPng = is_string($logo) && str_ends_with(strtolower($logo), '.png');
+        if ($isPng && $logo !== null) {
+            $url = url($logo);
+            return [
+                ['src' => $url, 'sizes' => '192x192', 'type' => 'image/png'],
+                ['src' => $url, 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any maskable'],
+            ];
+        }
+        // Fallback: domyslne ikony ClubDesk
+        return [
+            ['src' => url('/favicon.svg'),       'sizes' => 'any',     'type' => 'image/svg+xml', 'purpose' => 'any maskable'],
+            ['src' => url('/icons/icon-192.png'), 'sizes' => '192x192', 'type' => 'image/png'],
+            ['src' => url('/icons/icon-512.png'), 'sizes' => '512x512', 'type' => 'image/png'],
+        ];
+    }
+
+    /** Apple touch icon URL (180x180 idealne, ale browser sobie poradzi). */
+    public function appleTouchIconUrl(): string
+    {
+        $logo = $this->row['logo_path'] ?? null;
+        if (is_string($logo) && str_ends_with(strtolower($logo), '.png')) {
+            return url($logo);
+        }
+        return url('/icons/icon-192.png');
+    }
 }

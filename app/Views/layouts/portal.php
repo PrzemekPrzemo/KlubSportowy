@@ -1,10 +1,16 @@
 <?php
+use App\Helpers\ClubBranding;
 use App\Helpers\MemberAuth;
 use App\Helpers\Session;
 use App\Helpers\View;
 $flashSuccess = Session::getFlash('success');
 $flashError   = Session::getFlash('error');
 $memberName   = Session::get('portal_member_name');
+
+// PWA branding (per-klub via ClubContext / subdomena)
+$pwaBranding     = ClubBranding::current();
+$pwaThemeColor   = $pwaBranding->primaryColor();
+$pwaAppleIconUrl = $pwaBranding->appleTouchIconUrl();
 
 // Unread notification count (only when logged in)
 $unreadNotifCount = 0;
@@ -40,10 +46,15 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#EE2C28">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="<?= View::e($pwaThemeColor) ?>">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ClubDesk">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/portal/manifest.json">
+    <link rel="apple-touch-icon" href="<?= View::e($pwaAppleIconUrl) ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= View::e($pwaAppleIconUrl) ?>">
     <title><?= View::e($title ?? 'Portal zawodnika') ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -114,6 +125,9 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                 </a>
                 <?php endif; ?>
                 <span class="small text-white-50"><i class="bi bi-person-circle me-1"></i><?= View::e($memberName ?? '') ?></span>
+                <button type="button" id="pwa-install-btn" class="btn btn-light btn-sm py-0 px-2" style="display:none;" title="Zainstaluj jako aplikacje">
+                    <i class="bi bi-download"></i> <span class="d-none d-md-inline">Zainstaluj</span>
+                </button>
                 <a href="<?= url('portal/logout') ?>" class="btn btn-outline-light btn-sm py-0 px-2">
                     <i class="bi bi-box-arrow-right"></i> Wyloguj
                 </a>
@@ -250,12 +264,98 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- iOS install instructions modal (Safari nie wspiera beforeinstallprompt) -->
+<div class="modal fade" id="pwaIosModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-phone"></i> Zainstaluj aplikacj&#281;</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <div class="modal-body">
+        <p>Aby zainstalowa&#263; portal jako aplikacj&#281; na iPhone/iPad:</p>
+        <ol class="mb-3">
+          <li>Dotknij ikony <i class="bi bi-box-arrow-up"></i> <strong>Udost&#281;pnij</strong> na dole ekranu Safari.</li>
+          <li>Wybierz <strong>&bdquo;Do ekranu pocz&#261;tkowego&rdquo;</strong> (Add to Home Screen).</li>
+          <li>Potwierd&#378; przyciskiem <strong>Dodaj</strong> w prawym g&oacute;rnym rogu.</li>
+        </ol>
+        <p class="text-muted small mb-0">Po dodaniu znajdziesz ikon&#281; aplikacji na ekranie pocz&#261;tkowym &mdash; b&#281;dzie dzia&#322;a&#263; jak natywna aplikacja.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Rozumiem</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(function(err) {
-    console.log('SW registration failed:', err);
+(function () {
+  // ── Service Worker registration ─────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/portal/sw.js', { scope: '/' })
+        .then(function (reg) {
+          // Trigger update check on each load
+          if (reg && typeof reg.update === 'function') {
+            try { reg.update(); } catch (e) {}
+          }
+        })
+        .catch(function (err) {
+          console.warn('[PWA] SW registration failed:', err);
+        });
+    });
+  }
+
+  // ── Install prompt (Chrome / Edge / Android Chrome) ────
+  var deferredPrompt = null;
+  var installBtn = document.getElementById('pwa-install-btn');
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.style.display = 'inline-block';
   });
-}
+
+  if (installBtn) {
+    installBtn.addEventListener('click', function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choice) {
+        if (choice && choice.outcome === 'accepted') {
+          installBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+    });
+  }
+
+  window.addEventListener('appinstalled', function () {
+    if (installBtn) installBtn.style.display = 'none';
+    deferredPrompt = null;
+  });
+
+  // ── iOS detection (Safari, no beforeinstallprompt support) ──
+  var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                     window.navigator.standalone === true;
+  if (isIos && !isStandalone && installBtn) {
+    // Show install button on iOS — but route to modal instead of native prompt
+    installBtn.style.display = 'inline-block';
+    installBtn.addEventListener('click', function (ev) {
+      if (!deferredPrompt) {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        try {
+          var modalEl = document.getElementById('pwaIosModal');
+          if (modalEl && window.bootstrap) {
+            new bootstrap.Modal(modalEl).show();
+          }
+        } catch (e) {}
+      }
+    }, true);
+  }
+})();
 </script>
 <script src="<?= url('js/cookie-consent.js') ?>"></script>
 </body>

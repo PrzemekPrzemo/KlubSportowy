@@ -508,6 +508,13 @@ $router->post('/webhook/payment', [\App\Controllers\PaymentWebhookController::cl
 // (no CSRF — uwierzytelnione sygnaturą HMAC w adapterze)
 $router->post('/api/v1/payment/webhook/:provider', [\App\Controllers\GatewayWebhookController::class, 'handle']);
 
+// PWA — Progressive Web App endpoints (dynamic manifest + service worker)
+$router->get('/portal/manifest.json', [\App\Controllers\PwaController::class, 'manifest']);
+$router->get('/portal/sw.js',         [\App\Controllers\PwaController::class, 'serviceWorker']);
+$router->get('/portal/offline.html',  [\App\Controllers\PwaController::class, 'offline']);
+$router->post('/portal/push/subscribe',   [\App\Controllers\PwaController::class, 'subscribe']);
+$router->post('/portal/push/unsubscribe', [\App\Controllers\PwaController::class, 'unsubscribe']);
+
 // Portal zawodnika (self-service)
 $router->get('/portal/login',            [\App\Controllers\MemberPortalController::class, 'showLogin']);
 $router->post('/portal/login',           [\App\Controllers\MemberPortalController::class, 'login']);
