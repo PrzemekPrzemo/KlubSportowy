@@ -68,6 +68,30 @@
                 <small class="text-muted d-block mt-1">Przekaż hasło zawodnikowi bezpiecznym kanałem.</small>
             </form>
         </div>
+
+        <div class="card p-3 mt-3">
+            <h6><i class="bi bi-file-earmark-pdf"></i> Dokumenty PDF</h6>
+            <div class="d-grid gap-2">
+                <a href="<?= url('documents/membership/' . (int)$member['id']) ?>"
+                   class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="bi bi-file-earmark-text"></i> Zaświadczenie członkostwa
+                </a>
+                <a href="<?= url('documents/contract/' . (int)$member['id']) ?>"
+                   class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="bi bi-file-earmark-text"></i> Umowa członkowska
+                </a>
+                <form method="GET" action="<?= url('documents/certificate/' . (int)$member['id']) ?>"
+                      target="_blank" class="m-0">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="achievement" class="form-control"
+                               placeholder="Osiągnięcie (np. I miejsce w turnieju)" required>
+                        <button class="btn btn-outline-success">
+                            <i class="bi bi-award"></i> Certyfikat
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <div class="col-md-8">
         <div class="card p-3">

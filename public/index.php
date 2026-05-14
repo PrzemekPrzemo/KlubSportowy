@@ -274,6 +274,7 @@ $router->post('/admin/invoices/store',       [\App\Controllers\AdminInvoicesCont
 $router->get('/admin/invoices/:id',          [\App\Controllers\AdminInvoicesController::class, 'show']);
 $router->post('/admin/invoices/:id/pay',     [\App\Controllers\AdminInvoicesController::class, 'markPaid']);
 $router->post('/admin/invoices/:id/cancel',  [\App\Controllers\AdminInvoicesController::class, 'markCancelled']);
+$router->get('/admin/invoices/:id/pdf',      [\App\Controllers\AdminInvoicesController::class, 'pdf']);
 
 // Admin: audyt izolacji danych (Batch A6)
 $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController::class, 'isolation']);
@@ -709,6 +710,9 @@ $router->get('/documents',                      [\App\Controllers\DocumentsContr
 $router->get('/documents/agreement/:memberId',  [\App\Controllers\DocumentsController::class, 'memberAgreement']);
 $router->get('/documents/consent/:memberId',    [\App\Controllers\DocumentsController::class, 'trainingConsent']);
 $router->get('/documents/waiver/:memberId',     [\App\Controllers\DocumentsController::class, 'liabilityWaiver']);
+$router->get('/documents/membership/:memberId', [\App\Controllers\DocumentsController::class, 'membershipCertificate']);
+$router->get('/documents/contract/:memberId',   [\App\Controllers\DocumentsController::class, 'membershipContract']);
+$router->get('/documents/certificate/:memberId',[\App\Controllers\DocumentsController::class, 'achievementCertificate']);
 
 // Statystyki i porównywarka zawodników
 $router->get('/stats/member/:memberId',  [\App\Controllers\PlayerStatsController::class, 'profile']);
