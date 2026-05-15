@@ -1062,6 +1062,18 @@ $router->post('/association/meetings/:id/vote',          [\App\Controllers\Assoc
 $router->get('/association/board',                       [\App\Controllers\AssociationController::class, 'board']);
 $router->post('/association/board/update',               [\App\Controllers\AssociationController::class, 'updateBoard']);
 
+// ── Publiczne profile zawodnikow (opt-in) ─────────────────
+// /u/:slug — publiczny profil (no auth)
+// /discover — lista publicznych profili
+// /sitemap.xml — sitemap dla SEO
+$router->get('/u/:slug',     [\App\Controllers\PublicProfileController::class, 'show']);
+$router->get('/discover',    [\App\Controllers\PublicProfileController::class, 'discover']);
+$router->get('/sitemap.xml', [\App\Controllers\PublicProfileController::class, 'sitemap']);
+
+// Ustawienia profilu publicznego (portal zawodnika)
+$router->get('/portal/profile/privacy',  [\App\Controllers\MemberPortalController::class, 'publicProfileSettings']);
+$router->post('/portal/profile/privacy', [\App\Controllers\MemberPortalController::class, 'updatePublicProfile']);
+
 // ============================================================
 // Dispatch
 // ============================================================

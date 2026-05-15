@@ -103,3 +103,25 @@
         </a>
     </div>
 </div>
+
+<!-- Profil publiczny — opt-in widget dla rankingow -->
+<div class="card mt-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <strong><i class="bi bi-globe2 me-1"></i> Profil publiczny</strong>
+            <small class="d-block text-muted">
+                <?php $vis = $member['public_profile_visibility'] ?? 'private'; ?>
+                <?php if ($vis === 'public'): ?>
+                    Aktywny <strong>publicznie</strong> — pod URL: <code>/u/<?= View::e($member['public_profile_slug'] ?? '') ?></code>
+                <?php elseif ($vis === 'club_only'): ?>
+                    Aktywny <strong>tylko dla klubu</strong>.
+                <?php else: ?>
+                    Wylaczony. Udostepnij swoje rankingi i osiagniecia przez stabilny URL.
+                <?php endif; ?>
+            </small>
+        </div>
+        <a href="<?= url('portal/profile/privacy') ?>" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-gear"></i> Ustaw
+        </a>
+    </div>
+</div>

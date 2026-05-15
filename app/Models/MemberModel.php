@@ -135,4 +135,126 @@ class MemberModel extends ClubScopedModel
         $count = (int)$stmt->fetchColumn() + 1;
         return $year . '-' . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Slugify text — polskie znaki -> ASCII, lowercase, [a-z0-9-].
+     * Wykorzystywane do public_profile_slug.
+     */
+    public static function slugify(string $text): string
+    {
+        $text = mb_strtolower($text, 'UTF-8');
+        $map  = [
+            'ą' => 'a', 'ć' => 'c', 'ę' => 'e', 'ł' => 'l', 'ń' => 'n',
+            'ó' => 'o', 'ś' => 's', 'ź' => 'z', 'ż' => 'z',
+        ];
+        $text = strtr($text, $map);
+        // Strip non-ASCII (zapas po mapie polskich znakow)
+        $text = preg_replace('/[^\x20-\x7E]/u', '', $text) ?? $text;
+        $text = preg_replace('/[^a-z0-9]+/', '-', $text) ?? '';
+        return trim($text, '-');
+    }
+
+    /**
+     * Wygeneruj unikalny public_profile_slug dla zawodnika.
+     *
+     * Algorytm:
+     *   1) slugify(first_name . '-' . last_name)
+     *   2) Append member_number (lub random hex) gdy kolizja
+     *   3) UNIQUE w bazie — sprawdzamy az do uzyskania wolnego
+     *
+     * Bypassuje club_scope (slug jest globalnie unikalny).
+     */
+    public function generatePublicSlug(int $memberId): string
+    {
+        $db = $this->db;
+        $stmt = $db->prepare("SELECT first_name, last_name, member_number FROM members WHERE id = ? LIMIT 1");
+        $stmt->execute([$memberId]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            throw new \RuntimeException("Member $memberId not found");
+        }
+
+        $base = self::slugify(($row['first_name'] ?? '') . '-' . ($row['last_name'] ?? ''));
+        if ($base === '') {
+            $base = 'zawodnik';
+        }
+        // Ogranicz dlugosc bazowa (zostaw miejsce na suffix)
+        if (strlen($base) > 100) {
+            $base = substr($base, 0, 100);
+            $base = rtrim($base, '-');
+        }
+
+        // Najpierw probuj bare slug
+        $candidate = $base;
+        if (!$this->slugExists($candidate, $memberId)) {
+            return $candidate;
+        }
+
+        // Sprobuj z member_number
+        if (!empty($row['member_number'])) {
+            $candidate = $base . '-' . self::slugify((string)$row['member_number']);
+            if (!$this->slugExists($candidate, $memberId)) {
+                return $candidate;
+            }
+        }
+
+        // Fallback: random suffix do 10 prob
+        for ($i = 0; $i < 10; $i++) {
+            $suffix    = substr(bin2hex(random_bytes(3)), 0, 5);
+            $candidate = $base . '-' . $suffix;
+            if (!$this->slugExists($candidate, $memberId)) {
+                return $candidate;
+            }
+        }
+
+        // Ostateczny fallback — czas + id
+        return $base . '-' . dechex(time()) . '-' . $memberId;
+    }
+
+    private function slugExists(string $slug, int $excludeMemberId = 0): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT 1 FROM members WHERE public_profile_slug = ? AND id <> ? LIMIT 1"
+        );
+        $stmt->execute([$slug, $excludeMemberId]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    /**
+     * Znajdz czlonka po public_profile_slug (bypassuje club_scope — slug globalny).
+     * Zwraca tylko gdy visibility IN (public, club_only). private => null.
+     */
+    public function findByPublicSlug(string $slug): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT * FROM members
+             WHERE public_profile_slug = ?
+               AND public_profile_visibility IN ('public', 'club_only')
+               AND (is_anonymized IS NULL OR is_anonymized = 0)
+             LIMIT 1"
+        );
+        $stmt->execute([$slug]);
+        $row = $stmt->fetch();
+        if (!$row) return null;
+        return $this->decryptRow($row);
+    }
+
+    /**
+     * Lista wszystkich profili z visibility=public (do sitemap.xml / discovery).
+     */
+    public function listPublicProfiles(int $limit = 1000): array
+    {
+        $limit = max(1, min(10000, $limit));
+        $stmt = $this->db->prepare(
+            "SELECT id, first_name, last_name, public_profile_slug, public_profile_view_count, photo_path
+             FROM members
+             WHERE public_profile_visibility = 'public'
+               AND public_profile_slug IS NOT NULL
+               AND (is_anonymized IS NULL OR is_anonymized = 0)
+             ORDER BY public_profile_view_count DESC, last_name ASC
+             LIMIT " . $limit
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
