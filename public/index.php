@@ -288,10 +288,21 @@ $router->post('/admin/clubs/:id/sports/:sport/save', [\App\Controllers\AdminClub
 $router->get('/admin/invoices',              [\App\Controllers\AdminInvoicesController::class, 'index']);
 $router->get('/admin/invoices/create',       [\App\Controllers\AdminInvoicesController::class, 'create']);
 $router->post('/admin/invoices/store',       [\App\Controllers\AdminInvoicesController::class, 'store']);
+// Bulk operations — masowe generowanie faktur + JPK_FA (przed :id by uniknac kolizji)
+$router->get('/admin/invoices/bulk',          [\App\Controllers\AdminInvoicesController::class, 'bulkForm']);
+$router->post('/admin/invoices/bulk-generate',[\App\Controllers\AdminInvoicesController::class, 'bulkGenerate']);
+$router->get('/admin/invoices/jpk-fa',        [\App\Controllers\AdminInvoicesController::class, 'jpkFaForm']);
+$router->post('/admin/invoices/jpk-fa/export',[\App\Controllers\AdminInvoicesController::class, 'exportJpkFa']);
 $router->get('/admin/invoices/:id',          [\App\Controllers\AdminInvoicesController::class, 'show']);
 $router->post('/admin/invoices/:id/pay',     [\App\Controllers\AdminInvoicesController::class, 'markPaid']);
 $router->post('/admin/invoices/:id/cancel',  [\App\Controllers\AdminInvoicesController::class, 'markCancelled']);
 $router->get('/admin/invoices/:id/pdf',      [\App\Controllers\AdminInvoicesController::class, 'pdf']);
+
+// Bulk campaigns (email/SMS) — /new przed :id by uniknac kolizji
+$router->get('/admin/campaigns',              [\App\Controllers\AdminBulkCampaignController::class, 'index']);
+$router->get('/admin/campaigns/new',          [\App\Controllers\AdminBulkCampaignController::class, 'create']);
+$router->post('/admin/campaigns/send',        [\App\Controllers\AdminBulkCampaignController::class, 'send']);
+$router->get('/admin/campaigns/:id',          [\App\Controllers\AdminBulkCampaignController::class, 'show']);
 
 // Admin: audyt izolacji danych (Batch A6)
 $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController::class, 'isolation']);
@@ -368,6 +379,9 @@ $router->post('/members/bulk',        [\App\Controllers\MembersController::class
 // Z.3 — bulk message form + send
 $router->get('/members/bulk-message',         [\App\Controllers\MembersController::class, 'bulkMessageForm']);
 $router->post('/members/bulk-message/send',   [\App\Controllers\MembersController::class, 'bulkMessageSend']);
+// Bulk operations — eksport członków
+$router->get('/members/export',               [\App\Controllers\MembersController::class, 'exportBulkForm']);
+$router->post('/members/export',              [\App\Controllers\MembersController::class, 'exportBulk']);
 $router->get('/members',              [\App\Controllers\MembersController::class, 'index']);
 $router->get('/members/create',       [\App\Controllers\MembersController::class, 'create']);
 $router->post('/members/store',       [\App\Controllers\MembersController::class, 'store']);
@@ -403,6 +417,9 @@ $router->get('/fees/assignments/:id/edit',       [\App\Controllers\FeeAssignment
 $router->post('/fees/assignments/:id/update',    [\App\Controllers\FeeAssignmentsController::class, 'update']);
 $router->post('/fees/assignments/:id/delete',    [\App\Controllers\FeeAssignmentsController::class, 'delete']);
 $router->post('/fees/assignments/preview',       [\App\Controllers\FeeAssignmentsController::class, 'calculatePreview']);
+// Bulk operations — masowe przypisanie składek
+$router->get('/fees/bulk-assign',                [\App\Controllers\FeeAssignmentsController::class, 'bulkAssignForm']);
+$router->post('/fees/bulk-assign/store',         [\App\Controllers\FeeAssignmentsController::class, 'bulkAssign']);
 
 // Należności + auto-generator (Faza P.4)
 $router->get('/fees/dues',                  [\App\Controllers\DuesController::class, 'index']);
