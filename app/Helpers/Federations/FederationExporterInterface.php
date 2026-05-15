@@ -20,8 +20,30 @@ namespace App\Helpers\Federations;
  */
 interface FederationExporterInterface
 {
+    /**
+     * Status implementacji adaptera — używany przez UI do honest oznaczenia,
+     * co adapter realnie robi.
+     *
+     *   'scraping'      — publiczne dane scrapowane z portalu federacji
+     *   'login'         — wymaga loginu klubu (cookie session)
+     *   'api'           — formalne REST API
+     *   'csv_only'      — tylko CSV fallback
+     *   'stub'          — sygnatury bez impl (wymaga umowy partnerskiej, etc.)
+     */
+    public const STATUS_SCRAPING = 'scraping';
+    public const STATUS_LOGIN    = 'login';
+    public const STATUS_API      = 'api';
+    public const STATUS_CSV_ONLY = 'csv_only';
+    public const STATUS_STUB     = 'stub';
+
     /** Identyfikator federacji w naszym systemie: PZPN/PZSS/PZKosz/PZLA/… */
     public function federationCode(): string;
+
+    /**
+     * Status adaptera — jedna z STATUS_* stałych. UI używa do oznaczenia
+     * realnej możliwości integracji (zielone/żółte/czerwone/niebieskie badge).
+     */
+    public function adapterStatus(): string;
 
     /** Rejestracja nowego zawodnika (INSERT). */
     public function exportMember(MemberPayload $member): ExportResult;

@@ -31,6 +31,11 @@ class GenericCsvExporter implements FederationExporterInterface
         return $this->federationCode;
     }
 
+    public function adapterStatus(): string
+    {
+        return self::STATUS_CSV_ONLY;
+    }
+
     public function exportMember(MemberPayload $member): ExportResult
     {
         // Tryb manualny — nie wysyłamy nigdzie. Generujemy "ack" i logujemy,

@@ -890,14 +890,38 @@ $router->post('/messages/:id/read',    [\App\Controllers\MessagesController::cla
 $router->get('/analytics',      [\App\Controllers\AnalyticsController::class, 'dashboard']);
 $router->get('/analytics/data', [\App\Controllers\AnalyticsController::class, 'data']);
 
-// Rezerwacje obiektów
+// Rezerwacje — booking system (bookable_resources + bookings, FullCalendar.js)
+// UWAGA: kolejnosc — wszystkie staticy musza byc PRZED /:id (Router matchuje pierwszy pasujacy).
 $router->get('/bookings',                        [\App\Controllers\BookingsController::class, 'index']);
+$router->get('/bookings/calendar',               [\App\Controllers\BookingsController::class, 'calendar']);
+$router->get('/bookings/list',                   [\App\Controllers\BookingsController::class, 'list']);
+$router->get('/bookings/create',                 [\App\Controllers\BookingsController::class, 'create']);
+$router->post('/bookings/store',                 [\App\Controllers\BookingsController::class, 'store']);
+$router->get('/bookings/api/events',             [\App\Controllers\BookingsController::class, 'apiEvents']);
+// Legacy facility-based rezerwacje (zachowane wstecz) — przed /:id zeby 'facilities' nie zmatchowalo /:id
 $router->get('/bookings/facilities',             [\App\Controllers\BookingsController::class, 'facilities']);
 $router->post('/bookings/facilities/store',      [\App\Controllers\BookingsController::class, 'storeFacility']);
 $router->post('/bookings/facilities/:id/delete', [\App\Controllers\BookingsController::class, 'deleteFacility']);
-$router->get('/bookings/calendar',               [\App\Controllers\BookingsController::class, 'calendar']);
-$router->post('/bookings/book',                  [\App\Controllers\BookingsController::class, 'book']);
+$router->get('/bookings/legacy-calendar',        [\App\Controllers\BookingsController::class, 'legacyCalendar']);
+$router->post('/bookings/legacy-book',           [\App\Controllers\BookingsController::class, 'legacyBook']);
+// Catch-all /:id po staticach
+$router->get('/bookings/:id',                    [\App\Controllers\BookingsController::class, 'show']);
 $router->post('/bookings/:id/cancel',            [\App\Controllers\BookingsController::class, 'cancel']);
+$router->post('/bookings/:id/confirm',           [\App\Controllers\BookingsController::class, 'confirm']);
+
+// Admin CRUD zasobow
+$router->get('/club/resources',                  [\App\Controllers\BookingResourcesController::class, 'index']);
+$router->get('/club/resources/create',           [\App\Controllers\BookingResourcesController::class, 'create']);
+$router->post('/club/resources/store',           [\App\Controllers\BookingResourcesController::class, 'store']);
+$router->get('/club/resources/:id/edit',         [\App\Controllers\BookingResourcesController::class, 'edit']);
+$router->post('/club/resources/:id/update',      [\App\Controllers\BookingResourcesController::class, 'update']);
+$router->post('/club/resources/:id/delete',      [\App\Controllers\BookingResourcesController::class, 'delete']);
+
+// Portal: moje rezerwacje
+$router->get('/portal/bookings',                 [\App\Controllers\PortalBookingsController::class, 'index']);
+$router->get('/portal/bookings/new',             [\App\Controllers\PortalBookingsController::class, 'create']);
+$router->post('/portal/bookings/store',          [\App\Controllers\PortalBookingsController::class, 'store']);
+$router->post('/portal/bookings/:id/cancel',     [\App\Controllers\PortalBookingsController::class, 'cancel']);
 
 // ── REST API v1 ─────────────
 $router->post('/api/v1/auth/login',    [\App\Controllers\Api\AuthApiController::class, 'login']);
@@ -1075,6 +1099,18 @@ $router->get('/association/meetings/:id',                [\App\Controllers\Assoc
 $router->post('/association/meetings/:id/vote',          [\App\Controllers\AssociationController::class, 'addVote']);
 $router->get('/association/board',                       [\App\Controllers\AssociationController::class, 'board']);
 $router->post('/association/board/update',               [\App\Controllers\AssociationController::class, 'updateBoard']);
+
+// ── Publiczne profile zawodnikow (opt-in) ─────────────────
+// /u/:slug — publiczny profil (no auth)
+// /discover — lista publicznych profili
+// /sitemap.xml — sitemap dla SEO
+$router->get('/u/:slug',     [\App\Controllers\PublicProfileController::class, 'show']);
+$router->get('/discover',    [\App\Controllers\PublicProfileController::class, 'discover']);
+$router->get('/sitemap.xml', [\App\Controllers\PublicProfileController::class, 'sitemap']);
+
+// Ustawienia profilu publicznego (portal zawodnika)
+$router->get('/portal/profile/privacy',  [\App\Controllers\MemberPortalController::class, 'publicProfileSettings']);
+$router->post('/portal/profile/privacy', [\App\Controllers\MemberPortalController::class, 'updatePublicProfile']);
 
 // ============================================================
 // Dispatch

@@ -6,11 +6,13 @@
 /storage/logs/*
 /storage/uploads/*
 /storage/backups/*
+/storage/cache/*
 !/storage/logs/.gitkeep
 !/storage/uploads/.gitkeep
 !/storage/uploads/support/
 !/storage/uploads/support/.gitkeep
 !/storage/backups/.gitkeep
+!/storage/cache/.gitkeep
 .DS_Store
 Thumbs.db
 *.log

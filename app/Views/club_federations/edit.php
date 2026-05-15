@@ -1,7 +1,46 @@
 <?php
 use App\Helpers\View;
+use App\Helpers\Federations\FederationExporterFactory;
+use App\Helpers\Federations\FederationExporterInterface;
+
 $c = $config; // null jeśli nieskonfigurowana
+$metadata = FederationExporterFactory::supportedWithMetadata();
+$adapterStatus = $metadata[$code]['status'] ?? FederationExporterInterface::STATUS_CSV_ONLY;
+$statusBanner = match ($adapterStatus) {
+    FederationExporterInterface::STATUS_SCRAPING => [
+        'cls'    => 'success',
+        'icon'   => 'broadcast-pin',
+        'title'  => 'Aktywne scraping publicznych danych',
+        'text'   => 'Adapter pobiera publiczne dane (wyniki, profile zawodników) z portalu federacji. Rate-limit 5s/domain, cache 1h, robots.txt respektowane. Rejestracja zawodników = CSV do ręcznego wgrania.',
+    ],
+    FederationExporterInterface::STATUS_LOGIN => [
+        'cls'    => 'warning',
+        'icon'   => 'key',
+        'title'  => 'Wymaga loginu klubu',
+        'text'   => 'Portal federacji wymaga sesji zalogowanego klubu. Wpisz login/hasło — adapter zaszyfruje je AES-256-GCM. Faktyczny cookie-login do API portalu w osobnym tickecie.',
+    ],
+    FederationExporterInterface::STATUS_STUB => [
+        'cls'    => 'danger',
+        'icon'   => 'exclamation-triangle',
+        'title'  => 'Stub — wymaga umowy partnerskiej',
+        'text'   => 'Federacja nie udostępnia publicznego API/scrapingu. Integracja wymaga formalnej umowy z federacją. Można skonfigurować credentials żeby był ready na moment podpisania umowy.',
+    ],
+    FederationExporterInterface::STATUS_CSV_ONLY => [
+        'cls'    => 'info',
+        'icon'   => 'filetype-csv',
+        'title'  => 'Tylko CSV',
+        'text'   => 'Adapter generuje CSV do ręcznego importu w panelu federacji.',
+    ],
+    default => ['cls' => 'secondary', 'icon' => 'question', 'title' => $adapterStatus, 'text' => ''],
+};
 ?>
+
+<div class="alert alert-<?= View::e($statusBanner['cls']) ?> small">
+    <i class="bi bi-<?= View::e($statusBanner['icon']) ?> me-1"></i>
+    <strong><?= View::e($statusBanner['title']) ?>.</strong>
+    <?= View::e($statusBanner['text']) ?>
+</div>
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-0">

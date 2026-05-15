@@ -8,31 +8,39 @@ use App\Models\ClubFederationCredentialModel;
 /**
  * Factory wybierająca odpowiedni adapter exportera dla danego kodu federacji.
  *
- * Wzorowane na App\Helpers\Gateway\GatewayFactory:
- *   1. forCode($code, $config)           — eksplicytny adapter (testy / single-shot)
- *   2. forClubFederation($code, $clubId) — pobiera credentials z DB, decrypted
- *
- * Lista wspieranych:
- *   - PZPN   → PznpAdapter
- *   - PZSS   → PzssAdapter
- *   - PZKosz → PzkoszAdapter
- *   - PZLA   → PzlaAdapter
- *   - inne   → GenericCsvExporter (fallback, manualny eksport CSV)
+ * Lista wspieranych (poza Generic CSV fallback):
+ *   - PZPN   → PznpAdapter   (STUB — wymaga umowy partnerskiej z PZPN)
+ *   - PZSS   → PzssAdapter   (SCRAPING publiczny + CSV push)
+ *   - PZKosz → PzkoszAdapter (LOGIN — Probasket, login klubu wymagany)
+ *   - PZLA   → PzlaAdapter   (SCRAPING domtel-sport.pl + CSV)
+ *   - PZHL   → PzhlAdapter   (SCRAPING hokej.net/pzhl.org.pl + CSV)
+ *   - PZPS   → PzpsAdapter   (SCRAPING plusliga.pl + CSV)
+ *   - PZTS   → PztsAdapter   (LOGIN — stat.pzts.pl, cookie session w osobnym tickecie)
+ *   - PZW    → PzwAdapter    (SCRAPING wrotkarstwo + CSV)
+ *   - PZJ    → PzjAdapter    (SCRAPING pzj.pl + CSV)
+ *   - inne   → GenericCsvExporter (fallback, manualny CSV)
  */
 class FederationExporterFactory
 {
+    /**
+     * Metadane federacji: nazwa + status adaptera (SCRAPING/LOGIN/STUB/CSV_ONLY).
+     * Status wynika z tego co adapter REALNIE potrafi — używany przez UI do
+     * honest oznaczenia (zielone/żółte/czerwone/niebieskie badge).
+     */
     public const SUPPORTED = [
-        'PZPN'   => 'Polski Związek Piłki Nożnej',
-        'PZSS'   => 'Polski Związek Strzelectwa Sportowego',
-        'PZKosz' => 'Polski Związek Koszykówki',
-        'PZLA'   => 'Polski Związek Lekkiej Atletyki',
-        // Inne federacje (PZPS, PZHL, PZPR, PZT, PZP, PZW, PZJ, PZKarate, ...)
-        // automatycznie dostają GenericCsvExporter.
+        'PZPN'   => ['label' => 'Polski Związek Piłki Nożnej',         'status' => FederationExporterInterface::STATUS_STUB],
+        'PZSS'   => ['label' => 'Polski Związek Strzelectwa Sportowego', 'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZKosz' => ['label' => 'Polski Związek Koszykówki',           'status' => FederationExporterInterface::STATUS_LOGIN],
+        'PZLA'   => ['label' => 'Polski Związek Lekkiej Atletyki',     'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZHL'   => ['label' => 'Polski Związek Hokeja na Lodzie',     'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZPS'   => ['label' => 'Polski Związek Piłki Siatkowej',      'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZTS'   => ['label' => 'Polski Związek Tenisa Stołowego',     'status' => FederationExporterInterface::STATUS_LOGIN],
+        'PZW'    => ['label' => 'Polski Związek Wrotkarstwa',          'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZJ'    => ['label' => 'Polski Związek Judo',                 'status' => FederationExporterInterface::STATUS_SCRAPING],
     ];
 
     /**
-     * Zbuduj exporter dla podanego kodu federacji i konfiguracji
-     * (zazwyczaj z ClubFederationCredentialModel::findByFederation).
+     * Zbuduj exporter dla podanego kodu federacji i konfiguracji.
      */
     public static function forCode(string $code, array $config = []): ?FederationExporterInterface
     {
@@ -43,6 +51,11 @@ class FederationExporterFactory
             'PZSS'   => new PzssAdapter($config),
             'PZKOSZ' => new PzkoszAdapter($config),
             'PZLA'   => new PzlaAdapter($config),
+            'PZHL'   => new PzhlAdapter($config),
+            'PZPS'   => new PzpsAdapter($config),
+            'PZTS'   => new PztsAdapter($config),
+            'PZW'    => new PzwAdapter($config),
+            'PZJ'    => new PzjAdapter($config),
             default  => new GenericCsvExporter($config, $code),
         };
     }
@@ -61,8 +74,9 @@ class FederationExporterFactory
         $model  = new ClubFederationCredentialModel();
         $config = $model->findByFederation($code);
         if (!$config) {
-            // Brak konfiguracji per-klub — fallback CSV (działa bez creds).
-            if (!in_array(self::normalizeCode($code), array_map(self::class . '::normalizeCode', array_keys(self::SUPPORTED)), true)) {
+            // Brak konfiguracji per-klub — fallback CSV (działa bez creds) dla
+            // federacji spoza SUPPORTED. Dla SUPPORTED bez configu zwracamy null.
+            if (!self::isSupported($code)) {
                 return new GenericCsvExporter([], $code);
             }
             return null;
@@ -71,10 +85,37 @@ class FederationExporterFactory
         return self::forCode($code, $config);
     }
 
-    /** Lista wszystkich federacji wspieranych (z aktywnym adapterem lub fallback CSV). */
+    /**
+     * Lista wszystkich federacji wspieranych — UI używa tego do generowania
+     * kafelków. Zwraca [code => label] (back-compat z poprzednim API).
+     */
     public static function supportedCodes(): array
     {
+        $out = [];
+        foreach (self::SUPPORTED as $code => $meta) {
+            $out[$code] = $meta['label'];
+        }
+        return $out;
+    }
+
+    /**
+     * Pełne metadane federacji (label + status). UI używa do badge'ów statusu.
+     *
+     * @return array<string, array{label:string,status:string}>
+     */
+    public static function supportedWithMetadata(): array
+    {
         return self::SUPPORTED;
+    }
+
+    /** Czy podany kod federacji ma dedykowany adapter? */
+    public static function isSupported(string $code): bool
+    {
+        return in_array(
+            self::normalizeCode($code),
+            array_map(fn($k) => self::normalizeCode($k), array_keys(self::SUPPORTED)),
+            true
+        );
     }
 
     private static function normalizeCode(string $code): string

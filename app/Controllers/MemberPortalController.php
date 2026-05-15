@@ -274,6 +274,130 @@ class MemberPortalController extends BaseController
         $this->redirect('portal/profile');
     }
 
+    /**
+     * GET /portal/profile/privacy — ustawienia publicznego profilu (opt-in).
+     */
+    public function publicProfileSettings(): void
+    {
+        MemberAuth::requireLogin();
+        $member = MemberAuth::member();
+        $this->view->setLayout('portal');
+        $this->view->render('portal/privacy', [
+            'title'       => 'Profil publiczny',
+            'member'      => $member,
+            'profileBase' => rtrim(BASE_URL, '/') . '/u/',
+            'appName'     => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
+        ]);
+    }
+
+    /**
+     * POST /portal/profile/privacy — zapisz ustawienia publicznego profilu.
+     */
+    public function updatePublicProfile(): void
+    {
+        MemberAuth::requireLogin();
+        Csrf::verify();
+
+        $memberId = (int)MemberAuth::id();
+        $model    = new MemberModel();
+        $current  = $model->withoutScope()->findById($memberId);
+        if ($current === null) {
+            Session::flash('error', 'Nie znaleziono profilu.');
+            $this->redirect('portal/profile');
+            return;
+        }
+
+        // Anonimowani — nie moga miec publicznego profilu
+        if (!empty($current['is_anonymized'])) {
+            Session::flash('error', 'Profil anonimizowany nie moze byc publiczny.');
+            $this->redirect('portal/profile');
+            return;
+        }
+
+        $visibility = $_POST['public_profile_visibility'] ?? 'private';
+        if (!in_array($visibility, ['private', 'club_only', 'public'], true)) {
+            $visibility = 'private';
+        }
+
+        // Slug: walidacja albo auto-generacja
+        $slug = trim((string)($_POST['public_profile_slug'] ?? ''));
+        if ($slug !== '') {
+            $slug = strtolower($slug);
+            if (!preg_match('/^[a-z0-9-]{3,120}$/', $slug)) {
+                Session::flash('error', 'Slug musi miec 3-120 znakow, tylko a-z, 0-9 i myslnik.');
+                $this->redirect('portal/profile/privacy');
+                return;
+            }
+            // Sprawdz unikalnosc (z wyjatkiem nas)
+            $db = \App\Helpers\Database::pdo();
+            $stmt = $db->prepare("SELECT id FROM members WHERE public_profile_slug = ? AND id <> ? LIMIT 1");
+            $stmt->execute([$slug, $memberId]);
+            if ($stmt->fetchColumn()) {
+                Session::flash('error', 'Ten URL jest juz zajety. Wybierz inny.');
+                $this->redirect('portal/profile/privacy');
+                return;
+            }
+        } else {
+            // Brak sluga — auto-generuj jesli visibility != private
+            if ($visibility !== 'private' && empty($current['public_profile_slug'])) {
+                $slug = $model->generatePublicSlug($memberId);
+            } else {
+                $slug = $current['public_profile_slug'] ?? null;
+            }
+        }
+
+        $bio = trim((string)($_POST['public_profile_bio'] ?? ''));
+        if (strlen($bio) > 500) {
+            $bio = substr($bio, 0, 500);
+        }
+
+        $data = [
+            'public_profile_visibility'        => $visibility,
+            'public_profile_slug'              => $slug ?: null,
+            'public_profile_bio'               => $bio ?: null,
+            'public_profile_show_avatar'       => !empty($_POST['show_avatar']) ? 1 : 0,
+            'public_profile_show_age'          => !empty($_POST['show_age']) ? 1 : 0,
+            'public_profile_show_birth_year'   => !empty($_POST['show_birth_year']) ? 1 : 0,
+            'public_profile_show_sports'       => !empty($_POST['show_sports']) ? 1 : 0,
+            'public_profile_show_rankings'     => !empty($_POST['show_rankings']) ? 1 : 0,
+            'public_profile_show_achievements' => !empty($_POST['show_achievements']) ? 1 : 0,
+            'public_profile_show_tournaments'  => !empty($_POST['show_tournaments']) ? 1 : 0,
+            'public_profile_show_club'         => !empty($_POST['show_club']) ? 1 : 0,
+        ];
+
+        // UPDATE direct (z pominieciem ENCRYPTED_FIELDS w MemberModel::update)
+        $db = \App\Helpers\Database::pdo();
+        $sets = [];
+        $vals = [];
+        foreach ($data as $k => $v) {
+            $sets[] = "`{$k}` = ?";
+            $vals[] = $v;
+        }
+        $vals[] = $memberId;
+        $stmt = $db->prepare("UPDATE members SET " . implode(', ', $sets) . " WHERE id = ?");
+        $stmt->execute($vals);
+
+        // Audit log gdy zmiana z private -> public
+        if (($current['public_profile_visibility'] ?? 'private') !== 'public' && $visibility === 'public') {
+            try {
+                (new \App\Models\TenantAccessLogModel())->logBypass(
+                    'members',
+                    'public_profile_enabled',
+                    __FILE__,
+                    __LINE__,
+                    self::class,
+                    'info',
+                    'member_id=' . $memberId . ' slug=' . ($slug ?: 'none')
+                );
+            } catch (\Throwable) {}
+        }
+
+        Session::flash('success', $visibility === 'private'
+            ? 'Profil publiczny wylaczony.'
+            : 'Profil publiczny zaktualizowany.');
+        $this->redirect('portal/profile/privacy');
+    }
+
     public function changePassword(): void
     {
         MemberAuth::requireLogin();

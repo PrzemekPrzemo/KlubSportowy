@@ -34,6 +34,12 @@ class PzkoszAdapter implements FederationExporterInterface
         return 'PZKosz';
     }
 
+    public function adapterStatus(): string
+    {
+        // Probasket — wymaga loginu klubu, integracja przez panel.
+        return self::STATUS_LOGIN;
+    }
+
     public function exportMember(MemberPayload $member): ExportResult
     {
         // TODO: integracja z Probasket (POST do panelu klubu).

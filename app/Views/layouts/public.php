@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <?= $GLOBALS['__pageHead'] ?? '' ?>
     <style>
         body { background: #f8f9fa; font-family: 'Poppins', system-ui, -apple-system, sans-serif; font-size: 16px; color: #232232; }
         .pub-hero { background: #EE2C28; color: #fff; padding: 3rem 0; }

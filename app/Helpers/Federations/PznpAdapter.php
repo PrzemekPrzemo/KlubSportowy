@@ -39,6 +39,12 @@ class PznpAdapter implements FederationExporterInterface
         return 'PZPN';
     }
 
+    public function adapterStatus(): string
+    {
+        // Wymaga umowy partnerskiej z PZPN (Łączy Nas Piłka / Extranet).
+        return self::STATUS_STUB;
+    }
+
     public function exportMember(MemberPayload $member): ExportResult
     {
         // TODO: POST /extranet/players (lub multipart upload formularza)
