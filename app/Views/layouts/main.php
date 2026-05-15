@@ -288,6 +288,9 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('club/users') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.users') ?></a>
                 <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> <?= __('nav.smtp_sms') ?></a>
                 <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> <?= __('nav.email_templates') ?></a>
+                <?php if (\App\Helpers\Auth::hasRole(['zarzad', 'admin']) || \App\Helpers\Auth::isSuperAdmin()): ?>
+                    <a href="<?= url('admin/audit-log') ?>"><i class="bi bi-clipboard-data"></i> Audyt aktywności</a>
+                <?php endif; ?>
             </div>
         </div>
         <div class="nav-section" data-section="settings-billing">
@@ -368,6 +371,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('admin/errors') ?>"><i class="bi bi-bug-fill"></i> Dziennik błędów</a>
                 <a href="<?= url('admin/security') ?>"><i class="bi bi-shield-lock-fill"></i> Dziennik bezpieczeństwa</a>
                 <a href="<?= url('admin/audit/isolation') ?>"><i class="bi bi-shield-check"></i> Audyt izolacji</a>
+                <a href="<?= url('admin/platform/audit-log') ?>"><i class="bi bi-clipboard-data"></i> Audit log (wszystkie kluby)</a>
                 <a href="<?= url('admin/health') ?>"><i class="bi bi-heart-pulse"></i> Zdrowie systemu</a>
             </div>
         </div>

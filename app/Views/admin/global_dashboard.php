@@ -1,4 +1,15 @@
 <?php use App\Helpers\View; ?>
+<?php if (!empty($criticalAuditAlerts) && (int)$criticalAuditAlerts > 0): ?>
+<div class="alert alert-danger d-flex align-items-center justify-content-between mb-3" role="alert">
+    <div>
+        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+        Wykryto <strong><?= (int)$criticalAuditAlerts ?></strong> krytycznych akcji audytowych w ostatnich 24h.
+    </div>
+    <a href="<?= url('admin/platform/audit-log?severity=critical&days=7') ?>" class="btn btn-sm btn-light">
+        Zobacz audyt <i class="bi bi-arrow-right"></i>
+    </a>
+</div>
+<?php endif; ?>
 <div class="row g-3 mb-4">
     <div class="col-sm-4 col-md-2">
         <div class="card p-3 text-center">

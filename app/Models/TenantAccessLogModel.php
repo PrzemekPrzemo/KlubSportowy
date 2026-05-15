@@ -126,6 +126,32 @@ class TenantAccessLogModel extends BaseModel
     }
 
     /**
+     * Liczba krytycznych wpisow w ostatnich 24h (banner alertowy w dashboardzie).
+     */
+    public function countCriticalLastDay(?int $clubId = null): int
+    {
+        try {
+            if ($clubId !== null) {
+                $stmt = $this->db->prepare(
+                    "SELECT COUNT(*) FROM `tenant_access_log`
+                     WHERE severity = 'critical'
+                       AND occurred_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+                       AND (active_club_id = ? OR active_club_id IS NULL)"
+                );
+                $stmt->execute([$clubId]);
+                return (int)$stmt->fetchColumn();
+            }
+            return (int)$this->db->query(
+                "SELECT COUNT(*) FROM `tenant_access_log`
+                 WHERE severity = 'critical'
+                   AND occurred_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)"
+            )->fetchColumn();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /**
      * Wyczysc wpisy starsze niz N dni (cron job).
      */
     public function pruneOlderThan(int $days = 90): int

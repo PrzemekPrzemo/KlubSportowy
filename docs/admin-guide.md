@@ -249,3 +249,40 @@ Exit codes: `0` = OK, `1` = byly bledy API, `2` = blad inicjalizacji klienta.
 - Konflikt: lokalnie zmieniony status na `resolved` → push do Todoist robi `tasks/{id}/close`. Jesli sie nie uda, blad ladowany do `todoist_sync_error` ale UI nie crashuje.
 - Idempotentnosc: jesli task wciaz `is_completed = false` w Todoist a lokalnie juz `resolved`, skrypt **nie** wraca lokalnie do `in_progress` (zostawiamy admin decision).
 
+
+---
+
+## Audyt aktywności klubu
+
+Widok `/admin/audit-log` (rola: `zarzad`, `admin`, super admin) konsoliduje trzy źródła zdarzeń audytowych:
+
+| Źródło | Tabela | Co loguje |
+|---|---|---|
+| `activity_log` | `activity_log` | Działania użytkowników (logowania, zmiany danych, eksporty) |
+| `sensitive_access` | `sensitive_access_log` | Dostęp do danych szczególnej kategorii (RODO art. 30) — medical, anti-doping, body_metrics, emergency_contacts, minor_consents |
+| `tenant_access` | `tenant_access_log` | Bypass scope `club_id` (defense-in-depth — kto czytał dane wielu klubów) |
+
+**Multi-tenant**: zarząd klubu widzi wyłącznie własne wpisy (`WHERE club_id = ClubContext::current()`). Super admin korzysta z `/admin/platform/audit-log` i może filtrować po klubie.
+
+**Sensitive guard**: szczegóły wpisów z `sensitive_access` widoczne tylko dla ról uprawnionych (`canAccessSensitiveData()` — `zarzad`, `trener`, `instruktor`, `lekarz`, super admin).
+
+### Retencja audit logów
+
+Cron `cli/audit_log_cleanup.php` (zalecane: niedziela 03:00) czyści stare wpisy:
+
+| Tabela | Retencja | Uzasadnienie |
+|---|---|---|
+| `tenant_access_log` | 90 dni | Defense-in-depth, krótki cykl operacyjny |
+| `activity_log` | 180 dni | Standardowy audyt zarządczy |
+| `sensitive_access_log` | 5 lat (1825 dni) | RODO art. 30 — rejestr czynności przetwarzania |
+| `member_consents` | bezterminowo | Dowód zgody RODO — nie pruneujemy |
+
+Tryb suchy: `php cli/audit_log_cleanup.php --dry-run`. Ograniczenie do jednej tabeli: `--table=tenant_access_log`.
+
+### Eksport CSV
+
+`/admin/audit-log/export?{filters}` — pobiera CSV z UTF-8 BOM (Excel-friendly). Eksport sam jest zdarzeniem audytowym i loguje się jako `audit_log_export` w `activity_log`.
+
+### Alert krytyczny
+
+Dashboard super admina (`/admin/dashboard`) wyświetla baner alertowy, gdy w ostatnich 24h pojawiły się akcje `severity = critical` w `tenant_access_log`. Klik prowadzi do `/admin/platform/audit-log?severity=critical&days=7`.
