@@ -148,6 +148,20 @@ $router->post('/portal/reset-password',       [\App\Controllers\PasswordResetCon
 $router->get('/register',  [\App\Controllers\AuthController::class, 'showRegister']);
 $router->post('/register', [\App\Controllers\AuthController::class, 'register']);
 
+// Self-service trial signup wizard (5-step, no auth required)
+$router->get('/trial',             [\App\Controllers\OnboardingWizardController::class, 'landing']);
+$router->get('/trial/start',       [\App\Controllers\OnboardingWizardController::class, 'step1']);
+$router->post('/trial/club-data',  [\App\Controllers\OnboardingWizardController::class, 'saveStep1']);
+$router->get('/trial/branding',    [\App\Controllers\OnboardingWizardController::class, 'step2']);
+$router->post('/trial/branding',   [\App\Controllers\OnboardingWizardController::class, 'saveStep2']);
+$router->get('/trial/sports',      [\App\Controllers\OnboardingWizardController::class, 'step3']);
+$router->post('/trial/sports',     [\App\Controllers\OnboardingWizardController::class, 'saveStep3']);
+$router->get('/trial/fees',        [\App\Controllers\OnboardingWizardController::class, 'step4']);
+$router->post('/trial/fees',       [\App\Controllers\OnboardingWizardController::class, 'saveStep4']);
+$router->get('/trial/admin',       [\App\Controllers\OnboardingWizardController::class, 'step5']);
+$router->post('/trial/admin',      [\App\Controllers\OnboardingWizardController::class, 'saveStep5']);
+$router->get('/trial/welcome',     [\App\Controllers\OnboardingWizardController::class, 'welcome']);
+
 // Wybór klubu po logowaniu
 $router->get('/club-select',      [\App\Controllers\ClubSelectorController::class, 'show']);
 $router->post('/club-select/:id', [\App\Controllers\ClubSelectorController::class, 'select']);
