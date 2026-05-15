@@ -793,6 +793,8 @@ $router->get('/events',               [\App\Controllers\EventsController::class,
 $router->get('/events/create',        [\App\Controllers\EventsController::class, 'create']);
 $router->post('/events/store',        [\App\Controllers\EventsController::class, 'store']);
 $router->post('/events/:id/delete',   [\App\Controllers\EventsController::class, 'delete']);
+$router->get( '/events/:id/results',      [\App\Controllers\EventsController::class, 'recordResults']);
+$router->post('/events/:id/results/save', [\App\Controllers\EventsController::class, 'saveResults']);
 
 // iCal export
 $router->get('/ics/event/:id',    [\App\Controllers\IcsController::class, 'event']);
@@ -989,6 +991,12 @@ $router->post('/tournaments/:id/participant-remove', [\App\Controllers\Tournamen
 $router->post('/tournaments/:id/generate',           [\App\Controllers\TournamentsController::class, 'generateBracket']);
 $router->post('/tournaments/match/:matchId/result',  [\App\Controllers\TournamentsController::class, 'recordResult']);
 $router->post('/tournaments/:id/delete',             [\App\Controllers\TournamentsController::class, 'delete']);
+
+// ── Wyniki turniejowe (sędzia) + auto-recalc rankingu ─────────────
+$router->get( '/tournaments/:id/results',          [\App\Controllers\TournamentResultsController::class, 'form']);
+$router->post('/tournaments/:id/results/save',     [\App\Controllers\TournamentResultsController::class, 'save']);
+$router->get( '/tournaments/:id/protocol-pdf',     [\App\Controllers\TournamentResultsController::class, 'protocolPdf']);
+$router->get( '/admin/tournaments/pending',        [\App\Controllers\TournamentResultsController::class, 'pending']);
 
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
