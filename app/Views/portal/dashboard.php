@@ -85,6 +85,64 @@ try {
     </div>
 </div>
 
+<!-- Widget: ostatnie osiągnięcia + total points -->
+<?php
+$recentAch = [];
+$achPoints = 0;
+try {
+    $_db = \App\Helpers\Database::pdo();
+    $_stmt = $_db->prepare(
+        "SELECT ac.icon, ac.name, ac.rarity, ac.points, ma.earned_at
+         FROM member_achievements ma
+         JOIN achievement_catalog ac ON ac.id = ma.achievement_id
+         WHERE ma.member_id = ?
+         ORDER BY ma.earned_at DESC
+         LIMIT 3"
+    );
+    $_stmt->execute([(int)($member['id'] ?? 0)]);
+    $recentAch = $_stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+    $_stmt2 = $_db->prepare(
+        "SELECT COALESCE(SUM(ac.points),0)
+         FROM member_achievements ma
+         JOIN achievement_catalog ac ON ac.id = ma.achievement_id
+         WHERE ma.member_id = ?"
+    );
+    $_stmt2->execute([(int)($member['id'] ?? 0)]);
+    $achPoints = (int)$_stmt2->fetchColumn();
+} catch (\Throwable) {}
+?>
+<div class="row g-3 mt-3">
+    <div class="col-12">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0"><i class="bi bi-trophy-fill text-warning"></i> Ostatnie osiągnięcia
+                    <span class="badge bg-warning text-dark ms-2"><?= $achPoints ?> pkt</span>
+                </h5>
+                <a href="<?= url('portal/achievements') ?>" class="btn btn-sm btn-outline-warning">
+                    Zobacz wszystkie
+                </a>
+            </div>
+            <?php if (empty($recentAch)): ?>
+                <div class="text-muted small">
+                    Nie masz jeszcze odznak. Chodz na treningi i bierz udzial w turniejach!
+                    <a href="<?= url('portal/achievements/catalog') ?>">Zobacz katalog &rarr;</a>
+                </div>
+            <?php else: ?>
+                <div class="d-flex flex-wrap gap-3">
+                    <?php foreach ($recentAch as $a): ?>
+                        <div class="text-center" style="min-width:120px;">
+                            <div style="font-size:2rem; line-height:1;"><?= View::e($a['icon'] ?? '🏆') ?></div>
+                            <div class="fw-semibold small"><?= View::e($a['name'] ?? '') ?></div>
+                            <small class="text-muted"><?= View::e(date('Y-m-d', strtotime((string)$a['earned_at']))) ?></small>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
 <!-- Szybkie linki do nowych sekcji -->
 <?php
 // Pasy/stopnie widoczne tylko gdy klub ma aktywny sport ze stopniami

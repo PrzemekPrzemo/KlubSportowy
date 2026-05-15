@@ -145,9 +145,32 @@ class TrainingsController extends BaseController
         Csrf::verify();
         $statuses = $_POST['status'] ?? [];
         $model = new TrainingAttendeeModel();
+        $touchedMembers = [];
         foreach ($statuses as $attendeeId => $status) {
             $model->setStatus((int)$attendeeId, (string)$status);
+            // Zebierz member_id dla pozniejszej ewaluacji achievements.
+            try {
+                $db = \App\Helpers\Database::pdo();
+                $stmt = $db->prepare("SELECT member_id FROM training_attendees WHERE id = ? LIMIT 1");
+                $stmt->execute([(int)$attendeeId]);
+                $mid = (int)($stmt->fetchColumn() ?: 0);
+                if ($mid > 0) $touchedMembers[$mid] = true;
+            } catch (\Throwable) {
+                // ignore
+            }
         }
+
+        // Trigger achievements (attendance category) dla zmienionych czlonkow.
+        try {
+            if (class_exists(\App\Helpers\Achievements\AchievementEvaluator::class)) {
+                foreach (array_keys($touchedMembers) as $mid) {
+                    \App\Helpers\Achievements\AchievementEvaluator::evaluateForMember((int)$mid, 'attendance');
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('Achievements trigger after markAttendance failed: ' . $e->getMessage());
+        }
+
         Session::flash('success', 'Obecność zapisana.');
         $this->redirect('trainings/' . $id);
     }
