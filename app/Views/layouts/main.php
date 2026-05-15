@@ -4,7 +4,7 @@ $branding = $clubBranding ?? [];
 $primary  = $branding['primary_color'] ?? '#EE2C28';
 $navbarBg = $branding['navbar_bg']     ?? '#232232';
 ?><!DOCTYPE html>
-<html lang="pl">
+<html lang="<?= \App\Helpers\Translator::getLocale() ?>">
 <head>
     <meta charset="UTF-8">
     <?php $clubFavicon = $branding['favicon_path'] ?? null; ?>
@@ -97,7 +97,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <small class="d-block" style="color:#F9C6CE;"><em><?= View::e($clubBranding['motto']) ?></em></small>
         <?php endif; ?>
         <?php if (!empty($activeSportKey)): ?>
-            <small class="d-block text-info">sport: <?= View::e($activeSportKey) ?></small>
+            <small class="d-block text-info"><?= __('misc.sport') ?>: <?= View::e($activeSportKey) ?></small>
         <?php endif; ?>
     </div>
 
@@ -112,25 +112,25 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     $allItems = [
         'dashboard'      => ['url' => 'dashboard',                  'icon' => 'bi-speedometer2',           'label' => __('nav.dashboard'),       'mod' => null],
         'members'        => ['url' => 'members',                    'icon' => 'bi-people',                 'label' => __('nav.members'),         'mod' => 'members'],
-        'members_all'    => ['url' => 'members-all',                'icon' => 'bi-people-fill',            'label' => 'Wszyscy zawodnicy',       'mod' => 'members'],
+        'members_all'    => ['url' => 'members-all',                'icon' => 'bi-people-fill',            'label' => __('nav.members_all'),     'mod' => 'members'],
         'sports'         => ['url' => 'sports',                     'icon' => 'bi-trophy',                 'label' => __('nav.sports_sections'), 'mod' => 'sports'],
         'calendar'       => ['url' => 'calendar',                   'icon' => 'bi-calendar3',              'label' => __('nav.calendar'),        'mod' => 'calendar'],
         'import'         => ['url' => 'import',                     'icon' => 'bi-upload',                 'label' => __('nav.import_csv'),      'mod' => 'members'],
         'events'         => ['url' => 'events',                     'icon' => 'bi-calendar-event',         'label' => __('nav.events'),          'mod' => 'events'],
         'trainings'      => ['url' => 'trainings',                  'icon' => 'bi-stopwatch',              'label' => __('nav.trainings'),       'mod' => 'trainings'],
         'bookings'       => ['url' => 'bookings',                   'icon' => 'bi-calendar-check',         'label' => __('nav.bookings'),        'mod' => null],
-        'resources'      => ['url' => 'club/resources',             'icon' => 'bi-box-seam',               'label' => 'Zasoby do rezerwacji',    'mod' => null],
+        'resources'      => ['url' => 'club/resources',             'icon' => 'bi-box-seam',               'label' => __('nav.bookable_resources'), 'mod' => null],
         'announcements'  => ['url' => 'announcements',              'icon' => 'bi-megaphone',              'label' => __('nav.announcements'),   'mod' => 'announcements'],
         'messages'       => ['url' => 'messages',                   'icon' => 'bi-chat-dots',              'label' => __('nav.messages'),        'mod' => null],
         'achievements'   => ['url' => 'club/achievements',          'icon' => 'bi-trophy-fill',            'label' => 'Osiągnięcia',             'mod' => null],
         'fees'           => ['url' => 'fees',                       'icon' => 'bi-cash-coin',              'label' => __('nav.finances'),        'mod' => 'fees'],
         'fees_rates'     => ['url' => 'fees/rates',                 'icon' => 'bi-tag',                    'label' => __('nav.fee_rates'),       'mod' => 'fees'],
-        'commissions'    => ['url' => 'club/trainers/commissions',  'icon' => 'bi-cash-coin',              'label' => 'Prowizje trenerów',       'mod' => 'fees'],
-        'subscription'   => ['url' => 'club/subscription',          'icon' => 'bi-credit-card-2-front',    'label' => 'Subskrypcja klubu',       'mod' => null],
+        'commissions'    => ['url' => 'club/trainers/commissions',  'icon' => 'bi-cash-coin',              'label' => __('nav.trainer_commissions'), 'mod' => 'fees'],
+        'subscription'   => ['url' => 'club/subscription',          'icon' => 'bi-credit-card-2-front',    'label' => __('nav.club_subscription'),  'mod' => null],
         'medical'        => ['url' => 'medical',                    'icon' => 'bi-heart-pulse',            'label' => __('nav.medical'),         'mod' => 'medical',          'sensitive' => true],
-        'compliance'     => ['url' => 'admin/compliance',           'icon' => 'bi-shield-check',           'label' => 'Zgodność WADA',           'mod' => 'medical',          'sensitive' => true],
-        'certifications' => ['url' => 'certifications',             'icon' => 'bi-patch-check',            'label' => 'Uprawnienia trenerskie',  'mod' => null],
-        'equipment'      => ['url' => 'equipment',                  'icon' => 'bi-box-seam',               'label' => 'Sprzęt klubowy',          'mod' => null],
+        'compliance'     => ['url' => 'admin/compliance',           'icon' => 'bi-shield-check',           'label' => __('nav.wada_compliance'),    'mod' => 'medical',          'sensitive' => true],
+        'certifications' => ['url' => 'certifications',             'icon' => 'bi-patch-check',            'label' => __('nav.coach_certifications'), 'mod' => null],
+        'equipment'      => ['url' => 'equipment',                  'icon' => 'bi-box-seam',               'label' => __('nav.club_equipment'),     'mod' => null],
         'analytics'      => ['url' => 'analytics',                  'icon' => 'bi-graph-up',               'label' => __('nav.analytics'),       'mod' => null],
         'reports'        => ['url' => 'reports',                    'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),         'mod' => 'reports'],
         'documents'      => ['url' => 'documents',                  'icon' => 'bi-file-earmark-pdf',       'label' => __('nav.documents'),       'mod' => null],
@@ -138,11 +138,11 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'gdpr'           => ['url' => 'gdpr',                       'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
     ];
     $clubGroups = [
-        'core'      => ['label' => __('nav.club'),       'items' => ['dashboard', 'members', 'members_all', 'sports', 'calendar', 'import']],
-        'schedule'  => ['label' => 'Działania',          'items' => ['events', 'trainings', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
-        'finance'   => ['label' => 'Finanse',            'items' => ['fees', 'fees_rates', 'commissions', 'subscription']],
-        'health'    => ['label' => 'Zdrowie i compliance', 'items' => ['medical', 'compliance', 'certifications', 'equipment']],
-        'reports'   => ['label' => 'Raporty i media',    'items' => ['analytics', 'reports', 'documents', 'gallery', 'gdpr']],
+        'core'      => ['label' => __('nav.club'),                'items' => ['dashboard', 'members', 'members_all', 'sports', 'calendar', 'import']],
+        'schedule'  => ['label' => __('nav.group.actions'),       'items' => ['events', 'trainings', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
+        'finance'   => ['label' => __('nav.group.finance'),       'items' => ['fees', 'fees_rates', 'commissions', 'subscription']],
+        'health'    => ['label' => __('nav.group.health'),        'items' => ['medical', 'compliance', 'certifications', 'equipment']],
+        'reports'   => ['label' => __('nav.group.reports'),       'items' => ['analytics', 'reports', 'documents', 'gallery', 'gdpr']],
     ];
     $allowed = $navModules ?? null;
     $canSensitive = \App\Helpers\Auth::canAccessSensitiveData();
@@ -169,7 +169,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url($item['url']) ?>"><i class="bi <?= View::e($item['icon']) ?>"></i> <?= View::e($item['label']) ?></a>
             <?php endforeach; ?>
             <?php if ($groupKey === 'finance' && \App\Helpers\Auth::hasRole(['trener', 'instruktor'])): ?>
-                <a href="<?= url('trainer/commissions/my') ?>"><i class="bi bi-wallet2"></i> Moje prowizje</a>
+                <a href="<?= url('trainer/commissions/my') ?>"><i class="bi bi-wallet2"></i> <?= __('nav.my_commissions') ?></a>
             <?php endif; ?>
             </div>
         </div>
@@ -178,7 +178,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
 
     <!-- Z.2 — Recent items (zarządzane przez JS, ukryte gdy puste) -->
     <?php if (!$isSuperAdminNoClub): ?>
-        <div class="section-label" id="recent-items-label" style="display:none;">Ostatnio odwiedzane</div>
+        <div class="section-label" id="recent-items-label" style="display:none;"><?= __('nav.recent_items') ?></div>
         <div id="recent-items-list" style="display:none;"></div>
         <script>
             // Pokaż label gdy lista ma items
@@ -216,7 +216,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                         <i class="bi <?= View::e($cs['icon'] ?? 'bi-dot') ?>"></i>
                         <?= View::e($cs['name']) ?>
                         <?php if ((int)($cs['cs_active'] ?? 0) === 0): ?>
-                            <span class="badge bg-secondary ms-1" style="font-size:0.65rem;">wyłączony</span>
+                            <span class="badge bg-secondary ms-1" style="font-size:0.65rem;"><?= __('nav.disabled_badge') ?></span>
                         <?php endif; ?>
                         <?php if (($cs['key'] ?? '') === 'shooting'): ?>
                             <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;" title="Użyj shotero.pl dla pełnej obsługi PZSS">shotero.pl</span>
@@ -237,15 +237,15 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     if ($hasFeatures): ?>
         <div class="nav-section" data-section="features">
             <button type="button" class="section-toggle" aria-expanded="true" aria-controls="sec-features">
-                <span class="section-label" style="padding:0;">Funkcje</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.features') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-features">
                 <?php if (\App\Helpers\Feature::enabled('live_score')): ?>
-                    <a href="<?= url('live') ?>"><i class="bi bi-broadcast"></i> Live updates</a>
+                    <a href="<?= url('live') ?>"><i class="bi bi-broadcast"></i> <?= __('nav.live_updates') ?></a>
                 <?php endif; ?>
                 <?php if (\App\Helpers\Feature::enabled('cross_sport_stats')): ?>
-                    <a href="<?= url('club/cross-sport-overview') ?>"><i class="bi bi-bar-chart-steps"></i> Statystyki cross-sport</a>
+                    <a href="<?= url('club/cross-sport-overview') ?>"><i class="bi bi-bar-chart-steps"></i> <?= __('nav.cross_sport_stats') ?></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -256,22 +256,22 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     if (!empty($currentClubId) && \App\Helpers\Auth::hasRole(['zarzad', 'admin'])): ?>
         <div class="nav-section" data-section="integrations">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-integrations">
-                <span class="section-label" style="padding:0;">Integracje</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.integrations') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-integrations">
-                <a href="<?= url('club/gateways') ?>"><i class="bi bi-credit-card-2-front"></i> Bramki płatności</a>
+                <a href="<?= url('club/gateways') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.payment_gateways') ?></a>
                 <?php if (\App\Helpers\Feature::enabled('inpost_shipping')): ?>
-                    <a href="<?= url('club/shipping') ?>"><i class="bi bi-truck"></i> Wysyłka InPost</a>
+                    <a href="<?= url('club/shipping') ?>"><i class="bi bi-truck"></i> <?= __('nav.inpost_shipping') ?></a>
                     <a href="<?= url('club/shipping/shipments') ?>" style="padding-left:2rem;">
-                        <i class="bi bi-list-ul"></i> <small>Przesyłki</small>
+                        <i class="bi bi-list-ul"></i> <small><?= __('nav.shipments') ?></small>
                     </a>
                 <?php endif; ?>
                 <?php if (\App\Helpers\Feature::enabled('federation_export')): ?>
-                    <a href="<?= url('club/federations') ?>"><i class="bi bi-globe2"></i> Federacje sportowe</a>
+                    <a href="<?= url('club/federations') ?>"><i class="bi bi-globe2"></i> <?= __('nav.sport_federations') ?></a>
                 <?php endif; ?>
                 <?php if (\App\Helpers\Feature::enabled('google_calendar_sync')): ?>
-                    <a href="<?= url('club/google-calendar') ?>"><i class="bi bi-calendar-event"></i> Google Calendar</a>
+                    <a href="<?= url('club/google-calendar') ?>"><i class="bi bi-calendar-event"></i> <?= __('nav.google_calendar') ?></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -281,7 +281,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     if (!empty($currentClubId) && ($allowed === null || in_array('club', $allowed, true))): ?>
         <div class="nav-section" data-section="settings-data">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-settings-data">
-                <span class="section-label" style="padding:0;">Ustawienia klubu</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.settings_data') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-settings-data">
@@ -291,34 +291,34 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('club/smtp') ?>"><i class="bi bi-envelope-gear"></i> <?= __('nav.smtp_sms') ?></a>
                 <a href="<?= url('email/templates') ?>"><i class="bi bi-file-text"></i> <?= __('nav.email_templates') ?></a>
                 <?php if (\App\Helpers\Auth::hasRole(['zarzad', 'admin']) || \App\Helpers\Auth::isSuperAdmin()): ?>
-                    <a href="<?= url('admin/audit-log') ?>"><i class="bi bi-clipboard-data"></i> Audyt aktywności</a>
+                    <a href="<?= url('admin/audit-log') ?>"><i class="bi bi-clipboard-data"></i> <?= __('nav.audit_activity') ?></a>
                 <?php endif; ?>
             </div>
         </div>
         <div class="nav-section" data-section="settings-billing">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-settings-billing">
-                <span class="section-label" style="padding:0;">Plan i rozliczenia</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.settings_billing') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-settings-billing">
                 <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.plan_billing') ?></a>
                 <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
-                <a href="<?= url('club/referrals') ?>"><i class="bi bi-share"></i> Polecenia / rabaty</a>
-                <a href="<?= url('members/export') ?>"><i class="bi bi-file-earmark-spreadsheet"></i> Eksport członków</a>
-                <a href="<?= url('fees/bulk-assign') ?>"><i class="bi bi-people-fill"></i> Bulk składki</a>
-                <a href="<?= url('admin/campaigns') ?>"><i class="bi bi-megaphone"></i> Kampanie email/SMS</a>
+                <a href="<?= url('club/referrals') ?>"><i class="bi bi-share"></i> <?= __('nav.referrals_discounts') ?></a>
+                <a href="<?= url('members/export') ?>"><i class="bi bi-file-earmark-spreadsheet"></i> <?= __('nav.members_export') ?></a>
+                <a href="<?= url('fees/bulk-assign') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.bulk_fees') ?></a>
+                <a href="<?= url('admin/campaigns') ?>"><i class="bi bi-megaphone"></i> <?= __('nav.email_sms_campaigns') ?></a>
             </div>
         </div>
         <div class="nav-section" data-section="settings-dev">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-settings-dev">
-                <span class="section-label" style="padding:0;">Developer i wsparcie</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.settings_dev') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-settings-dev">
                 <a href="<?= url('club/api-keys') ?>"><i class="bi bi-key"></i> <?= __('nav.api_keys') ?></a>
                 <a href="<?= url('club/webhooks') ?>"><i class="bi bi-plug"></i> <?= __('nav.webhooks') ?></a>
                 <a href="<?= url('federation') ?>"><i class="bi bi-globe"></i> <?= __('nav.federations') ?></a>
-                <a href="<?= url('support') ?>"><i class="bi bi-headset"></i> Wsparcie techniczne</a>
+                <a href="<?= url('support') ?>"><i class="bi bi-headset"></i> <?= __('nav.tech_support') ?></a>
             </div>
         </div>
     <?php endif; ?>
@@ -326,73 +326,73 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     <?php if (!empty($isSuperAdmin)): ?>
         <div class="nav-section" data-section="platform-core">
             <button type="button" class="section-toggle" aria-expanded="true" aria-controls="sec-platform-core">
-                <span class="section-label" style="padding:0;">Platforma</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.platform_core') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-platform-core">
-                <a href="<?= url('admin/dashboard') ?>"><i class="bi bi-speedometer2"></i> Pulpit admina</a>
+                <a href="<?= url('admin/dashboard') ?>"><i class="bi bi-speedometer2"></i> <?= __('nav.admin_dashboard') ?></a>
                 <a href="<?= url('admin/clubs') ?>"><i class="bi bi-building"></i> <?= __('nav.clubs') ?></a>
-                <a href="<?= url('admin/demos') ?>"><i class="bi bi-rocket-takeoff"></i> Konta demo</a>
-                <a href="<?= url('admin/users') ?>"><i class="bi bi-shield-fill-check"></i> Super admini</a>
+                <a href="<?= url('admin/demos') ?>"><i class="bi bi-rocket-takeoff"></i> <?= __('nav.demo_accounts') ?></a>
+                <a href="<?= url('admin/users') ?>"><i class="bi bi-shield-fill-check"></i> <?= __('nav.super_admins') ?></a>
             </div>
         </div>
         <div class="nav-section" data-section="platform-commerce">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-commerce">
-                <span class="section-label" style="padding:0;">Komercja</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.platform_commerce') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-platform-commerce">
-                <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> Plany</a>
-                <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> Plany cenowe</a>
-                <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> Subskrypcje</a>
-                <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
-                <a href="<?= url('admin/invoices/bulk') ?>"><i class="bi bi-receipt-cutoff"></i> Bulk faktury</a>
-                <a href="<?= url('admin/invoices/jpk-fa') ?>"><i class="bi bi-filetype-xml"></i> JPK_FA</a>
-                <a href="<?= url('admin/platform/referrals') ?>"><i class="bi bi-share"></i> Affiliate program</a>
-                <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
+                <a href="<?= url('admin/plans') ?>"><i class="bi bi-credit-card"></i> <?= __('nav.plans') ?></a>
+                <a href="<?= url('admin/platform/plans') ?>"><i class="bi bi-tags"></i> <?= __('nav.pricing_plans') ?></a>
+                <a href="<?= url('admin/subscriptions') ?>"><i class="bi bi-wallet2"></i> <?= __('nav.subscriptions') ?></a>
+                <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
+                <a href="<?= url('admin/invoices/bulk') ?>"><i class="bi bi-receipt-cutoff"></i> <?= __('nav.bulk_invoices') ?></a>
+                <a href="<?= url('admin/invoices/jpk-fa') ?>"><i class="bi bi-filetype-xml"></i> <?= __('nav.jpk_fa') ?></a>
+                <a href="<?= url('admin/platform/referrals') ?>"><i class="bi bi-share"></i> <?= __('nav.affiliate_program') ?></a>
+                <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> <?= __('nav.ads') ?></a>
             </div>
         </div>
         <div class="nav-section" data-section="platform-config">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-config">
-                <span class="section-label" style="padding:0;">Konfiguracja platformy</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.platform_config') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-platform-config">
-                <a href="<?= url('admin/sports/catalog') ?>"><i class="bi bi-grid-3x3-gap"></i> Katalog sportów</a>
-                <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> Feature flags</a>
-                <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> Logo systemu</a>
-                <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> Support tickets</a>
-                <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> Log aktywności</a>
-                <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> Kopie zapasowe</a>
+                <a href="<?= url('admin/sports/catalog') ?>"><i class="bi bi-grid-3x3-gap"></i> <?= __('nav.sports_catalog') ?></a>
+                <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> <?= __('nav.feature_flags') ?></a>
+                <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> <?= __('nav.system_logo') ?></a>
+                <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> <?= __('nav.support_tickets') ?></a>
+                <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> <?= __('nav.activity_log') ?></a>
+                <a href="<?= url('admin/backups') ?>"><i class="bi bi-hdd"></i> <?= __('nav.backups') ?></a>
             </div>
         </div>
         <div class="nav-section" data-section="platform-security">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-security">
-                <span class="section-label" style="padding:0;">Bezpieczeństwo i monitoring</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.platform_security') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-platform-security">
-                <a href="<?= url('admin/errors') ?>"><i class="bi bi-bug-fill"></i> Dziennik błędów</a>
-                <a href="<?= url('admin/security') ?>"><i class="bi bi-shield-lock-fill"></i> Dziennik bezpieczeństwa</a>
-                <a href="<?= url('admin/audit/isolation') ?>"><i class="bi bi-shield-check"></i> Audyt izolacji</a>
-                <a href="<?= url('admin/platform/audit-log') ?>"><i class="bi bi-clipboard-data"></i> Audit log (wszystkie kluby)</a>
-                <a href="<?= url('admin/health') ?>"><i class="bi bi-heart-pulse"></i> Zdrowie systemu</a>
+                <a href="<?= url('admin/errors') ?>"><i class="bi bi-bug-fill"></i> <?= __('nav.error_log') ?></a>
+                <a href="<?= url('admin/security') ?>"><i class="bi bi-shield-lock-fill"></i> <?= __('nav.security_log') ?></a>
+                <a href="<?= url('admin/audit/isolation') ?>"><i class="bi bi-shield-check"></i> <?= __('nav.isolation_audit') ?></a>
+                <a href="<?= url('admin/platform/audit-log') ?>"><i class="bi bi-clipboard-data"></i> <?= __('nav.audit_log_all') ?></a>
+                <a href="<?= url('admin/health') ?>"><i class="bi bi-heart-pulse"></i> <?= __('nav.system_health') ?></a>
             </div>
         </div>
 
         <?php if (!empty($currentClubId)): ?>
         <div class="nav-section" data-section="platform-current-club">
             <button type="button" class="section-toggle" aria-expanded="false" aria-controls="sec-platform-current-club">
-                <span class="section-label" style="padding:0;">Bieżący klub</span>
+                <span class="section-label" style="padding:0;"><?= __('nav.group.platform_current_club') ?></span>
                 <i class="bi bi-chevron-down"></i>
             </button>
             <div class="section-items" id="sec-platform-current-club">
-                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> Konfiguracja</a>
-                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> Feature flags</a>
-                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/permissions') ?>"><i class="bi bi-key-fill"></i> Uprawnienia</a>
-                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/sports') ?>"><i class="bi bi-trophy"></i> Sporty (config)</a>
-                <a href="<?= url('admin/platform/branding/' . (int)$currentClubId) ?>"><i class="bi bi-palette2"></i> Branding klubu</a>
-                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/analytics') ?>"><i class="bi bi-bar-chart-line"></i> Analityka klubu</a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/config') ?>"><i class="bi bi-sliders"></i> <?= __('nav.configuration') ?></a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/features') ?>"><i class="bi bi-toggles"></i> <?= __('nav.feature_flags') ?></a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/permissions') ?>"><i class="bi bi-key-fill"></i> <?= __('nav.permissions') ?></a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/sports') ?>"><i class="bi bi-trophy"></i> <?= __('nav.sports_config') ?></a>
+                <a href="<?= url('admin/platform/branding/' . (int)$currentClubId) ?>"><i class="bi bi-palette2"></i> <?= __('nav.club_branding') ?></a>
+                <a href="<?= url('admin/clubs/' . (int)$currentClubId . '/analytics') ?>"><i class="bi bi-bar-chart-line"></i> <?= __('nav.club_analytics') ?></a>
             </div>
         </div>
         <?php endif; ?>
@@ -412,7 +412,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <span style="opacity:.3;">|</span>
         <a href="?lang=en" style="color:rgba(255,255,255,0.85); text-decoration:none; <?= \App\Helpers\Translator::getLocale() === 'en' ? 'font-weight:700;' : 'opacity:.6;' ?>">EN</a>
     </div>
-    <a href="<?= url('help') ?>"><i class="bi bi-question-circle"></i> Pomoc</a>
+    <a href="<?= url('help') ?>"><i class="bi bi-question-circle"></i> <?= __('nav.help') ?></a>
     <a href="<?= url('auth/logout') ?>"><i class="bi bi-box-arrow-right"></i> <?= __('nav.logout') ?></a>
 </nav>
 
@@ -423,7 +423,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input type="text" id="global-search-input" class="form-control"
                    placeholder="<?= View::e(__('common.search_placeholder')) ?>">
-            <span class="input-group-text small text-muted" title="Skrót klawiaturowy"
+            <span class="input-group-text small text-muted" title="<?= View::e(__('nav.kbd_shortcut')) ?>"
                   style="font-family: monospace; font-size: 11px;">Ctrl+K</span>
         </div>
         <div id="global-search-dropdown" class="search-dropdown"></div>
@@ -433,7 +433,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <div>
                 <i class="bi bi-person-fill-lock"></i>
                 <?php if (($impersonatingType ?? '') === 'club_context'): ?>
-                    <strong>Przeglądasz kontekst klubu:</strong> <?= View::e($currentClub['name'] ?? '') ?>
+                    <strong><?= __('nav.context_of_club') ?></strong> <?= View::e($currentClub['name'] ?? '') ?>
                 <?php else: ?>
                     <strong><?= __('impersonate.label') ?></strong> <?= View::e($authUser['full_name'] ?? '') ?>
                     <?php if (!empty($authUser['email'])): ?>
@@ -443,7 +443,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             </div>
             <form method="POST" action="<?= url('impersonate/stop') ?>" class="m-0">
                 <?= csrf_field() ?>
-                <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> Powrót do Master Admin</button>
+                <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> <?= __('nav.return_master_admin') ?></button>
             </form>
         </div>
     <?php endif; ?>
@@ -476,7 +476,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 </div>
             <?php endif; ?>
             <?php if (!empty($subscription)): ?>
-                <span class="badge bg-secondary">Plan: <?= View::e($subscription['plan_name'] ?? '') ?> • do <?= View::e(format_date($subscription['valid_until'] ?? null)) ?></span>
+                <span class="badge bg-secondary"><?= __('nav.subscription_plan_until', ['plan' => $subscription['plan_name'] ?? '', 'date' => format_date($subscription['valid_until'] ?? null)]) ?></span>
             <?php endif; ?>
         </div>
     </div>
@@ -564,7 +564,7 @@ if ('serviceWorker' in navigator) {
 <!-- Floating "Zglos problem" button (support_reports + Todoist sync) -->
 <a href="<?= url('support/report?return=' . urlencode($_SERVER['REQUEST_URI'] ?? '/')) ?>"
    class="support-fab"
-   title="Zglos blad lub propozycje">
+   title="<?= View::e(__('nav.report_problem')) ?>">
     <i class="bi bi-bug"></i>
 </a>
 <style>
