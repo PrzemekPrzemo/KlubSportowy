@@ -30,8 +30,8 @@ $widgetLabels = [
 <div class="card p-4 mb-4 border-primary" style="border-left: 4px solid var(--app-primary, #EE2C28) !important;">
     <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
-            <h5 class="mb-1"><i class="bi bi-rocket-takeoff text-primary"></i> Pierwsze kroki w klubie</h5>
-            <small class="text-muted">Przejdź <?= (int)$onboarding['done'] ?> z <?= (int)$onboarding['total'] ?> kroków konfiguracji aby w pełni wykorzystać ClubDesk.</small>
+            <h5 class="mb-1"><i class="bi bi-rocket-takeoff text-primary"></i> <?= __('dash.first_steps') ?></h5>
+            <small class="text-muted"><?= __('dash.first_steps_desc', ['done' => (int)$onboarding['done'], 'total' => (int)$onboarding['total']]) ?></small>
         </div>
         <span class="badge bg-primary fs-6"><?= (int)$onboarding['percent'] ?>%</span>
     </div>
@@ -261,7 +261,7 @@ $widgetLabels = [
 <!-- X.2 — Activity feed klubu (zawsze widoczny, niezależnie od widget config) -->
 <?php if (!empty($activityFeed)): ?>
 <div class="card p-3 mt-4">
-    <h5 class="mb-3"><i class="bi bi-activity text-primary"></i> Ostatnie zdarzenia w klubie</h5>
+    <h5 class="mb-3"><i class="bi bi-activity text-primary"></i> <?= __('dash.recent_activity') ?></h5>
     <div class="list-group list-group-flush">
         <?php foreach ($activityFeed as $a):
             $action = (string)($a['action'] ?? '');
@@ -281,20 +281,20 @@ $widgetLabels = [
                 if (str_contains($action, $k) || str_contains($entity, $k)) { $iconClass = $cls; break; }
             }
             // Tłumaczenia akcji
-            $actionLabels = [
-                'create' => 'utworzono', 'update' => 'zaktualizowano', 'delete' => 'usunięto',
-                'login' => 'zalogowanie', 'logout' => 'wylogowanie',
-                'payment_received' => 'zaksięgowano wpłatę',
-                'attendance_marked' => 'zarejestrowano frekwencję',
+            $actionLabelKeys = [
+                'create' => 'dash.activity.create', 'update' => 'dash.activity.update', 'delete' => 'dash.activity.delete',
+                'login' => 'dash.activity.login', 'logout' => 'dash.activity.logout',
+                'payment_received' => 'dash.activity.payment_received',
+                'attendance_marked' => 'dash.activity.attendance_marked',
             ];
-            $actionLabel = $actionLabels[$action] ?? $action;
-            $entityLabels = [
-                'member' => 'zawodnika', 'members' => 'zawodników',
-                'payment' => 'wpłaty', 'training' => 'treningu',
-                'event' => 'wydarzenia', 'club_sport' => 'sekcji sportowej',
-                'online_payment' => 'płatności online',
+            $actionLabel = isset($actionLabelKeys[$action]) ? __($actionLabelKeys[$action]) : $action;
+            $entityLabelKeys = [
+                'member' => 'dash.entity.member', 'members' => 'dash.entity.members',
+                'payment' => 'dash.entity.payment', 'training' => 'dash.entity.training',
+                'event' => 'dash.entity.event', 'club_sport' => 'dash.entity.club_sport',
+                'online_payment' => 'dash.entity.online_payment',
             ];
-            $entityLabel = $entityLabels[$entity] ?? $entity;
+            $entityLabel = isset($entityLabelKeys[$entity]) ? __($entityLabelKeys[$entity]) : $entity;
             $userName = $a['full_name'] ?? $a['username'] ?? 'system';
         ?>
             <div class="list-group-item d-flex align-items-start gap-2">
