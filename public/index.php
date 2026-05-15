@@ -323,6 +323,11 @@ $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController:
 $router->get('/admin/audit/access-log',  [\App\Controllers\AdminAuditController::class, 'accessLog']);
 $router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController::class, 'exportReport']);
 
+// Admin: GDPR requests (self-service czlonka, art. 17 + art. 20 RODO) — migracja 077
+$router->get('/admin/gdpr',                       [\App\Controllers\AdminGdprController::class, 'index']);
+$router->get('/admin/gdpr/:id',                   [\App\Controllers\AdminGdprController::class, 'detail']);
+$router->post('/admin/gdpr/:id/process',          [\App\Controllers\AdminGdprController::class, 'process']);
+
 // Admin: dashboard zdrowia systemu (Batch A7)
 $router->get('/admin/health', [\App\Controllers\AdminHealthController::class, 'index']);
 
@@ -617,6 +622,23 @@ $router->get('/portal/payments/success', [\App\Controllers\MemberPaymentControll
 $router->get('/portal/dues',             [\App\Controllers\MemberPortalController::class, 'dues']);
 $router->post('/portal/dues/:id/pay',    [\App\Controllers\MemberPaymentController::class, 'payDue']);
 
+// Portal — subskrypcje cykliczne składek (migracja 076)
+$router->get('/portal/subscriptions',                  [\App\Controllers\MemberSubscriptionsController::class, 'index']);
+$router->get('/portal/subscriptions/setup/:feeRateId', [\App\Controllers\MemberSubscriptionsController::class, 'setupForm']);
+$router->post('/portal/subscriptions/setup/:feeRateId',[\App\Controllers\MemberSubscriptionsController::class, 'setupSubmit']);
+$router->get('/portal/subscriptions/return',           [\App\Controllers\MemberSubscriptionsController::class, 'returnFromCheckout']);
+$router->post('/portal/subscriptions/:id/cancel',      [\App\Controllers\MemberSubscriptionsController::class, 'cancel']);
+$router->post('/portal/subscriptions/:id/pause',       [\App\Controllers\MemberSubscriptionsController::class, 'pause']);
+$router->post('/portal/subscriptions/:id/resume',      [\App\Controllers\MemberSubscriptionsController::class, 'resume']);
+
+// Admin — subskrypcje cykliczne członków (różne od SaaS billing!)
+// SaaS billing: /admin/subscriptions/* (AdminSubscriptionsController)
+// Recurring fees: /admin/member-subscriptions/* (AdminMemberSubscriptionsController)
+$router->get('/admin/member-subscriptions',                  [\App\Controllers\AdminMemberSubscriptionsController::class, 'index']);
+$router->get('/admin/member-subscriptions/:id',              [\App\Controllers\AdminMemberSubscriptionsController::class, 'show']);
+$router->post('/admin/member-subscriptions/:id/force-charge',[\App\Controllers\AdminMemberSubscriptionsController::class, 'forceCharge']);
+$router->post('/admin/member-subscriptions/:id/cancel',      [\App\Controllers\AdminMemberSubscriptionsController::class, 'cancel']);
+
 // Portal — preferencje powiadomień (Faza S.2 RODO opt-out)
 $router->get('/portal/notification-prefs',         [\App\Controllers\MemberPortalController::class, 'notificationPrefs']);
 $router->post('/portal/notification-prefs/update', [\App\Controllers\MemberPortalController::class, 'updateNotificationPrefs']);
@@ -681,6 +703,15 @@ $router->get('/portal/consents',         [\App\Controllers\MemberPortalControlle
 $router->post('/portal/consents/update', [\App\Controllers\MemberPortalController::class, 'updateConsent']);
 $router->get('/portal/anti-doping',      [\App\Controllers\MemberPortalController::class, 'antiDoping']);
 $router->post('/portal/anti-doping',     [\App\Controllers\MemberPortalController::class, 'storeAntiDoping']);
+
+// Portal: GDPR self-service (right-to-forget art. 17 + data export art. 20) — migracja 077
+$router->get('/portal/gdpr',                          [\App\Controllers\MemberGdprController::class, 'index']);
+$router->get('/portal/gdpr/delete-account',           [\App\Controllers\MemberGdprController::class, 'showDeleteForm']);
+$router->post('/portal/gdpr/delete-account',          [\App\Controllers\MemberGdprController::class, 'submitDelete']);
+$router->get('/portal/gdpr/export',                   [\App\Controllers\MemberGdprController::class, 'showExportForm']);
+$router->post('/portal/gdpr/export',                  [\App\Controllers\MemberGdprController::class, 'submitExport']);
+$router->get('/portal/gdpr/confirm/:token',           [\App\Controllers\MemberGdprController::class, 'confirm']);
+$router->get('/portal/gdpr/download/:id',             [\App\Controllers\MemberGdprController::class, 'download']);
 
 // Portal: ogłoszenia + plan treningów
 $router->get('/portal/announcements',    [\App\Controllers\MemberPortalController::class, 'announcements']);
@@ -793,6 +824,8 @@ $router->get('/events',               [\App\Controllers\EventsController::class,
 $router->get('/events/create',        [\App\Controllers\EventsController::class, 'create']);
 $router->post('/events/store',        [\App\Controllers\EventsController::class, 'store']);
 $router->post('/events/:id/delete',   [\App\Controllers\EventsController::class, 'delete']);
+$router->get( '/events/:id/results',      [\App\Controllers\EventsController::class, 'recordResults']);
+$router->post('/events/:id/results/save', [\App\Controllers\EventsController::class, 'saveResults']);
 
 // iCal export
 $router->get('/ics/event/:id',    [\App\Controllers\IcsController::class, 'event']);
@@ -997,6 +1030,11 @@ $router->post('/tournaments/:id/bracket/generate',  [\App\Controllers\Tournament
 $router->get ('/tournaments/:id/bracket/seeds',     [\App\Controllers\TournamentBracketController::class, 'seedsForm']);
 $router->post('/tournaments/:id/bracket/seeds',     [\App\Controllers\TournamentBracketController::class, 'saveSeeds']);
 $router->get ('/tournaments/:id/bracket/pdf',       [\App\Controllers\TournamentBracketController::class, 'exportPdf']);
+// ── Wyniki turniejowe (sędzia) + auto-recalc rankingu ─────────────
+$router->get( '/tournaments/:id/results',          [\App\Controllers\TournamentResultsController::class, 'form']);
+$router->post('/tournaments/:id/results/save',     [\App\Controllers\TournamentResultsController::class, 'save']);
+$router->get( '/tournaments/:id/protocol-pdf',     [\App\Controllers\TournamentResultsController::class, 'protocolPdf']);
+$router->get( '/admin/tournaments/pending',        [\App\Controllers\TournamentResultsController::class, 'pending']);
 
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);

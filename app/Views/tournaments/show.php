@@ -20,6 +20,16 @@
         <a href="<?= url('tournaments/' . (int)$tournament['id'] . '/bracket') ?>" class="btn btn-outline-primary btn-sm">
             <i class="bi bi-diagram-3"></i> Drabinka
         </a>
+        <?php if (in_array($tournament['status'], ['active','finished'], true)): ?>
+            <a href="<?= url('tournaments/' . (int)$tournament['id'] . '/results') ?>"
+               class="btn btn-primary btn-sm">
+                <i class="bi bi-clipboard-check"></i> Wpisz wyniki
+            </a>
+            <a href="<?= url('tournaments/' . (int)$tournament['id'] . '/protocol-pdf') ?>"
+               class="btn btn-outline-primary btn-sm" target="_blank">
+                <i class="bi bi-file-earmark-pdf"></i> Protokół PDF
+            </a>
+        <?php endif; ?>
         <a href="<?= url('tournaments') ?>" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Powrót
         </a>
