@@ -53,6 +53,19 @@ if (Auth::id()) {
         </form>
     </div>
 
+    <a href="<?= url('help/admin') ?>" class="d-block text-decoration-none mb-4">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #ee2c28 0%, #b71d1a 100%); color: #fff;">
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <i class="bi bi-shield-fill-check" style="font-size: 2.5rem; opacity:.9;"></i>
+                <div class="flex-grow-1">
+                    <h3 class="h5 mb-1">Podręcznik administratora klubu</h3>
+                    <p class="mb-0 small" style="opacity:.92;">Kompletna instrukcja krok po kroku ze screenami: członkowie, sport, finanse, komunikacja, compliance, integracje, raporty.</p>
+                </div>
+                <span class="btn btn-light btn-sm fw-semibold">Otwórz <i class="bi bi-arrow-right"></i></span>
+            </div>
+        </div>
+    </a>
+
     <?php if (!empty($roleGuides)): ?>
     <h2 class="h5 mt-2 mb-3"><i class="bi bi-people"></i> Przewodniki per rola</h2>
     <div class="row g-3 mb-4">

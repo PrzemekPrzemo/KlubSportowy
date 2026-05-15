@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Helpers\AdminManualManifest;
 use App\Helpers\Auth;
 use App\Helpers\Markdown;
 
@@ -303,8 +304,74 @@ class HelpController extends BaseController
         ]);
     }
 
+    /**
+     * Index podręcznika administratora — `/help/admin`.
+     * Slug 'admin' jest rozpoznawany przez page() i przekierowywany tutaj.
+     */
+    private function adminManualIndex(): void
+    {
+        $categories = AdminManualManifest::categories();
+        if (!Auth::id()) {
+            $this->view->setLayout('landing');
+        }
+        $this->render('help/manual_index', [
+            'title'      => 'Podręcznik administratora — ClubDesk',
+            'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * Wyświetla pojedynczą stronę podręcznika administratora.
+     * Slug format: `admin-{categoryKey}-{pageKey}`.
+     */
+    private function adminManualPage(string $slug): void
+    {
+        $pages = AdminManualManifest::flatPages();
+        if (!isset($pages[$slug])) {
+            http_response_code(404);
+            if (!Auth::id()) {
+                $this->view->setLayout('landing');
+            }
+            $this->render('help/not_found', [
+                'title'    => 'Strona pomocy nie znaleziona',
+                'sections' => $this->sections(),
+            ]);
+            return;
+        }
+
+        $page = $pages[$slug];
+        [$prevSlug, $nextSlug] = AdminManualManifest::neighbors($slug);
+        $prev = $prevSlug ? ['slug' => $prevSlug, 'title' => $pages[$prevSlug]['title']] : null;
+        $next = $nextSlug ? ['slug' => $nextSlug, 'title' => $pages[$nextSlug]['title']] : null;
+
+        if (!Auth::id()) {
+            $this->view->setLayout('landing');
+        }
+
+        $this->render('help/manual_page', [
+            'title'         => $page['title'] . ' — Podręcznik administratora',
+            'pageMeta'      => $page,
+            'currentSlug'   => $slug,
+            'categories'    => AdminManualManifest::categories(),
+            'prev'          => $prev,
+            'next'          => $next,
+            'innerView'     => $page['view'],
+        ]);
+    }
+
     public function page(string $slug = ''): void
     {
+        // Slug `admin` → index podręcznika administratora klubu.
+        if ($slug === 'admin') {
+            $this->adminManualIndex();
+            return;
+        }
+        // Slugi w schemacie `admin-...` to strony podręcznika administratora.
+        if (str_starts_with($slug, 'admin-')) {
+            $this->adminManualPage($slug);
+            return;
+        }
+
         $sections = $this->sections();
 
         if ($slug === '' || !isset($sections[$slug])) {

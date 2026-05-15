@@ -289,6 +289,21 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
     <?php endif; ?>
 
     <?= $content ?? '' ?>
+
+    <footer class="cd-portal-footer mt-4 pt-3" style="border-top:1px solid rgba(0,0,0,.08); font-size:.8rem; color:#6c757d;">
+        <div class="row align-items-center gy-2">
+            <div class="col-md-7">
+                <span>&copy; <?= date('Y') ?> ClubDesk &middot; Sendormeco Holding Sp. z o.o. &middot; NIP 5252866457</span>
+            </div>
+            <div class="col-md-5 text-md-end" style="white-space:nowrap;">
+                <a href="<?= url('legal/regulamin') ?>" style="color: var(--app-primary, #EE2C28); text-decoration:none;">Regulamin</a> &middot;
+                <a href="<?= url('legal/polityka-prywatnosci') ?>" style="color: var(--app-primary, #EE2C28); text-decoration:none;">Prywatność</a> &middot;
+                <a href="<?= url('legal/cookies') ?>" style="color: var(--app-primary, #EE2C28); text-decoration:none;">Cookies</a> &middot;
+                <a href="<?= url('legal/dpa') ?>" style="color: var(--app-primary, #EE2C28); text-decoration:none;">RODO</a> &middot;
+                <a href="mailto:kontakt@clubdesk.pl" style="color: var(--app-primary, #EE2C28); text-decoration:none;">Kontakt</a>
+            </div>
+        </div>
+    </footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
