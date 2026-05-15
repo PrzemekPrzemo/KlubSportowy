@@ -1,9 +1,14 @@
 <?php use App\Helpers\View; ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0"><i class="bi bi-trophy me-2"></i>Turnieje</h4>
-    <a href="<?= url('tournaments/create') ?>" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Nowy turniej
-    </a>
+    <div class="d-flex gap-2">
+        <a href="<?= url('admin/tournaments/pending') ?>" class="btn btn-outline-warning">
+            <i class="bi bi-clipboard-check"></i> Oczekujące wyniki
+        </a>
+        <a href="<?= url('tournaments/create') ?>" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nowy turniej
+        </a>
+    </div>
 </div>
 
 <!-- Filtr sportu -->

@@ -16,9 +16,21 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0"><i class="bi bi-trophy me-2"></i><?= View::e($tournament['name']) ?></h4>
-    <a href="<?= url('tournaments') ?>" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Powrót
-    </a>
+    <div class="d-flex gap-2">
+        <?php if (in_array($tournament['status'], ['active','finished'], true)): ?>
+            <a href="<?= url('tournaments/' . (int)$tournament['id'] . '/results') ?>"
+               class="btn btn-primary btn-sm">
+                <i class="bi bi-clipboard-check"></i> Wpisz wyniki
+            </a>
+            <a href="<?= url('tournaments/' . (int)$tournament['id'] . '/protocol-pdf') ?>"
+               class="btn btn-outline-primary btn-sm" target="_blank">
+                <i class="bi bi-file-earmark-pdf"></i> Protokół PDF
+            </a>
+        <?php endif; ?>
+        <a href="<?= url('tournaments') ?>" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Powrót
+        </a>
+    </div>
 </div>
 
 <!-- Info -->
