@@ -962,6 +962,16 @@ $router->post('/tournaments/:id/delete',             [\App\Controllers\Tournamen
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 
+// ── Generyczny scaffolding CRUD per-sport (auto-UI z `sport_module_resources`) ─
+// Dla 40+ sportów bez dedykowanych controllerów — pełen CRUD walidowany
+// przeciwko whitelist `sport_module_resources` (zob. SportModuleController).
+$router->get('/sport/:sportKey/:resourceKey',                [\App\Controllers\SportModuleController::class, 'index']);
+$router->get('/sport/:sportKey/:resourceKey/create',         [\App\Controllers\SportModuleController::class, 'create']);
+$router->post('/sport/:sportKey/:resourceKey/store',         [\App\Controllers\SportModuleController::class, 'store']);
+$router->get('/sport/:sportKey/:resourceKey/:id/edit',       [\App\Controllers\SportModuleController::class, 'edit']);
+$router->post('/sport/:sportKey/:resourceKey/:id/update',    [\App\Controllers\SportModuleController::class, 'update']);
+$router->post('/sport/:sportKey/:resourceKey/:id/delete',    [\App\Controllers\SportModuleController::class, 'delete']);
+
 // ── Association management ────────────────────────────────
 $router->get('/association/meetings',                    [\App\Controllers\AssociationController::class, 'meetings']);
 $router->post('/association/meetings/create',            [\App\Controllers\AssociationController::class, 'createMeeting']);
