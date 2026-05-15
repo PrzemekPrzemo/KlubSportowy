@@ -50,8 +50,24 @@
 </main>
 
 <footer class="mt-5">
-    <div class="container text-center">
-        &copy; <?= date('Y') ?> <?= View::e($appName ?? 'ClubDesk') ?>. Wszystkie prawa zastrzezone.
+    <div class="container">
+        <div class="row gy-3 align-items-center">
+            <div class="col-md-7">
+                <strong style="color:#fff;">Sendormeco Holding Sp. z o.o.</strong><br>
+                <span class="small">NIP 5252866457 &middot; KRS 0000906110 &middot; ul. Złota 75A/7, 00-819 Warszawa</span>
+            </div>
+            <div class="col-md-5 text-md-end small">
+                <a href="<?= url('legal/regulamin') ?>">Regulamin</a> &middot;
+                <a href="<?= url('legal/polityka-prywatnosci') ?>">Polityka prywatności</a> &middot;
+                <a href="<?= url('legal/cookies') ?>">Cookies</a> &middot;
+                <a href="<?= url('legal/dpa') ?>">RODO/DPA</a> &middot;
+                <a href="mailto:kontakt@clubdesk.pl">Kontakt</a>
+            </div>
+        </div>
+        <hr style="border-color: rgba(255,255,255,.1);">
+        <div class="text-center small">
+            &copy; <?= date('Y') ?> <?= View::e($appName ?? 'ClubDesk') ?>. Wszystkie prawa zastrzeżone.
+        </div>
     </div>
 </footer>
 

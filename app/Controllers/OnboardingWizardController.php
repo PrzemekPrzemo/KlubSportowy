@@ -398,6 +398,7 @@ class OnboardingWizardController extends BaseController
         $email     = trim($_POST['email']      ?? '');
         $password  = (string)($_POST['password'] ?? '');
         $accept    = !empty($_POST['accept_terms']);
+        $acceptDpa = !empty($_POST['accept_dpa']);
         $marketing = !empty($_POST['accept_marketing']);
 
         $errors = [];
@@ -413,7 +414,10 @@ class OnboardingWizardController extends BaseController
             $errors[] = 'Haslo musi miec min. 8 znakow, litera + cyfra.';
         }
         if (!$accept) {
-            $errors[] = 'Musisz zaakceptowac regulamin.';
+            $errors[] = 'Musisz zaakceptowac regulamin i polityke prywatnosci.';
+        }
+        if (!$acceptDpa) {
+            $errors[] = 'Musisz zaakceptowac umowe powierzenia przetwarzania danych (DPA).';
         }
 
         // Pre-flight uniqueness check (transaction will re-check).
@@ -529,6 +533,29 @@ class OnboardingWizardController extends BaseController
         if ($user) {
             Auth::login($user);
             Auth::setClub($clubId, 'zarzad');
+        }
+
+        // ── Legal acceptance log (ToS + Privacy + DPA) ──
+        try {
+            $legalDocs = new \App\Models\LegalDocumentModel();
+            $acceptModel = new \App\Models\LegalAcceptanceModel();
+            $ip = $_SERVER['REMOTE_ADDR']     ?? null;
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? null;
+            foreach (['tos', 'privacy', 'dpa'] as $type) {
+                $doc = $legalDocs->current($type, 'pl');
+                if ($doc) {
+                    $acceptModel->record([
+                        'user_id'     => (int)$userId,
+                        'club_id'     => (int)$clubId,
+                        'document_id' => (int)$doc['id'],
+                        'ip_address'  => $ip,
+                        'user_agent'  => $ua,
+                        'context'     => 'onboarding',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('[onboarding-wizard] legal acceptance log failed: ' . $e->getMessage());
         }
 
         // Best-effort welcome email (template optional, ignore failures).
