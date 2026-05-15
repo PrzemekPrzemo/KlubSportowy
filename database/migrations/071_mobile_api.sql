@@ -40,22 +40,8 @@ CREATE TABLE IF NOT EXISTS `announcement_reads` (
 
 -- Extend existing member_notifications (from migration 035) with structured payload
 -- so the mobile inbox can carry typed data (event_id, announcement_id, etc).
--- Guarded — MySQL has no IF NOT EXISTS for ADD COLUMN, so we swallow duplicate-column errors via a procedure.
-DELIMITER //
-DROP PROCEDURE IF EXISTS `__mn_add_data_col` //
-CREATE PROCEDURE `__mn_add_data_col`()
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'member_notifications'
-      AND COLUMN_NAME = 'data'
-  ) THEN
-    ALTER TABLE `member_notifications` ADD COLUMN `data` JSON NULL AFTER `body`;
-  END IF;
-END //
-DELIMITER ;
-CALL `__mn_add_data_col`();
-DROP PROCEDURE `__mn_add_data_col`;
+-- MariaDB native IF NOT EXISTS — dziala przez PDO, bez DELIMITER/procedure.
+ALTER TABLE `member_notifications`
+    ADD COLUMN IF NOT EXISTS `data` JSON NULL AFTER `body`;
 
 SET foreign_key_checks = 1;
