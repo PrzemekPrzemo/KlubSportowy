@@ -107,6 +107,12 @@ class AdminController extends BaseController
             "SELECT COUNT(*) FROM billing_invoices WHERE status = 'issued' AND due_date < NOW()"
         )->fetchColumn();
 
+        // Critical audit alerts (last 24h) — cross-tenant access bypasses + sensitive critical actions
+        $criticalAuditAlerts = 0;
+        try {
+            $criticalAuditAlerts = (new \App\Models\TenantAccessLogModel())->countCriticalLastDay();
+        } catch (\Throwable) {}
+
         $this->render('admin/global_dashboard', [
             'title'           => 'Panel administratora',
             'metrics'         => $metrics,
@@ -119,6 +125,7 @@ class AdminController extends BaseController
             'topClubs'        => $topClubs,
             'recentClubs'     => $recentClubs,
             'failedInvoices'  => $failedInvoices,
+            'criticalAuditAlerts' => $criticalAuditAlerts,
         ]);
     }
 

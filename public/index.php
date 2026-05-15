@@ -323,6 +323,11 @@ $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController:
 $router->get('/admin/audit/access-log',  [\App\Controllers\AdminAuditController::class, 'accessLog']);
 $router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController::class, 'exportReport']);
 
+// Audit log — zunifikowany widok dla zarządu klubu (multi-tenant)
+$router->get('/admin/audit-log',                       [\App\Controllers\AuditLogController::class, 'index']);
+$router->get('/admin/audit-log/export',                [\App\Controllers\AuditLogController::class, 'export']);
+$router->get('/admin/platform/audit-log',              [\App\Controllers\AuditLogController::class, 'platformIndex']);
+$router->get('/admin/audit-log/:source/:id',           [\App\Controllers\AuditLogController::class, 'detail']);
 // Admin: GDPR requests (self-service czlonka, art. 17 + art. 20 RODO) — migracja 077
 $router->get('/admin/gdpr',                       [\App\Controllers\AdminGdprController::class, 'index']);
 $router->get('/admin/gdpr/:id',                   [\App\Controllers\AdminGdprController::class, 'detail']);
