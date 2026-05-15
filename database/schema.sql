@@ -2058,6 +2058,9 @@ CREATE TABLE IF NOT EXISTS `announcement_reads` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Oznaczenia przeczytania ogloszen przez zawodnika.';
 
-ALTER TABLE `member_notifications` ADD COLUMN IF NOT EXISTS `data` JSON NULL AFTER `body`;
-
 SET foreign_key_checks = 1;
+
+-- Note: the `member_notifications.data JSON` column added by migration 071 is
+-- applied via that migration's stored-procedure guard. schema.sql does not
+-- define `member_notifications` (created by migration 035), so it cannot ALTER
+-- it here — MySQL does not support `ADD COLUMN IF NOT EXISTS`.
