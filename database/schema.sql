@@ -1947,4 +1947,120 @@ CREATE TABLE IF NOT EXISTS `support_reports` (
     FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- Migration 068: club_onboarding_config + member_custom_field_values + member_consent_acceptances
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `club_onboarding_config` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `club_id` INT UNSIGNED NOT NULL,
+    `require_pesel` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_address` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_emergency_contact` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_medical_consent` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_photo` TINYINT(1) NOT NULL DEFAULT 0,
+    `require_parent_data_for_minors` TINYINT(1) NOT NULL DEFAULT 1,
+    `custom_consents` JSON NULL,
+    `auto_assign_sport_id` INT UNSIGNED NULL,
+    `auto_assign_fee_rate_id` INT UNSIGNED NULL,
+    `auto_send_welcome_email` TINYINT(1) NOT NULL DEFAULT 1,
+    `welcome_email_template` VARCHAR(80) NULL,
+    `min_age_years` TINYINT UNSIGNED NULL,
+    `max_age_years` TINYINT UNSIGNED NULL,
+    `require_parent_consent_under_age` TINYINT UNSIGNED NOT NULL DEFAULT 18,
+    `custom_fields` JSON NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uniq_club` (`club_id`),
+    FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `member_custom_field_values` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `club_id` INT UNSIGNED NOT NULL,
+    `member_id` INT UNSIGNED NOT NULL,
+    `field_key` VARCHAR(60) NOT NULL,
+    `field_value` TEXT NULL,
+    UNIQUE KEY `uniq_member_field` (`member_id`, `field_key`),
+    KEY `idx_mcfv_club` (`club_id`),
+    FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `member_consent_acceptances` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `club_id` INT UNSIGNED NOT NULL,
+    `member_id` INT UNSIGNED NOT NULL,
+    `consent_key` VARCHAR(60) NOT NULL,
+    `consent_version` VARCHAR(20) NULL,
+    `accepted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `accepted_ip` VARCHAR(45) NULL,
+    KEY `idx_member_consent` (`member_id`, `consent_key`),
+    KEY `idx_mca_club` (`club_id`),
+    FOREIGN KEY (`club_id`) REFERENCES `clubs`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Migration 069: email_event_catalog
+CREATE TABLE IF NOT EXISTS `email_event_catalog` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `code` VARCHAR(60) NOT NULL UNIQUE,
+    `name` VARCHAR(120) NOT NULL,
+    `description` VARCHAR(500) NULL,
+    `category` VARCHAR(40) NOT NULL DEFAULT 'general',
+    `default_subject` VARCHAR(200) NULL,
+    `default_body` TEXT NULL,
+    `available_variables` JSON NULL,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    KEY `idx_eec_category` (`category`, `sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET foreign_key_checks = 1;
+
+-- ============================================================
+-- Migration 071: Mobile API v1 (member tokens, announcement reads,
+-- member_notifications data payload)
+-- ============================================================
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `member_api_tokens` (
+  `id`                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `member_id`           INT UNSIGNED NOT NULL,
+  `identity_id`         INT UNSIGNED NULL,
+  `club_id`             INT UNSIGNED NOT NULL,
+  `token_hash`          CHAR(64) NOT NULL,
+  `refresh_token_hash`  CHAR(64) NULL,
+  `device_token_id`     INT UNSIGNED NULL,
+  `last_used_at`        DATETIME NULL,
+  `expires_at`          DATETIME NOT NULL,
+  `refresh_expires_at`  DATETIME NULL,
+  `revoked_at`          DATETIME NULL,
+  `user_agent`          VARCHAR(255) NULL,
+  `ip_address`          VARCHAR(45) NULL,
+  `created_at`          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `uniq_token_hash` (`token_hash`),
+  UNIQUE KEY `uniq_refresh_token_hash` (`refresh_token_hash`),
+  KEY `idx_member_club` (`member_id`, `club_id`),
+  KEY `idx_expires` (`expires_at`, `revoked_at`),
+  CONSTRAINT `fk_mat_member` FOREIGN KEY (`member_id`) REFERENCES `members`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mat_club`   FOREIGN KEY (`club_id`)   REFERENCES `clubs`(`id`)   ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Tokeny REST API per-zawodnik (mobile app).';
+
+CREATE TABLE IF NOT EXISTS `announcement_reads` (
+  `announcement_id` INT UNSIGNED NOT NULL,
+  `member_id`       INT UNSIGNED NOT NULL,
+  `read_at`         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`announcement_id`, `member_id`),
+  KEY `idx_ar_member` (`member_id`),
+  CONSTRAINT `fk_ar_announcement` FOREIGN KEY (`announcement_id`) REFERENCES `announcements`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ar_member`       FOREIGN KEY (`member_id`)       REFERENCES `members`(`id`)       ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Oznaczenia przeczytania ogloszen przez zawodnika.';
+
+SET foreign_key_checks = 1;
+
+-- Note: the `member_notifications.data JSON` column added by migration 071 is
+-- applied via that migration's stored-procedure guard. schema.sql does not
+-- define `member_notifications` (created by migration 035), so it cannot ALTER
+-- it here — MySQL does not support `ADD COLUMN IF NOT EXISTS`.

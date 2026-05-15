@@ -5,6 +5,9 @@ namespace App\Controllers;
 use App\Helpers\CsvExporter;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
+use App\Models\ClubOnboardingConfigModel;
+use App\Models\EmailEventCatalogModel;
+use App\Models\MemberFeeAssignmentModel;
 use App\Models\MemberIdentityModel;
 use App\Models\MemberModel;
 use App\Models\MemberSportModel;
@@ -43,25 +46,45 @@ class MembersController extends BaseController
     {
         $clubSports = (new SportModel())->listForClub($this->currentClub());
         $next       = (new MemberModel())->nextMemberNumber($this->currentClub());
+        $onboardingConfig = (new ClubOnboardingConfigModel())->forClub($this->currentClub());
         $this->render('members/form', [
-            'title'      => 'Nowy zawodnik',
-            'member'     => null,
-            'sports'     => [],
-            'clubSports' => $clubSports,
-            'nextNumber' => $next,
+            'title'             => 'Nowy zawodnik',
+            'member'            => null,
+            'sports'            => [],
+            'clubSports'        => $clubSports,
+            'nextNumber'        => $next,
+            'onboardingConfig'  => $onboardingConfig,
         ]);
     }
 
     public function store(): void
     {
         Csrf::verify();
-        $data = $this->parseMemberPost();
+
+        $onboardingModel = new ClubOnboardingConfigModel();
+        $config = $onboardingModel->forClub($this->currentClub());
+
+        $data = $this->parseMemberPost(true, $config);
         if ($data === null) return;
 
         $model = new MemberModel();
         $id    = $model->insert($data);
 
+        // Auto-assign sport jesli klub skonfigurowal default i uzytkownik nie wybral
+        $selectedSports = $_POST['club_sport_ids'] ?? [];
+        if (empty($selectedSports) && !empty($config['auto_assign_sport_id'])) {
+            $_POST['club_sport_ids'] = [(int)$config['auto_assign_sport_id']];
+        }
         $this->syncSports($id);
+
+        // Save custom field values
+        $this->saveOnboardingCustomFields($id, $config, $onboardingModel);
+
+        // Log akceptacji zgod
+        $this->logOnboardingConsents($id, $config, $onboardingModel);
+
+        // Auto-assign fee rate
+        $this->applyAutoFeeAssignment($id, $config);
 
         // Link to unified identity (cross-club)
         $email       = $data['email'] ?? '';
@@ -82,8 +105,132 @@ class MembersController extends BaseController
             }
         }
 
+        // Auto welcome email
+        if (!empty($config['auto_send_welcome_email']) && $email !== '') {
+            $this->sendWelcomeEmail($id, $data, $config);
+        }
+
         Session::flash('success', 'Zawodnik dodany.');
         $this->redirect('members/' . $id);
+    }
+
+    private function saveOnboardingCustomFields(int $memberId, array $config, ClubOnboardingConfigModel $model): void
+    {
+        $fields = $config['custom_fields'] ?? [];
+        if (!is_array($fields) || empty($fields)) return;
+        $posted = $_POST['custom_field'] ?? [];
+        if (!is_array($posted)) return;
+        foreach ($fields as $f) {
+            $key = $f['key'] ?? '';
+            if ($key === '') continue;
+            $val = $posted[$key] ?? null;
+            if (is_array($val)) $val = implode(',', array_map('strval', $val));
+            $val = $val !== null ? (string)$val : null;
+            try {
+                $model->saveMemberFieldValue($memberId, $key, $val);
+            } catch (\Throwable $e) {
+                error_log('Onboarding custom field save failed: ' . $e->getMessage());
+            }
+        }
+    }
+
+    private function logOnboardingConsents(int $memberId, array $config, ClubOnboardingConfigModel $model): void
+    {
+        $consents = $config['custom_consents'] ?? [];
+        if (!is_array($consents) || empty($consents)) return;
+        $posted = $_POST['consent'] ?? [];
+        if (!is_array($posted)) $posted = [];
+        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+        foreach ($consents as $c) {
+            $key = $c['key'] ?? '';
+            if ($key === '') continue;
+            if (!empty($posted[$key])) {
+                try {
+                    $model->logConsent($memberId, $key, $c['version'] ?? null, $ip);
+                } catch (\Throwable $e) {
+                    error_log('Onboarding consent log failed: ' . $e->getMessage());
+                }
+            }
+        }
+    }
+
+    private function applyAutoFeeAssignment(int $memberId, array $config): void
+    {
+        $rateId = (int)($config['auto_assign_fee_rate_id'] ?? 0);
+        if ($rateId <= 0) return;
+        try {
+            (new MemberFeeAssignmentModel())->insert([
+                'member_id'   => $memberId,
+                'fee_rate_id' => $rateId,
+                'valid_from'  => date('Y-m-d'),
+                'valid_to'    => null,
+                'status'      => 'active',
+                'notes'       => 'Auto-przypisane wg konfiguracji onboardingu',
+                'created_by'  => \App\Helpers\Auth::id(),
+            ]);
+        } catch (\Throwable $e) {
+            error_log('Auto fee assignment failed: ' . $e->getMessage());
+        }
+    }
+
+    private function sendWelcomeEmail(int $memberId, array $data, array $config): void
+    {
+        try {
+            $clubId = $this->currentClub();
+            $templateCode = $config['welcome_email_template'] ?? null;
+
+            // Probuj zaladowac event z katalogu (nowy format {{var}})
+            $event = null;
+            if ($templateCode) {
+                $event = (new EmailEventCatalogModel())->findByCode($templateCode);
+            }
+
+            $club = (new \App\Models\ClubModel())->findById($clubId);
+            $context = [
+                'member' => [
+                    'first_name'    => $data['first_name'] ?? '',
+                    'last_name'     => $data['last_name'] ?? '',
+                    'member_number' => $data['member_number'] ?? '',
+                    'email'         => $data['email'] ?? '',
+                ],
+                'club' => [
+                    'name'  => $club['name'] ?? '',
+                    'email' => $club['email'] ?? '',
+                ],
+            ];
+
+            if ($event) {
+                $rendered = \App\Helpers\EmailTemplateRenderer::renderTemplate([
+                    'subject' => $event['default_subject'] ?? '',
+                    'body'    => $event['default_body'] ?? '',
+                ], $context);
+                \App\Helpers\EmailService::queue(
+                    $clubId,
+                    (string)$data['email'],
+                    $rendered['subject'],
+                    $rendered['body'],
+                    trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')),
+                    $event['code']
+                );
+                return;
+            }
+
+            // Fallback: klasyczny "welcome" przez EmailService::queueFromTemplate (legacy {placeholder} format)
+            \App\Helpers\EmailService::queueFromTemplate(
+                $clubId,
+                'welcome',
+                (string)$data['email'],
+                [
+                    'first_name'    => $data['first_name'] ?? '',
+                    'last_name'     => $data['last_name'] ?? '',
+                    'member_number' => $data['member_number'] ?? '',
+                    'club_name'     => $club['name'] ?? '',
+                ],
+                trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''))
+            );
+        } catch (\Throwable $e) {
+            error_log('Welcome email send failed: ' . $e->getMessage());
+        }
     }
 
     public function show(string $id): void
@@ -107,19 +254,22 @@ class MembersController extends BaseController
             $this->redirect('members');
         }
         $clubSports = (new SportModel())->listForClub($this->currentClub());
+        $onboardingConfig = (new ClubOnboardingConfigModel())->forClub($this->currentClub());
         $this->render('members/form', [
-            'title'      => 'Edycja zawodnika',
-            'member'     => $member,
-            'sports'     => $member['sports'] ?? [],
-            'clubSports' => $clubSports,
-            'nextNumber' => $member['member_number'],
+            'title'            => 'Edycja zawodnika',
+            'member'           => $member,
+            'sports'           => $member['sports'] ?? [],
+            'clubSports'       => $clubSports,
+            'nextNumber'       => $member['member_number'],
+            'onboardingConfig' => $onboardingConfig,
         ]);
     }
 
     public function update(string $id): void
     {
         Csrf::verify();
-        $data = $this->parseMemberPost(false);
+        $onboardingConfig = (new ClubOnboardingConfigModel())->forClub($this->currentClub());
+        $data = $this->parseMemberPost(false, $onboardingConfig);
         if ($data === null) return;
 
         $model = new MemberModel();
@@ -315,11 +465,11 @@ class MembersController extends BaseController
         $this->redirect('members/' . $id);
     }
 
-    private function parseMemberPost(bool $forCreate = true): ?array
+    private function parseMemberPost(bool $forCreate = true, ?array $onboardingConfig = null): ?array
     {
         $redirect = $forCreate ? 'members/create' : 'members';
 
-        $v = \App\Helpers\Validator::make($_POST, [
+        $rules = [
             'first_name'  => 'required|min:2|max:60',
             'last_name'   => 'required|min:2|max:60',
             'email'       => 'email|max:120',
@@ -328,13 +478,33 @@ class MembersController extends BaseController
             'phone'       => 'phone',
             'join_date'   => 'required|date',
             'status'      => 'required|in:aktywny,zawieszony,wykreslony,urlop',
-        ]);
+        ];
+
+        // Wymuszone wymagania per onboarding config (BC: jesli null, brak zmian)
+        if ($onboardingConfig) {
+            if (!empty($onboardingConfig['require_pesel'])) {
+                $rules['pesel'] = 'required|pesel';
+            }
+        }
+
+        $v = \App\Helpers\Validator::make($_POST, $rules);
 
         if ($v->fails()) {
             Session::flash('error', $v->firstError());
             Session::flash('_old_input', $_POST);
             $this->redirect($redirect);
             return null;
+        }
+
+        // Walidacja adresu/emergency contact/foto/medical wg config (poza Validatorem)
+        if ($onboardingConfig) {
+            $err = $this->validateOnboardingRequirements($_POST, $onboardingConfig);
+            if ($err !== null) {
+                Session::flash('error', $err);
+                Session::flash('_old_input', $_POST);
+                $this->redirect($redirect);
+                return null;
+            }
         }
 
         $clean = $v->validated();
@@ -364,6 +534,84 @@ class MembersController extends BaseController
         }
 
         return $data;
+    }
+
+    /**
+     * Sprawdza wymagania onboarding configu nie objęte standardowym Validatorem.
+     * Zwraca komunikat bledu lub null jesli OK.
+     */
+    private function validateOnboardingRequirements(array $post, array $cfg): ?string
+    {
+        if (!empty($cfg['require_address'])) {
+            $street = trim($post['address_street'] ?? '');
+            $city   = trim($post['address_city'] ?? '');
+            if ($street === '' || $city === '') {
+                return 'Adres (ulica i miasto) jest wymagany przez konfiguracje klubu.';
+            }
+        }
+        if (!empty($cfg['require_emergency_contact'])) {
+            $ec = trim($post['emergency_contact'] ?? '');
+            if ($ec === '') {
+                return 'Kontakt awaryjny jest wymagany przez konfiguracje klubu.';
+            }
+        }
+        if (!empty($cfg['require_medical_consent'])) {
+            if (empty($post['consent']['medical'])) {
+                return 'Zgoda medyczna jest wymagana przez konfiguracje klubu.';
+            }
+        }
+        if (!empty($cfg['require_photo'])) {
+            if (empty($_FILES['photo']['name'] ?? '') && empty($post['photo_url'] ?? '')) {
+                return 'Zdjecie jest wymagane przez konfiguracje klubu.';
+            }
+        }
+
+        // Walidacja wieku
+        $birth = trim($post['birth_date'] ?? '');
+        if ($birth !== '' && (!empty($cfg['min_age_years']) || !empty($cfg['max_age_years']))) {
+            try {
+                $bd = new \DateTime($birth);
+                $age = (int)$bd->diff(new \DateTime('today'))->y;
+                if (!empty($cfg['min_age_years']) && $age < (int)$cfg['min_age_years']) {
+                    return 'Wiek mniejszy niz minimalny dla klubu (' . (int)$cfg['min_age_years'] . ' lat).';
+                }
+                if (!empty($cfg['max_age_years']) && $age > (int)$cfg['max_age_years']) {
+                    return 'Wiek wiekszy niz maksymalny dla klubu (' . (int)$cfg['max_age_years'] . ' lat).';
+                }
+            } catch (\Throwable) {
+                // ignore parse errors — birth_date validator juz to sprawdzil
+            }
+        }
+
+        // Wymagane zgody konfigurowalne
+        $consents = $cfg['custom_consents'] ?? [];
+        if (is_array($consents)) {
+            $posted = $post['consent'] ?? [];
+            foreach ($consents as $c) {
+                if (!empty($c['required'])) {
+                    $key = $c['key'] ?? '';
+                    if ($key !== '' && empty($posted[$key])) {
+                        return 'Wymagana zgoda: ' . ($c['label'] ?? $key);
+                    }
+                }
+            }
+        }
+
+        // Wymagane custom fields
+        $fields = $cfg['custom_fields'] ?? [];
+        if (is_array($fields)) {
+            $postedFields = $post['custom_field'] ?? [];
+            foreach ($fields as $f) {
+                if (!empty($f['required'])) {
+                    $k = $f['key'] ?? '';
+                    if ($k !== '' && (empty($postedFields[$k]) && $postedFields[$k] !== '0')) {
+                        return 'Wymagane pole: ' . ($f['label'] ?? $k);
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private function syncSports(int $memberId): void

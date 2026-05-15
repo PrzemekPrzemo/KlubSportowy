@@ -3,6 +3,8 @@
 namespace App\Helpers;
 
 use App\Models\DeviceTokenModel;
+use App\Models\MemberModel;
+use App\Models\MemberNotificationModel;
 use App\Models\SettingModel;
 
 /**
@@ -13,11 +15,33 @@ use App\Models\SettingModel;
  */
 class PushService
 {
-    /** Wyślij push do konkretnego zawodnika. */
-    public static function sendToMember(int $memberId, string $title, string $body, ?array $data = null): int
+    /**
+     * Wyslij push do konkretnego zawodnika ORAZ zapisz rekord w member_notifications
+     * (in-app inbox dziala nawet gdy FCM zawiedzie — wieksza niezawodnosc).
+     */
+    public static function sendToMember(int $memberId, string $title, string $body, array $data = []): void
     {
+        // Persist inbox row first — niezalezne od FCM.
+        try {
+            $member = (new MemberModel())->withoutScope()->findById($memberId);
+            $clubId = $member !== null ? (int)$member['club_id'] : null;
+            if ($clubId !== null) {
+                $type = isset($data['type']) && is_string($data['type']) ? $data['type'] : 'general';
+                (new MemberNotificationModel())->create(
+                    $memberId,
+                    $clubId,
+                    $type,
+                    $title,
+                    $body !== '' ? $body : null,
+                    !empty($data) ? $data : null
+                );
+            }
+        } catch (\Throwable $e) {
+            error_log('PushService inbox persist failed: ' . $e->getMessage());
+        }
+
         $tokens = (new DeviceTokenModel())->tokensForMember($memberId);
-        return self::sendToTokens($tokens, $title, $body, $data);
+        self::sendToTokens($tokens, $title, $body, !empty($data) ? $data : null);
     }
 
     /** Wyślij push do wszystkich zawodników klubu. */

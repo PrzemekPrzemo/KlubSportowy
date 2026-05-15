@@ -359,6 +359,10 @@ $router->post('/gdpr/member/:memberId/revoke',    [\App\Controllers\GdprControll
 $router->get('/gdpr/member/:memberId/export',     [\App\Controllers\GdprController::class, 'exportData']);
 $router->post('/gdpr/member/:memberId/anonymize', [\App\Controllers\GdprController::class, 'anonymize']);
 
+// Konfiguracja onboardingu czlonka per klub (zarzad/admin)
+$router->get('/club/onboarding-config',       [\App\Controllers\ClubOnboardingConfigController::class, 'show']);
+$router->post('/club/onboarding-config/save', [\App\Controllers\ClubOnboardingConfigController::class, 'save']);
+
 // Zawodnicy
 $router->post('/members/bulk',        [\App\Controllers\MembersController::class, 'bulkAction']);
 // Z.3 — bulk message form + send
@@ -876,6 +880,38 @@ $router->post('/api/mobile/v1/notifications/read-all', [\App\Controllers\Api\Mob
 // Push token registration
 $router->post('/api/mobile/v1/push/register',   [\App\Controllers\Api\Mobile\PushController::class, 'register']);
 $router->post('/api/mobile/v1/push/unregister', [\App\Controllers\Api\Mobile\PushController::class, 'unregister']);
+// API v1: mobile auth (per-member tokens)
+$router->post('/api/v1/auth/refresh',  [\App\Controllers\Api\AuthApiController::class, 'refresh']);
+$router->post('/api/v1/auth/logout',   [\App\Controllers\Api\AuthApiController::class, 'logout']);
+
+// API v1: current member
+$router->get('/api/v1/me',                  [\App\Controllers\Api\MeApiController::class, 'show']);
+$router->post('/api/v1/me',                 [\App\Controllers\Api\MeApiController::class, 'update']);
+$router->post('/api/v1/me/photo',           [\App\Controllers\Api\MeApiController::class, 'uploadPhoto']);
+
+// API v1: club branding
+$router->get('/api/v1/club/branding',       [\App\Controllers\Api\ClubBrandingApiController::class, 'show']);
+
+// API v1: announcements
+$router->get('/api/v1/announcements',          [\App\Controllers\Api\AnnouncementsApiController::class, 'index']);
+$router->get('/api/v1/announcements/:id',      [\App\Controllers\Api\AnnouncementsApiController::class, 'show']);
+$router->post('/api/v1/announcements/:id/read',[\App\Controllers\Api\AnnouncementsApiController::class, 'markRead']);
+
+// API v1: medical exams
+$router->get('/api/v1/medical-exams',       [\App\Controllers\Api\MedicalExamsApiController::class, 'index']);
+
+// API v1: notifications inbox
+$router->get('/api/v1/notifications',                   [\App\Controllers\Api\NotificationsApiController::class, 'index']);
+$router->post('/api/v1/notifications/:id/read',         [\App\Controllers\Api\NotificationsApiController::class, 'markRead']);
+$router->post('/api/v1/notifications/read-all',         [\App\Controllers\Api\NotificationsApiController::class, 'markAllRead']);
+$router->get('/api/v1/notifications/unread-count',      [\App\Controllers\Api\NotificationsApiController::class, 'unreadCount']);
+
+// API v1: identity / club switching
+$router->get('/api/v1/identity/clubs',      [\App\Controllers\Api\IdentityApiController::class, 'clubs']);
+$router->post('/api/v1/identity/switch',    [\App\Controllers\Api\IdentityApiController::class, 'switchClub']);
+
+// API v1: event attendance (member)
+$router->post('/api/v1/events/:id/attendance', [\App\Controllers\Api\EventsApiController::class, 'attendance']);
 
 // Sklep klubowy
 $router->get('/shop/products',               [\App\Controllers\ShopController::class, 'products']);
