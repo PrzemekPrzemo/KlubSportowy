@@ -3,24 +3,22 @@
 namespace App\Helpers\Federations;
 
 /**
- * Adapter PZLA (Polski Związek Lekkiej Atletyki).
+ * Adapter PZW (Polski Związek Wrotkarstwa) — pzw.eu.
  *
- * STATUS: SCRAPING publicznych danych (rejestr zawodników DOMTEL) + CSV fallback
- * dla rejestracji nowych zawodników (PZLA wymaga rejestracji w panelu klubu).
+ * STATUS: SCRAPING publicznych stron + CSV fallback.
  *
- * Realne operacje:
- *   - testConnection()    → HEAD do domtel-sport.pl
- *   - fetchMemberStatus() → próba znalezienia profilu w publicznym rejestrze
- *   - exportMember()      → CSV-row dla manualnego importu w panelu klubu DOMTEL
+ * UWAGA: Skrót "PZW" jest niejednoznaczny w polskim sporcie — adapter
+ * obsługuje WROTKARSTWO (https://pzw.eu / Polski Związek Wrotkarski). Dla
+ * Polskiego Związku Wędkarskiego użyj GenericCsvExporter pod innym kodem.
  *
- * Konfiguracja:
- *   - api_username, api_password (DOMTEL klubu) — opcjonalne, login nie używany w tym adapterze
- *   - organization_id (numer klubu PZLA)
+ * Operacje:
+ *   - testConnection()    → HEAD do pzw.eu
+ *   - fetchMemberStatus() → best-effort lookup w newsach / wynikach
+ *   - exportMember()      → CSV-row
  */
-class PzlaAdapter implements FederationExporterInterface
+class PzwAdapter implements FederationExporterInterface
 {
-    private const PORTAL_BASE = 'https://domtel-sport.pl';
-    private const ATHLETICS_BASE = self::PORTAL_BASE . '/lekkoatletyka';
+    private const PORTAL_BASE = 'https://pzw.eu';
 
     private FederationScrapingClient $http;
 
@@ -33,7 +31,7 @@ class PzlaAdapter implements FederationExporterInterface
 
     public function federationCode(): string
     {
-        return 'PZLA';
+        return 'PZW';
     }
 
     public function adapterStatus(): string
@@ -45,7 +43,7 @@ class PzlaAdapter implements FederationExporterInterface
     {
         return ExportResult::success(
             externalId: '',
-            message:    'DOMTEL/PZLA nie udostępnia push API — przygotowano wiersz CSV do ręcznego importu w panelu klubu.',
+            message:    'PZW nie udostępnia push API — przygotowano wiersz CSV.',
             raw:        ['csv_row' => $this->toCsvRow($member), 'manual_action_required' => true],
         );
     }
@@ -54,7 +52,7 @@ class PzlaAdapter implements FederationExporterInterface
     {
         return ExportResult::success(
             externalId: $member->externalId ?? '',
-            message:    'Aktualizacja w DOMTEL wymaga ręcznego potwierdzenia — wiersz CSV przygotowany.',
+            message:    'Aktualizacja PZW wymaga manualnego potwierdzenia — wiersz CSV przygotowany.',
             raw:        ['csv_row' => $this->toCsvRow($member), 'manual_action_required' => true],
         );
     }
@@ -66,30 +64,28 @@ class PzlaAdapter implements FederationExporterInterface
             return ['status' => 'invalid_input', 'message' => 'Pusty identyfikator zawodnika.'];
         }
 
-        // Próba: profil zawodnika po ID w rejestrze DOMTEL.
-        $url = self::ATHLETICS_BASE . '/zawodnik/' . urlencode($externalId);
-        $html = $this->http->get($url);
-
+        $html = $this->http->get(self::PORTAL_BASE . '/');
         if ($html === null) {
             return [
-                'status'     => 'not_found_or_unavailable',
-                'verify_url' => $url,
-                'message'    => 'Nie udało się pobrać profilu z DOMTEL — zweryfikuj ręcznie.',
+                'status'     => 'portal_unavailable',
+                'verify_url' => self::PORTAL_BASE,
+                'message'    => 'Portal PZW niedostępny — zweryfikuj ręcznie.',
             ];
         }
-
-        // Best-effort: wyciągnij imię/nazwisko i ranking (najprostszy schemat)
-        $name = null;
-        if (preg_match('/<h1[^>]*>(?P<name>[^<]+)<\/h1>/u', $html, $m)) {
-            $name = trim(html_entity_decode($m['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $needle = preg_quote($externalId, '/');
+        if (preg_match('/\b' . $needle . '\b/u', $html)) {
+            return [
+                'status'      => 'mentioned',
+                'external_id' => $externalId,
+                'verify_url'  => self::PORTAL_BASE,
+                'source'      => 'pzw_mention',
+            ];
         }
-
         return [
-            'status'      => 'found',
+            'status'      => 'unknown',
             'external_id' => $externalId,
-            'name'        => $name,
-            'verify_url'  => $url,
-            'source'      => 'domtel_scrape',
+            'verify_url'  => self::PORTAL_BASE,
+            'message'     => 'Nie znaleziono identyfikatora — zweryfikuj ręcznie.',
         ];
     }
 
@@ -112,8 +108,8 @@ class PzlaAdapter implements FederationExporterInterface
         return [
             'ok'          => $ok,
             'message'     => $ok
-                ? 'Portal DOMTEL (PZLA) dostępny. Scraping publicznych profili aktywny.'
-                : "Portal DOMTEL niedostępny (HTTP $code).",
+                ? 'Portal PZW (wrotkarstwo) dostępny. Scraping publicznych danych aktywny.'
+                : "Portal PZW niedostępny (HTTP $code).",
             'portal_http' => $code,
             'mode'        => 'scraping_public',
         ];
@@ -121,19 +117,14 @@ class PzlaAdapter implements FederationExporterInterface
 
     private function toCsvRow(MemberPayload $m): array
     {
-        $extras = $m->extras;
         return [
             'pesel'           => $m->pesel,
             'imie'            => $m->firstName,
             'nazwisko'        => $m->lastName,
             'data_urodzenia'  => $m->birthDate,
             'plec'            => $m->gender,
-            'klub_id_pzla'    => $this->config['organization_id'] ?? '',
-            'kategoria'       => $extras['kategoria'] ?? '',
-            'konkurencje'     => isset($extras['konkurencje'])
-                ? (is_array($extras['konkurencje']) ? implode(';', $extras['konkurencje']) : (string)$extras['konkurencje'])
-                : '',
-            'badania_do'      => $extras['badania_do'] ?? '',
+            'klub_id_pzw'     => $this->config['organization_id'] ?? '',
+            'konkurencja'     => $m->extras['konkurencja'] ?? '',
             'email'           => $m->email,
             'telefon'         => $m->phone,
         ];
