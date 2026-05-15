@@ -303,6 +303,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <div class="section-items" id="sec-settings-billing">
                 <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.plan_billing') ?></a>
                 <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
+                <a href="<?= url('club/referrals') ?>"><i class="bi bi-share"></i> Polecenia / rabaty</a>
                 <a href="<?= url('members/export') ?>"><i class="bi bi-file-earmark-spreadsheet"></i> Eksport członków</a>
                 <a href="<?= url('fees/bulk-assign') ?>"><i class="bi bi-people-fill"></i> Bulk składki</a>
                 <a href="<?= url('admin/campaigns') ?>"><i class="bi bi-megaphone"></i> Kampanie email/SMS</a>
@@ -347,6 +348,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('admin/invoices') ?>"><i class="bi bi-receipt"></i> Faktury</a>
                 <a href="<?= url('admin/invoices/bulk') ?>"><i class="bi bi-receipt-cutoff"></i> Bulk faktury</a>
                 <a href="<?= url('admin/invoices/jpk-fa') ?>"><i class="bi bi-filetype-xml"></i> JPK_FA</a>
+                <a href="<?= url('admin/platform/referrals') ?>"><i class="bi bi-share"></i> Affiliate program</a>
                 <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> Reklamy</a>
             </div>
         </div>
