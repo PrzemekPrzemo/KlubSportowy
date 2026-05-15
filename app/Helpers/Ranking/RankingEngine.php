@@ -37,7 +37,26 @@ final class RankingEngine
         if ($participants === []) {
             return [];
         }
-        return self::applyStrategy($clubId, $sportKey, $season, $participants);
+        $result = self::applyStrategy($clubId, $sportKey, $season, $participants);
+
+        // ── Achievements trigger ──────────────────────────────────────
+        // Po przeliczeniu rankingu turnieju ewaluujemy odznaki dla
+        // wszystkich uczestnikow (tournament_place / season_wins / debut /
+        // tournaments_played_count). Best-effort — bledy logowane.
+        try {
+            if (class_exists(\App\Helpers\Achievements\AchievementEvaluator::class)) {
+                foreach ($participants as $p) {
+                    $mid = (int)($p['member_id'] ?? 0);
+                    if ($mid > 0) {
+                        \App\Helpers\Achievements\AchievementEvaluator::evaluateForMember($mid, 'tournament');
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('Achievements trigger after recalculateForTournament failed: ' . $e->getMessage());
+        }
+
+        return $result;
     }
 
     /**
