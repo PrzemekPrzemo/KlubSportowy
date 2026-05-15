@@ -1,0 +1,10 @@
+{
+  "_comment": "PRZYKŁAD — pobierz prawdziwy plik z Firebase Console > Project Settings > Your apps > Android i zapisz jako `android/app/google-services.json`. Bez tego pliku Firebase Messaging nie zadziała (push notifications).",
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "your-firebase-project-id",
+    "storage_bucket": "your-firebase-project-id.appspot.com"
+  },
+  "client": [],
+  "configuration_version": "1"
+}
