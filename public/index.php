@@ -482,6 +482,18 @@ $router->post('/club/subscription/addons/buy',                [\App\Controllers\
 $router->post('/club/subscription/addons/:id/cancel',         [\App\Controllers\SubscriptionAddonsController::class, 'cancel']);
 $router->post('/club/subscription/addons/:id/reactivate',     [\App\Controllers\SubscriptionAddonsController::class, 'reactivate']);
 
+// Migracja 081 — affiliate / referral program (klub zarzad)
+$router->get('/club/referrals',             [\App\Controllers\ClubReferralsController::class, 'index']);
+$router->post('/club/referrals/regenerate', [\App\Controllers\ClubReferralsController::class, 'regenerate']);
+$router->get('/club/referrals/share',       [\App\Controllers\ClubReferralsController::class, 'share']);
+
+// Migracja 081 — affiliate / referral program (super admin)
+$router->get('/admin/platform/referrals',                          [\App\Controllers\AdminReferralsController::class, 'index']);
+$router->get('/admin/platform/referrals/rewards',                  [\App\Controllers\AdminReferralsController::class, 'rewards']);
+$router->post('/admin/platform/referrals/rewards/store',           [\App\Controllers\AdminReferralsController::class, 'storeReward']);
+$router->post('/admin/platform/referrals/rewards/:id/update',      [\App\Controllers\AdminReferralsController::class, 'updateReward']);
+$router->post('/admin/platform/referrals/rewards/:id/toggle',      [\App\Controllers\AdminReferralsController::class, 'toggleReward']);
+
 $router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
 $router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
 $router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatewayController::class, 'save']);
