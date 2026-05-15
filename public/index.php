@@ -127,6 +127,10 @@ $router->get('/help/trainer',                    [\App\Controllers\HelpControlle
 $router->get('/help/trainer/:slug',              [\App\Controllers\HelpController::class, 'trainerPage']);
 $router->get('/help/secretariat',                [\App\Controllers\HelpController::class, 'secretariatIndex']);
 $router->get('/help/secretariat/:slug',          [\App\Controllers\HelpController::class, 'secretariatPage']);
+$router->get('/help/member',                     [\App\Controllers\HelpController::class, 'memberIndex']);
+$router->get('/help/member/:slug',               [\App\Controllers\HelpController::class, 'memberPage']);
+$router->get('/help/parent',                     [\App\Controllers\HelpController::class, 'parentIndex']);
+$router->get('/help/parent/:slug',               [\App\Controllers\HelpController::class, 'parentPage']);
 $router->get('/help/:slug',                      [\App\Controllers\HelpController::class, 'page']);
 
 // Strona startowa → logowanie (landing page jest na clubdesk.pl)
