@@ -41,6 +41,32 @@ final class RankingEngine
     }
 
     /**
+     * Async wrapper: dla DUŻYCH turniejów (>100 uczestników) próbuje wepchnąć
+     * przeliczenie do kolejki zadań. Jeśli kolejka niedostępna — fallback do
+     * synchronicznego recalc (z error_log warning).
+     *
+     * Zwraca true gdy zaplanowano async, false gdy wykonano synchronicznie
+     * (lub w razie błędu kolejki — wynik synchronicznego zostaje zapisany).
+     */
+    public static function recalculateForTournamentAsync(int $tournamentId): bool
+    {
+        // Próbujemy znaleźć infrastrukturę kolejki — graceful fallback.
+        try {
+            if (class_exists(\App\Helpers\Queue::class)
+                && method_exists(\App\Helpers\Queue::class, 'push')) {
+                /** @phpstan-ignore-next-line */
+                \App\Helpers\Queue::push('ranking.recalculate_tournament', ['tournament_id' => $tournamentId]);
+                return true;
+            }
+        } catch (\Throwable $e) {
+            error_log('RankingEngine async push failed: ' . $e->getMessage());
+        }
+        // Fallback synchronous.
+        self::recalculateForTournament($tournamentId);
+        return false;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public static function recalculateForEvent(int $eventId): array

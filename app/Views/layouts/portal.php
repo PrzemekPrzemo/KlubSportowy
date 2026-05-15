@@ -230,6 +230,9 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <a href="<?= url('portal/consents') ?>" class="<?= $isActive('consents') ?>">
                 <i class="bi bi-shield-check me-1"></i>RODO
             </a>
+            <a href="<?= url('portal/gdpr') ?>" class="<?= $isActive('gdpr') ?>">
+                <i class="bi bi-shield-lock me-1"></i>Moje dane
+            </a>
             <a href="<?= url('portal/notifications') ?>" class="<?= $isActive('notifications') ?>">
                 <i class="bi bi-bell me-1"></i>Powiadomienia
                 <?php if ($unreadNotifCount > 0): ?>
