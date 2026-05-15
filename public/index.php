@@ -753,6 +753,20 @@ $router->post('/portal/tournaments/:id/withdraw',       [\App\Controllers\Member
 // Portal: widoki per sport
 $router->get('/portal/sport/:key',                      [\App\Controllers\MemberPortalController::class, 'sportDetail']);
 
+// Portal: achievements / odznaki
+$router->get('/portal/achievements',                    [\App\Controllers\PortalAchievementsController::class, 'index']);
+$router->get('/portal/achievements/catalog',            [\App\Controllers\PortalAchievementsController::class, 'catalog']);
+$router->post('/portal/achievements/:id/toggle',        [\App\Controllers\PortalAchievementsController::class, 'toggleVisibility']);
+
+// Admin: zarządzanie odznakami klubu (custom badges)
+$router->get('/club/achievements',                      [\App\Controllers\ClubAchievementsController::class, 'index']);
+$router->get('/club/achievements/create',               [\App\Controllers\ClubAchievementsController::class, 'create']);
+$router->post('/club/achievements/store',               [\App\Controllers\ClubAchievementsController::class, 'store']);
+$router->get('/club/achievements/:id/edit',             [\App\Controllers\ClubAchievementsController::class, 'edit']);
+$router->post('/club/achievements/:id/update',          [\App\Controllers\ClubAchievementsController::class, 'update']);
+$router->post('/club/achievements/:id/delete',          [\App\Controllers\ClubAchievementsController::class, 'delete']);
+$router->post('/club/achievements/:id/toggle',          [\App\Controllers\ClubAchievementsController::class, 'toggle']);
+
 // Powiadomienia (dzwoneczek)
 $router->post('/notifications/:id/read', [\App\Controllers\NotificationsController::class, 'markRead']);
 

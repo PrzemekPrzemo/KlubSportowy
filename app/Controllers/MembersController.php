@@ -114,6 +114,15 @@ class MembersController extends BaseController
             $this->sendWelcomeEmail($id, $data, $config);
         }
 
+        // Achievements: ewaluuj dla nowego czlonka (profile_complete, etc.).
+        try {
+            if (class_exists(\App\Helpers\Achievements\AchievementEvaluator::class)) {
+                \App\Helpers\Achievements\AchievementEvaluator::evaluateForMember((int)$id);
+            }
+        } catch (\Throwable $e) {
+            error_log('Achievements trigger after member store failed: ' . $e->getMessage());
+        }
+
         Session::flash('success', 'Zawodnik dodany.');
         $this->redirect('members/' . $id);
     }

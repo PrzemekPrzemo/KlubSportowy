@@ -122,6 +122,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'resources'      => ['url' => 'club/resources',             'icon' => 'bi-box-seam',               'label' => 'Zasoby do rezerwacji',    'mod' => null],
         'announcements'  => ['url' => 'announcements',              'icon' => 'bi-megaphone',              'label' => __('nav.announcements'),   'mod' => 'announcements'],
         'messages'       => ['url' => 'messages',                   'icon' => 'bi-chat-dots',              'label' => __('nav.messages'),        'mod' => null],
+        'achievements'   => ['url' => 'club/achievements',          'icon' => 'bi-trophy-fill',            'label' => 'Osiągnięcia',             'mod' => null],
         'fees'           => ['url' => 'fees',                       'icon' => 'bi-cash-coin',              'label' => __('nav.finances'),        'mod' => 'fees'],
         'fees_rates'     => ['url' => 'fees/rates',                 'icon' => 'bi-tag',                    'label' => __('nav.fee_rates'),       'mod' => 'fees'],
         'commissions'    => ['url' => 'club/trainers/commissions',  'icon' => 'bi-cash-coin',              'label' => 'Prowizje trenerów',       'mod' => 'fees'],
@@ -138,7 +139,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     ];
     $clubGroups = [
         'core'      => ['label' => __('nav.club'),       'items' => ['dashboard', 'members', 'members_all', 'sports', 'calendar', 'import']],
-        'schedule'  => ['label' => 'Działania',          'items' => ['events', 'trainings', 'bookings', 'resources', 'announcements', 'messages']],
+        'schedule'  => ['label' => 'Działania',          'items' => ['events', 'trainings', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
         'finance'   => ['label' => 'Finanse',            'items' => ['fees', 'fees_rates', 'commissions', 'subscription']],
         'health'    => ['label' => 'Zdrowie i compliance', 'items' => ['medical', 'compliance', 'certifications', 'equipment']],
         'reports'   => ['label' => 'Raporty i media',    'items' => ['analytics', 'reports', 'documents', 'gallery', 'gdpr']],
