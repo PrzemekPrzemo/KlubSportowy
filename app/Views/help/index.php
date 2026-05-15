@@ -88,6 +88,40 @@ if (Auth::id()) {
     </div>
     <?php endif; ?>
 
+    <h2 class="h5 mt-4 mb-3"><i class="bi bi-book-half"></i> Manuale dla użytkowników</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-lg-6">
+            <a href="<?= url('help/member') ?>" class="card h-100 text-decoration-none text-body" style="border:1px solid #e5e7eb;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-person-arms-up fs-3 text-primary"></i>
+                        <h5 class="card-title mb-0">Portal zawodnika</h5>
+                        <span class="badge bg-success ms-2">PL</span>
+                    </div>
+                    <p class="card-text text-muted small mb-0">Kompletny przewodnik dla zawodnika — od pierwszego logowania po RODO i odznaki. 18 stron z mockupami ekranów.</p>
+                </div>
+                <div class="card-footer bg-white border-0 pt-0 pb-3">
+                    <small class="text-primary">Otwórz manual <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-6 col-lg-6">
+            <a href="<?= url('help/parent') ?>" class="card h-100 text-decoration-none text-body" style="border:1px solid #e5e7eb;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-people fs-3 text-primary"></i>
+                        <h5 class="card-title mb-0">Portal rodzica / opiekuna</h5>
+                        <span class="badge bg-success ms-2">PL</span>
+                    </div>
+                    <p class="card-text text-muted small mb-0">Przewodnik dla rodzica — dostęp do konta dziecka, składki, RODO za niepełnoletniego. 10 stron.</p>
+                </div>
+                <div class="card-footer bg-white border-0 pt-0 pb-3">
+                    <small class="text-primary">Otwórz manual <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <?php if (!empty($otherSections)): ?>
     <h2 class="h5 mt-4 mb-3"><i class="bi bi-book"></i> Dokumentacja ogólna</h2>
     <div class="row g-3">

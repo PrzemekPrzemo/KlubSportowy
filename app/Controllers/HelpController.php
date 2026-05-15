@@ -102,6 +102,188 @@ class HelpController extends BaseController
         ];
     }
 
+    /**
+     * Pełne manuale dla nietechnicznego użytkownika (Zawodnik, Rodzic).
+     * Każdy manual ma własny katalog widoków PHP w app/Views/help/manual/{key}/
+     * i własną listę stron whitelistowanych po slugu.
+     *
+     * @return array<string, array{label:string, baseUrl:string, dir:string, icon:string, desc:string, intro:string, pages: array<int, array{slug:string,title:string,icon?:string,group?:string,desc?:string}>}>
+     */
+    private function manuals(): array
+    {
+        return [
+            'member' => [
+                'label'   => 'Portal zawodnika',
+                'baseUrl' => 'help/member',
+                'dir'     => 'help/manual/member',
+                'icon'    => 'bi-person-arms-up',
+                'desc'    => 'Kompletny przewodnik dla zawodnika — od pierwszego logowania po RODO i odznaki.',
+                'intro'   => 'Wszystko, czego potrzebujesz, żeby korzystać z portalu zawodnika ClubDesk.',
+                'pages'   => [
+                    ['slug' => 'welcome',         'title' => 'Co to jest portal zawodnika', 'icon' => 'bi-stars',              'group' => 'Pierwsze kroki', 'desc' => 'Twoja osobista przestrzeń w klubie — krótkie wprowadzenie.'],
+                    ['slug' => 'login',           'title' => 'Logowanie i hasło',           'icon' => 'bi-box-arrow-in-right', 'group' => 'Pierwsze kroki', 'desc' => 'Jak się zalogować, jak odzyskać hasło, 2FA.'],
+                    ['slug' => 'pwa',             'title' => 'Instalacja jako aplikacja',   'icon' => 'bi-download',           'group' => 'Pierwsze kroki', 'desc' => 'Dodaj ClubDesk do ekranu telefonu jak zwykłą aplikację.'],
+                    ['slug' => 'profile',         'title' => 'Moje dane osobowe',           'icon' => 'bi-person',             'group' => 'Mój profil',     'desc' => 'Co jest w profilu, jak edytować, kto to widzi.'],
+                    ['slug' => 'profile-photo',   'title' => 'Zdjęcie i dokumenty',         'icon' => 'bi-camera',             'group' => 'Mój profil',     'desc' => 'Zdjęcie profilowe i wgrywanie dokumentów.'],
+                    ['slug' => 'member-card',     'title' => 'Karta członkowska',           'icon' => 'bi-person-badge',       'group' => 'Mój profil',     'desc' => 'Twoja wirtualna legitymacja klubowa z kodem QR.'],
+                    ['slug' => 'schedule',        'title' => 'Mój kalendarz',               'icon' => 'bi-calendar3',          'group' => 'Treningi',       'desc' => 'Najbliższe treningi, mecze, wydarzenia.'],
+                    ['slug' => 'attendance',      'title' => 'Moja frekwencja',             'icon' => 'bi-list-check',         'group' => 'Treningi',       'desc' => 'Statystyki obecności i historia treningów.'],
+                    ['slug' => 'training-signup', 'title' => 'Zapisy na trening',           'icon' => 'bi-pencil-square',      'group' => 'Treningi',       'desc' => 'Jak zapisać się i wypisać z zajęć.'],
+                    ['slug' => 'fees',            'title' => 'Status moich składek',        'icon' => 'bi-cash-stack',         'group' => 'Płatności',      'desc' => 'Co masz do zapłaty, terminy, kolory.'],
+                    ['slug' => 'fees-online',     'title' => 'Płatność online',             'icon' => 'bi-credit-card',        'group' => 'Płatności',      'desc' => 'Karta, BLIK, Apple/Google Pay — krok po kroku.'],
+                    ['slug' => 'fees-history',    'title' => 'Historia płatności i faktury','icon' => 'bi-receipt',            'group' => 'Płatności',      'desc' => 'Pobieranie faktur PDF i potwierdzeń.'],
+                    ['slug' => 'announcements',   'title' => 'Ogłoszenia i powiadomienia',  'icon' => 'bi-megaphone',          'group' => 'Komunikacja',    'desc' => 'Ogłoszenia klubowe + konfiguracja powiadomień.'],
+                    ['slug' => 'messages',        'title' => 'Wiadomości od trenera',       'icon' => 'bi-chat-dots',          'group' => 'Komunikacja',    'desc' => 'Bezpośredni kontakt z trenerem i klubem.'],
+                    ['slug' => 'results',         'title' => 'Wyniki i turnieje',           'icon' => 'bi-trophy',             'group' => 'Wyniki',         'desc' => 'Twoja historia startów i miejsca w klasyfikacjach.'],
+                    ['slug' => 'achievements',    'title' => 'Statystyki i odznaki',        'icon' => 'bi-award',              'group' => 'Wyniki',         'desc' => 'Odznaki, osiągnięcia i kolekcja achievementów.'],
+                    ['slug' => 'gdpr-consents',   'title' => 'Moje zgody (RODO)',           'icon' => 'bi-shield-check',       'group' => 'Prywatność',     'desc' => 'Lista aktywnych zgód i jak je zmienić.'],
+                    ['slug' => 'gdpr-rights',     'title' => 'Eksport i usunięcie danych',  'icon' => 'bi-file-earmark-zip',   'group' => 'Prywatność',     'desc' => 'Twoje prawa z art. 17 i 20 RODO + ekran portalu.'],
+                ],
+            ],
+            'parent' => [
+                'label'   => 'Portal rodzica',
+                'baseUrl' => 'help/parent',
+                'dir'     => 'help/manual/parent',
+                'icon'    => 'bi-people',
+                'desc'    => 'Przewodnik dla rodzica / opiekuna prawnego — wszystko o opiece nad podopiecznym w klubie.',
+                'intro'   => 'Jak korzystać z portalu opiekuna, płacić składki za dziecko i zarządzać zgodami RODO.',
+                'pages'   => [
+                    ['slug' => 'welcome',       'title' => 'Czym jest portal opiekuna',   'icon' => 'bi-heart',                'group' => 'Wprowadzenie',  'desc' => 'Dlaczego rodzice mają osobne konto i co tam zobaczysz.'],
+                    ['slug' => 'invite',        'title' => 'Jak otrzymać dostęp',         'icon' => 'bi-envelope-paper',       'group' => 'Wprowadzenie',  'desc' => 'Zaproszenie od klubu i pierwsze logowanie.'],
+                    ['slug' => 'wards',         'title' => 'Lista moich podopiecznych',   'icon' => 'bi-people-fill',          'group' => 'Moje dziecko',  'desc' => 'Jeden ekran dla wszystkich dzieci w klubie.'],
+                    ['slug' => 'ward-profile',  'title' => 'Profil dziecka',              'icon' => 'bi-person-vcard',         'group' => 'Moje dziecko',  'desc' => 'Co rodzic widzi w karcie zawodnika.'],
+                    ['slug' => 'ward-consents', 'title' => 'Zgody w imieniu dziecka',     'icon' => 'bi-shield-check',         'group' => 'Moje dziecko',  'desc' => 'Wyrażanie zgód za osobę niepełnoletnią.'],
+                    ['slug' => 'fees',          'title' => 'Płatność składek za dziecko', 'icon' => 'bi-credit-card-2-front',  'group' => 'Składki',       'desc' => 'Karta, BLIK, autopłatność.'],
+                    ['slug' => 'fees-history',  'title' => 'Historia i faktury',          'icon' => 'bi-receipt',              'group' => 'Składki',       'desc' => 'Pobieranie potwierdzeń i faktur PDF.'],
+                    ['slug' => 'attendance',    'title' => 'Obecność dziecka',            'icon' => 'bi-list-check',           'group' => 'Aktywności',    'desc' => 'Statystyki frekwencji podopiecznego.'],
+                    ['slug' => 'achievements',  'title' => 'Wyniki i osiągnięcia',        'icon' => 'bi-trophy',               'group' => 'Aktywności',    'desc' => 'Co osiągnęło Twoje dziecko w klubie.'],
+                    ['slug' => 'gdpr-minor',    'title' => 'RODO za niepełnoletniego',    'icon' => 'bi-shield-lock',          'group' => 'Prywatność',    'desc' => 'Specyfika art. 8 RODO + cofnięcie zgody.'],
+                ],
+            ],
+        ];
+    }
+
+    /** Public entry: /help/member */
+    public function memberIndex(): void { $this->manualIndex('member'); }
+
+    /** Public entry: /help/member/:slug */
+    public function memberPage(string $slug = ''): void { $this->manualPage('member', $slug); }
+
+    /** Public entry: /help/parent */
+    public function parentIndex(): void { $this->manualIndex('parent'); }
+
+    /** Public entry: /help/parent/:slug */
+    public function parentPage(string $slug = ''): void { $this->manualPage('parent', $slug); }
+
+    /**
+     * Index strony manualu Zawodnika/Rodzica — hero + kafelki z grupami.
+     */
+    private function manualIndex(string $key): void
+    {
+        $manuals = $this->manuals();
+        if (!isset($manuals[$key])) {
+            http_response_code(404);
+            if (!Auth::id()) {
+                $this->view->setLayout('landing');
+            }
+            $this->render('help/not_found', [
+                'title'    => 'Strona pomocy nie znaleziona',
+                'sections' => $this->sections(),
+            ]);
+            return;
+        }
+
+        if (!Auth::id()) {
+            $this->view->setLayout('landing');
+        }
+
+        $manual = $manuals[$key];
+        $groups = [];
+        foreach ($manual['pages'] as $page) {
+            $g = (string)($page['group'] ?? 'Inne');
+            $groups[$g][] = $page;
+        }
+
+        $this->render('help/manual/index', [
+            'title'     => $manual['label'] . ' — Pomoc',
+            'manual'    => $manual,
+            'manualKey' => $key,
+            'groups'    => $groups,
+        ]);
+    }
+
+    /**
+     * Pojedyncza strona manualu — slug w pełni whitelistowany przez manifest.
+     */
+    private function manualPage(string $key, string $slug): void
+    {
+        $manuals = $this->manuals();
+        if (!isset($manuals[$key])) {
+            http_response_code(404);
+            if (!Auth::id()) {
+                $this->view->setLayout('landing');
+            }
+            $this->render('help/not_found', [
+                'title'    => 'Strona pomocy nie znaleziona',
+                'sections' => $this->sections(),
+            ]);
+            return;
+        }
+
+        $manual = $manuals[$key];
+        $page   = null;
+        foreach ($manual['pages'] as $p) {
+            if ($p['slug'] === $slug) { $page = $p; break; }
+        }
+        if ($page === null) {
+            http_response_code(404);
+            if (!Auth::id()) {
+                $this->view->setLayout('landing');
+            }
+            $this->render('help/not_found', [
+                'title'    => 'Strona pomocy nie znaleziona',
+                'sections' => $this->sections(),
+            ]);
+            return;
+        }
+
+        $manualFile = ROOT_PATH . '/app/Views/' . $manual['dir'] . '/' . $page['slug'] . '.php';
+        // Defense in depth — realpath nie może wyjść poza katalog manuali.
+        $real    = realpath($manualFile);
+        $manRoot = realpath(ROOT_PATH . '/app/Views/' . $manual['dir']);
+        if ($real === false || $manRoot === false || !str_starts_with($real, $manRoot . DIRECTORY_SEPARATOR)) {
+            http_response_code(404);
+            if (!Auth::id()) {
+                $this->view->setLayout('landing');
+            }
+            $this->render('help/not_found', [
+                'title'    => 'Strona pomocy nie znaleziona',
+                'sections' => $this->sections(),
+            ]);
+            return;
+        }
+
+        if (!Auth::id()) {
+            $this->view->setLayout('landing');
+        }
+
+        $pageMeta = $page + [
+            'last_updated' => '2026-05-15',
+            'reading_time' => '3 min',
+            'category'     => $manual['label'],
+        ];
+
+        $this->render('help/manual/page', [
+            'title'         => $page['title'] . ' — ' . $manual['label'],
+            'manualFile'    => $real,
+            'manualPages'   => $manual['pages'],
+            'currentSlug'   => $page['slug'],
+            'manualBaseUrl' => $manual['baseUrl'],
+            'manualLabel'   => $manual['label'],
+            'page'          => $pageMeta,
+        ]);
+    }
+
     public function index(): void
     {
         $sections = [];

@@ -195,7 +195,7 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <a href="<?= url('portal/sport-history') ?>" class="<?= $isActive('sport-history') ?>">
                 <i class="bi bi-clock-history me-1"></i><?= __('portal.nav.history') ?>
             </a>
-            <a href="<?= url('help') ?>">
+            <a href="<?= url('help/member') ?>" class="<?= $isActive('help/member') ?>">
                 <i class="bi bi-question-circle me-1"></i><?= __('portal.nav.help') ?>
             </a>
             <?php
