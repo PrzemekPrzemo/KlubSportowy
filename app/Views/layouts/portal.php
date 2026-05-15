@@ -160,6 +160,20 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <a href="<?= url('portal/tournaments') ?>" class="<?= $isActive('tournaments') ?>">
                 <i class="bi bi-trophy me-1"></i>Zawody
             </a>
+            <?php
+            $showBookings = false;
+            try {
+                $portalClubId = \App\Helpers\MemberAuth::clubId();
+                if ($portalClubId !== null) {
+                    $showBookings = (new \App\Models\BookableResourceModel())->hasActiveForClub((int)$portalClubId);
+                }
+            } catch (\Throwable) {}
+            if ($showBookings):
+            ?>
+            <a href="<?= url('portal/bookings') ?>" class="<?= $isActive('bookings') ?>">
+                <i class="bi bi-calendar-check me-1"></i>Rezerwacje
+            </a>
+            <?php endif; ?>
             <span class="text-white-50">|</span>
             <a href="<?= url('portal/attendance') ?>" class="<?= $isActive('attendance') ?>">
                 <i class="bi bi-list-check me-1"></i>Frekwencja
