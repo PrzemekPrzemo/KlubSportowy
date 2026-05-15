@@ -270,6 +270,118 @@ class Przelewy24Adapter implements GatewayAdapterInterface
         return $this->http('GET', $path, null);
     }
 
+    // ────────────────────────────────────────────────────────────────────
+    // Recurring payments (cyclic) — P24 nie ma natywnego "subscription" jak
+    // Stripe; używa wzorca "saved card / wallet" + manualny re-charge przez
+    // /api/v1/transaction/recurring (wymaga uprawnień Recurring w panelu P24).
+    //
+    // TODO: pełna implementacja wymaga testów w P24 sandbox (Recurring nie
+    //       jest auto-enabled — trzeba zgłosić merchanta do P24). Tu zostają
+    //       stuby z poprawną strukturą + signature.
+    // ────────────────────────────────────────────────────────────────────
+
+    /**
+     * Pierwszy charge w trybie recurring — rejestruje transakcję z flagą
+     * `wallet=true` + `additional.shipping[]` zgodnie z P24 Recurring spec.
+     * Po sukcesie webhook zwróci `clientId` który zapisujemy jako
+     * external_customer_id i używamy potem do chargeRecurring().
+     */
+    public function createRecurringSetup(CheckoutRequest $req): CheckoutResult
+    {
+        $this->assertConfigured();
+
+        $sessionId = substr('rec_' . $req->internalReference . '_' . hrtime(true), 0, 100);
+        $amountCents = (int)round($req->amount * 100);
+        $currency    = strtoupper($req->currency ?: 'PLN');
+
+        $payload = [
+            'merchantId'  => (int)$this->config['merchant_id'],
+            'posId'       => (int)$this->config['merchant_id'],
+            'sessionId'   => $sessionId,
+            'amount'      => $amountCents,
+            'currency'    => $currency,
+            'description' => mb_substr($req->description, 0, 1024),
+            'email'       => $req->customerEmail ?? '',
+            'country'     => 'PL',
+            'language'    => 'pl',
+            'urlReturn'   => $req->successUrl,
+            'urlStatus'   => $req->notifyUrl,
+            'sign'        => $this->signRegister($sessionId, $amountCents, $currency),
+            // Flagi Recurring (P24 specifc):
+            'recurring'   => true,
+            'wallet'      => true,
+        ];
+
+        $resp = $this->httpPost('/api/v1/transaction/register', $payload);
+        $token = $resp['data']['token'] ?? null;
+        if (!$token) {
+            throw new GatewayException(
+                'Przelewy24 recurring registration failed: ' . json_encode($resp, JSON_UNESCAPED_UNICODE)
+            );
+        }
+
+        return new CheckoutResult(
+            redirectUrl: $this->host() . '/trnRequest/' . $token,
+            externalId:  $sessionId,
+            rawResponse: ['token' => $token, 'session_id' => $sessionId, 'recurring' => true],
+        );
+    }
+
+    /**
+     * Re-charge na podstawie clientId z pierwszej transakcji.
+     * Endpoint: POST /api/v1/transaction/recurring
+     *
+     * Zwraca array:
+     *   - status:  'success' | 'failed'
+     *   - orderId: P24 order ID (jeśli success)
+     *   - sessionId: zwrócone sessionId dla idempotency
+     */
+    public function chargeRecurring(string $clientId, int $amountCents, string $orderRef, string $currency = 'PLN'): array
+    {
+        $this->assertConfigured();
+        $sessionId = substr('charge_' . $orderRef . '_' . hrtime(true), 0, 100);
+
+        $payload = [
+            'merchantId' => (int)$this->config['merchant_id'],
+            'posId'      => (int)$this->config['merchant_id'],
+            'sessionId'  => $sessionId,
+            'amount'     => $amountCents,
+            'currency'   => strtoupper($currency),
+            'description'=> mb_substr($orderRef, 0, 1024),
+            'clientId'   => $clientId,
+            'sign'       => $this->signRegister($sessionId, $amountCents, strtoupper($currency)),
+        ];
+
+        try {
+            $resp = $this->httpPost('/api/v1/transaction/recurring', $payload);
+            $ok = ($resp['data']['status'] ?? null) === 'success' || isset($resp['data']['orderId']);
+            return [
+                'status'    => $ok ? 'success' : 'failed',
+                'orderId'   => $resp['data']['orderId'] ?? null,
+                'sessionId' => $sessionId,
+                'raw'       => $resp,
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'status'    => 'failed',
+                'sessionId' => $sessionId,
+                'error'     => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Anuluj recurring template — P24 nie wymaga osobnego call do anulowania,
+     * ale wewnętrznie oznaczamy jako "no more charges". Tu zwracamy true.
+     */
+    public function cancelRecurring(string $clientId): bool
+    {
+        // P24 nie ma "delete recurring template" — wystarczy że my przestaniemy
+        // wywoływać chargeRecurring(). Można też wywołać `clientId/forget`
+        // jeśli merchant chce wyczyścić wallet.
+        return true;
+    }
+
     private function http(string $method, string $path, ?array $payload): array
     {
         $url = $this->host() . $path;

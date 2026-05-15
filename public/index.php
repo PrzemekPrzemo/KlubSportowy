@@ -622,6 +622,23 @@ $router->get('/portal/payments/success', [\App\Controllers\MemberPaymentControll
 $router->get('/portal/dues',             [\App\Controllers\MemberPortalController::class, 'dues']);
 $router->post('/portal/dues/:id/pay',    [\App\Controllers\MemberPaymentController::class, 'payDue']);
 
+// Portal — subskrypcje cykliczne składek (migracja 076)
+$router->get('/portal/subscriptions',                  [\App\Controllers\MemberSubscriptionsController::class, 'index']);
+$router->get('/portal/subscriptions/setup/:feeRateId', [\App\Controllers\MemberSubscriptionsController::class, 'setupForm']);
+$router->post('/portal/subscriptions/setup/:feeRateId',[\App\Controllers\MemberSubscriptionsController::class, 'setupSubmit']);
+$router->get('/portal/subscriptions/return',           [\App\Controllers\MemberSubscriptionsController::class, 'returnFromCheckout']);
+$router->post('/portal/subscriptions/:id/cancel',      [\App\Controllers\MemberSubscriptionsController::class, 'cancel']);
+$router->post('/portal/subscriptions/:id/pause',       [\App\Controllers\MemberSubscriptionsController::class, 'pause']);
+$router->post('/portal/subscriptions/:id/resume',      [\App\Controllers\MemberSubscriptionsController::class, 'resume']);
+
+// Admin — subskrypcje cykliczne członków (różne od SaaS billing!)
+// SaaS billing: /admin/subscriptions/* (AdminSubscriptionsController)
+// Recurring fees: /admin/member-subscriptions/* (AdminMemberSubscriptionsController)
+$router->get('/admin/member-subscriptions',                  [\App\Controllers\AdminMemberSubscriptionsController::class, 'index']);
+$router->get('/admin/member-subscriptions/:id',              [\App\Controllers\AdminMemberSubscriptionsController::class, 'show']);
+$router->post('/admin/member-subscriptions/:id/force-charge',[\App\Controllers\AdminMemberSubscriptionsController::class, 'forceCharge']);
+$router->post('/admin/member-subscriptions/:id/cancel',      [\App\Controllers\AdminMemberSubscriptionsController::class, 'cancel']);
+
 // Portal — preferencje powiadomień (Faza S.2 RODO opt-out)
 $router->get('/portal/notification-prefs',         [\App\Controllers\MemberPortalController::class, 'notificationPrefs']);
 $router->post('/portal/notification-prefs/update', [\App\Controllers\MemberPortalController::class, 'updateNotificationPrefs']);

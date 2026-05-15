@@ -178,4 +178,224 @@ class StripeAdapter implements GatewayAdapterInterface
             throw new GatewayException('Stripe fetch error: ' . $e->getMessage(), 0, $e);
         }
     }
+
+    // ────────────────────────────────────────────────────────────────────
+    // Subscriptions API (recurring payments — migracja 076)
+    // Wszystkie metody wymagają załadowanych credentials klubu w $this->config.
+    // ────────────────────────────────────────────────────────────────────
+
+    /**
+     * Utwórz Checkout Session w trybie `subscription` — po sukcesie Stripe
+     * tworzy customer + payment method + subscription i wysyła webhook
+     * customer.subscription.created (+ pierwsze invoice.payment_succeeded).
+     *
+     * Zwraca tablicę:
+     *   - redirect_url:  URL Stripe Checkout
+     *   - session_id:    cs_xxx (zapis do member_subscriptions.setup_session_id)
+     *   - price_id:      price_xxx
+     */
+    public function createSubscriptionCheckoutSession(
+        float  $amount,
+        string $currency,
+        string $productName,
+        string $stripeInterval,  // 'month' | 'year'
+        int    $intervalCount,    // 1, 3, 12
+        string $successUrl,
+        string $cancelUrl,
+        array  $metadata = [],
+        ?string $customerEmail = null
+    ): array {
+        $this->assertSdkReady();
+        \Stripe\Stripe::setApiKey($this->config['api_key']);
+
+        try {
+            $session = \Stripe\Checkout\Session::create([
+                'mode'        => 'subscription',
+                'payment_method_types' => ['card'],
+                'line_items'  => [[
+                    'price_data' => [
+                        'currency'     => strtolower($currency ?: 'pln'),
+                        'product_data' => ['name' => $productName],
+                        'unit_amount'  => (int)round($amount * 100),
+                        'recurring'    => [
+                            'interval'       => $stripeInterval,
+                            'interval_count' => $intervalCount,
+                        ],
+                    ],
+                    'quantity' => 1,
+                ]],
+                'success_url'    => $successUrl,
+                'cancel_url'     => $cancelUrl,
+                'customer_email' => $customerEmail,
+                'metadata'             => $metadata,
+                'subscription_data'    => [
+                    'metadata' => $metadata,
+                ],
+            ]);
+
+            return [
+                'redirect_url' => $session->url,
+                'session_id'   => $session->id,
+                // price_id i subscription_id będą znane dopiero po sukcesie
+                // (via webhook checkout.session.completed → session.subscription)
+            ];
+        } catch (\Throwable $e) {
+            throw new GatewayException('Stripe subscription checkout error: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Pobierz pełen state Checkout Session (po returnie z Stripe).
+     * Zwraca m.in. subscription ID i customer ID, żebyśmy mogli uzupełnić
+     * member_subscriptions od razu (bez czekania na webhook).
+     */
+    public function retrieveCheckoutSession(string $sessionId): array
+    {
+        $this->assertSdkReady();
+        \Stripe\Stripe::setApiKey($this->config['api_key']);
+
+        try {
+            $session = \Stripe\Checkout\Session::retrieve([
+                'id'     => $sessionId,
+                'expand' => ['subscription'],
+            ]);
+            $sub = $session->subscription ?? null;
+
+            return [
+                'session_id'      => $session->id,
+                'payment_status'  => $session->payment_status,
+                'mode'            => $session->mode,
+                'customer_id'     => is_string($session->customer ?? null) ? $session->customer : ($session->customer->id ?? null),
+                'subscription_id' => is_object($sub) ? ($sub->id ?? null) : (is_string($sub) ? $sub : null),
+                'subscription'    => $sub,
+            ];
+        } catch (\Throwable $e) {
+            throw new GatewayException('Stripe session retrieve error: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Anuluj subskrypcję. atPeriodEnd=true → członek dopłaca okres bieżący,
+     * potem subscription jest cancelled. false → natychmiast.
+     */
+    public function cancelSubscription(string $subscriptionId, bool $atPeriodEnd = true): array
+    {
+        $this->assertSdkReady();
+        \Stripe\Stripe::setApiKey($this->config['api_key']);
+
+        try {
+            if ($atPeriodEnd) {
+                $sub = \Stripe\Subscription::update($subscriptionId, [
+                    'cancel_at_period_end' => true,
+                ]);
+            } else {
+                $sub = \Stripe\Subscription::retrieve($subscriptionId)->cancel();
+            }
+            return [
+                'id'                    => $sub->id,
+                'status'                => $sub->status,
+                'cancel_at_period_end'  => $sub->cancel_at_period_end ?? false,
+                'current_period_end'    => $sub->current_period_end ?? null,
+            ];
+        } catch (\Throwable $e) {
+            throw new GatewayException('Stripe cancel error: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Pauza subskrypcji — Stripe pause_collection behavior='void' (lub
+     * 'mark_uncollectible'). Member nie jest charged dopóki resumeSubscription.
+     */
+    public function pauseSubscription(string $subscriptionId): array
+    {
+        $this->assertSdkReady();
+        \Stripe\Stripe::setApiKey($this->config['api_key']);
+
+        try {
+            $sub = \Stripe\Subscription::update($subscriptionId, [
+                'pause_collection' => ['behavior' => 'void'],
+            ]);
+            return ['id' => $sub->id, 'status' => $sub->status];
+        } catch (\Throwable $e) {
+            throw new GatewayException('Stripe pause error: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    public function resumeSubscription(string $subscriptionId): array
+    {
+        $this->assertSdkReady();
+        \Stripe\Stripe::setApiKey($this->config['api_key']);
+
+        try {
+            $sub = \Stripe\Subscription::update($subscriptionId, [
+                'pause_collection' => '',
+            ]);
+            return ['id' => $sub->id, 'status' => $sub->status];
+        } catch (\Throwable $e) {
+            throw new GatewayException('Stripe resume error: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Pobierz fresh data subskrypcji ze Stripe (np. po force-charge retry).
+     */
+    public function retrieveSubscription(string $subscriptionId): array
+    {
+        $this->assertSdkReady();
+        \Stripe\Stripe::setApiKey($this->config['api_key']);
+
+        try {
+            $sub = \Stripe\Subscription::retrieve($subscriptionId);
+            return [
+                'id'                    => $sub->id,
+                'status'                => $sub->status,
+                'current_period_start'  => $sub->current_period_start ?? null,
+                'current_period_end'    => $sub->current_period_end ?? null,
+                'cancel_at_period_end'  => $sub->cancel_at_period_end ?? false,
+                'customer'              => is_string($sub->customer ?? null) ? $sub->customer : ($sub->customer->id ?? null),
+            ];
+        } catch (\Throwable $e) {
+            throw new GatewayException('Stripe subscription retrieve error: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Manualny retry charge — używa najbardziej recent latest_invoice i robi
+     * pay() na nim (jeśli failed/open).
+     */
+    public function retryLatestInvoice(string $subscriptionId): array
+    {
+        $this->assertSdkReady();
+        \Stripe\Stripe::setApiKey($this->config['api_key']);
+
+        try {
+            $sub = \Stripe\Subscription::retrieve([
+                'id' => $subscriptionId,
+                'expand' => ['latest_invoice'],
+            ]);
+            $invoice = $sub->latest_invoice ?? null;
+            if (!$invoice) {
+                throw new GatewayException('No latest invoice for subscription');
+            }
+            $invId = is_object($invoice) ? $invoice->id : $invoice;
+            $paid = \Stripe\Invoice::retrieve($invId)->pay();
+            return [
+                'invoice_id' => $paid->id,
+                'status'     => $paid->status,
+                'paid'       => (bool)($paid->paid ?? false),
+            ];
+        } catch (\Throwable $e) {
+            throw new GatewayException('Stripe retry error: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    private function assertSdkReady(): void
+    {
+        if (empty($this->config['api_key'])) {
+            throw new GatewayException('Stripe api_key not configured');
+        }
+        if (!class_exists('\Stripe\Stripe')) {
+            throw new GatewayException('Stripe SDK missing — composer require stripe/stripe-php');
+        }
+    }
 }
