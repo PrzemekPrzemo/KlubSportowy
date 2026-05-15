@@ -51,25 +51,29 @@ ALTER TABLE `members`
 
 -- Seedy szablonow email do email_event_catalog (PR #142)
 -- Bezpieczne: ignore jesli tabela nie istnieje (migracja stand-alone)
-INSERT IGNORE INTO `email_event_catalog` (event_key, label, description, default_subject, default_body, requires_consent)
+INSERT IGNORE INTO `email_event_catalog` (`code`, `name`, `description`, `category`, `default_subject`, `default_body`, `sort_order`)
 SELECT * FROM (
-    SELECT 'gdpr_request_confirmation' AS event_key,
-           'GDPR — potwierdzenie prosby' AS label,
-           'Link confirmation wysylany po zlozeniu prosby GDPR (delete / export).' AS description,
-           'Potwierdz prosbe GDPR' AS default_subject,
-           'Czesc {first_name},\n\nOtrzymalismy Twoja prosbe GDPR ({request_type}) w klubie {club_name}.\nAby ja potwierdzic, kliknij ponizszy link (wazny przez 24h):\n\n{confirmation_link}\n\nJesli to nie Ty zlozyles te prosbe, zignoruj te wiadomosc.\n\nPozdrawiamy,\nKlub {club_name}' AS default_body,
-           0 AS requires_consent
+    SELECT 'gdpr_request_confirmation' AS `code`,
+           'GDPR — potwierdzenie prosby' AS `name`,
+           'Link confirmation wysylany po zlozeniu prosby GDPR (delete / export).' AS `description`,
+           'gdpr' AS `category`,
+           'Potwierdz prosbe GDPR' AS `default_subject`,
+           'Czesc {first_name},\n\nOtrzymalismy Twoja prosbe GDPR ({request_type}) w klubie {club_name}.\nAby ja potwierdzic, kliknij ponizszy link (wazny przez 24h):\n\n{confirmation_link}\n\nJesli to nie Ty zlozyles te prosbe, zignoruj te wiadomosc.\n\nPozdrawiamy,\nKlub {club_name}' AS `default_body`,
+           200 AS `sort_order`
     UNION ALL
     SELECT 'gdpr_export_ready', 'GDPR — eksport danych gotowy',
            'Powiadomienie ze plik ZIP z eksportem danych jest gotowy do pobrania.',
+           'gdpr',
            'Twoj eksport danych jest gotowy',
            'Czesc {first_name},\n\nTwoj eksport danych zostal wygenerowany. Mozesz go pobrac w portalu w sekcji "Moje dane" -> "Historia prosb GDPR".\nLink wygasa za 7 dni.\n\nPozdrawiamy,\nKlub {club_name}',
-           0
+           210
     UNION ALL
     SELECT 'gdpr_delete_confirmed', 'GDPR — konto usuniete',
            'Powiadomienie ze konto zostalo zanonimizowane / usuniete.',
+           'gdpr',
            'Twoja prosba o usuniecie danych zostala zrealizowana',
-           'Czesc,\n\nTwoja prosba o usuniecie danych w klubie {club_name} zostala zrealizowana. Twoje dane osobowe zostaly zanonimizowane zgodnie z art. 17 RODO.\n\nDziekujemy za przynaleznosc do klubu.', 0
+           'Czesc,\n\nTwoja prosba o usuniecie danych w klubie {club_name} zostala zrealizowana. Twoje dane osobowe zostaly zanonimizowane zgodnie z art. 17 RODO.\n\nDziekujemy za przynaleznosc do klubu.',
+           220
 ) tmp
 WHERE EXISTS (
     SELECT 1 FROM information_schema.tables
