@@ -62,6 +62,19 @@ use App\Helpers\View;
                                 </div>
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Kod polecajacy <small class="text-muted">(opcjonalnie)</small>
+                                </label>
+                                <input type="text" name="referral_code" class="form-control"
+                                       value="<?= View::e($referralCode ?? '') ?>"
+                                       maxlength="20" placeholder="np. KLUB-AB12CD"
+                                       style="text-transform:uppercase;">
+                                <div class="form-text">
+                                    Jesli ktos Cie polecil, wpisz tu jego kod — obaj otrzymacie korzysci.
+                                </div>
+                            </div>
+
                             <div class="d-flex justify-content-between mt-4">
                                 <a href="<?= url('trial') ?>" class="btn btn-link text-muted">
                                     <i class="bi bi-arrow-left"></i> Wroc do landingu

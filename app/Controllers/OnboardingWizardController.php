@@ -5,11 +5,13 @@ namespace App\Controllers;
 use App\Helpers\Auth;
 use App\Helpers\Csrf;
 use App\Helpers\Database;
+use App\Helpers\ReferralCodeService;
 use App\Helpers\Session;
 use App\Models\ClubCustomizationModel;
 use App\Models\ClubModel;
 use App\Models\ClubSportModel;
 use App\Models\FeeRateModel;
+use App\Models\ReferralCodeModel;
 use App\Models\SportModel;
 use App\Models\UserClubModel;
 use App\Models\UserModel;
@@ -51,6 +53,10 @@ class OnboardingWizardController extends BaseController
         if (Auth::check()) {
             $this->redirect('dashboard');
         }
+        // Capture ?ref=... — zapamietaj w stanie wizarda nawet jesli user
+        // porzuci landing (uzytkownik moze wrocic za godzine, mamy session).
+        $this->captureRefParam();
+
         $this->render('onboarding_wizard/landing', [
             'title' => 'Zaloz klub online - 30 dni trial',
         ]);
@@ -67,12 +73,15 @@ class OnboardingWizardController extends BaseController
             $this->redirect('dashboard');
         }
         $this->resetIfTimedOut();
+        // Capture ?ref=... rowniez tutaj — useful gdy ktos lapie /trial/start bezposrednio.
+        $this->captureRefParam();
         $state = $this->state();
 
         $this->render('onboarding_wizard/step1_club', [
-            'title'       => 'Krok 1/5 - Dane klubu',
-            'currentStep' => 1,
-            'data'        => $state['club'] ?? [],
+            'title'        => 'Krok 1/5 - Dane klubu',
+            'currentStep'  => 1,
+            'data'         => $state['club'] ?? [],
+            'referralCode' => $state['referral_code'] ?? '',
         ]);
     }
 
@@ -86,6 +95,7 @@ class OnboardingWizardController extends BaseController
         $email = trim($_POST['email'] ?? '');
         $nip   = trim($_POST['nip']   ?? '');
         $phone = trim($_POST['phone'] ?? '');
+        $referralCode = ReferralCodeService::normalize((string)($_POST['referral_code'] ?? ''));
 
         $errors = [];
         if (mb_strlen($name) < 3 || mb_strlen($name) > 120) {
@@ -113,9 +123,23 @@ class OnboardingWizardController extends BaseController
             $errors[] = 'NIP jest niepoprawny (oczekiwano 10 cyfr).';
         }
 
+        // Walidacja kodu polecajacego (jesli podany — pole opcjonalne).
+        $validatedRefCode = null;
+        if ($referralCode !== '') {
+            $codeRow = ReferralCodeService::validateForReferred($referralCode);
+            if ($codeRow === null) {
+                $errors[] = 'Kod polecajacy jest nieprawidlowy lub nieaktywny.';
+            } else {
+                $validatedRefCode = $referralCode;
+            }
+        }
+
         if ($errors) {
             Session::flash('error', implode(' ', $errors));
-            $this->saveState(['club' => compact('name','city','email','nip','phone')]);
+            $this->saveState([
+                'club' => compact('name','city','email','nip','phone'),
+                'referral_code' => $referralCode,
+            ]);
             $this->redirect('trial/start');
         }
 
@@ -127,6 +151,7 @@ class OnboardingWizardController extends BaseController
                 'nip'   => $nip ?: null,
                 'phone' => $phone ?: null,
             ],
+            'referral_code' => $validatedRefCode,
         ]);
         $this->redirect('trial/branding');
     }
@@ -485,6 +510,12 @@ class OnboardingWizardController extends BaseController
                 $stmt->execute([$clubId, (int)$plan]);
             }
 
+            // 8) Referral tracking — jesli kod podany w step 1 i walidowany.
+            $refCode = $state['referral_code'] ?? null;
+            if (is_string($refCode) && $refCode !== '') {
+                $this->insertReferral($db, $clubId, $refCode);
+            }
+
             $db->commit();
         } catch (\Throwable $e) {
             $db->rollBack();
@@ -572,6 +603,60 @@ class OnboardingWizardController extends BaseController
             && (time() - (int)$s['_updated_at']) > self::SESSION_TIMEOUT_SECONDS) {
             Session::remove(self::SESSION_KEY);
             Session::flash('warning', 'Sesja kreatora wygasla - zacznij od poczatku.');
+        }
+    }
+
+    /**
+     * Wyciaga `?ref=` z query i zapisuje w stanie wizarda. Walidacja
+     * miekka — jesli kod nieprawidlowy, po prostu nie zapisujemy.
+     */
+    private function captureRefParam(): void
+    {
+        $raw = $_GET['ref'] ?? null;
+        if (!is_string($raw) || $raw === '') {
+            return;
+        }
+        $code = ReferralCodeService::normalize($raw);
+        if ($code === '') {
+            return;
+        }
+        $codeRow = ReferralCodeService::validateForReferred($code);
+        if ($codeRow === null) {
+            return;
+        }
+        $this->saveState(['referral_code' => $code]);
+    }
+
+    /**
+     * Wstawia rekord do club_referrals + inkrementuje times_used.
+     * Walidacja anti-abuse: kod aktywny, referrer != referred.
+     */
+    private function insertReferral(\PDO $db, int $referredClubId, string $code): void
+    {
+        $codeRow = ReferralCodeService::validateForReferred($code, $referredClubId);
+        if ($codeRow === null) {
+            return; // best-effort
+        }
+        $referrerClubId = (int)$codeRow['club_id'];
+        if ($referrerClubId === $referredClubId) {
+            return; // self-referral
+        }
+        try {
+            $stmt = $db->prepare(
+                "INSERT INTO club_referrals
+                    (referrer_club_id, referred_club_id, referral_code, status)
+                 VALUES (?, ?, ?, 'pending')"
+            );
+            $stmt->execute([$referrerClubId, $referredClubId, $code]);
+
+            // Increment licznika uzyc kodu.
+            $upd = $db->prepare(
+                "UPDATE club_referral_codes SET times_used = times_used + 1 WHERE id = ?"
+            );
+            $upd->execute([(int)$codeRow['id']]);
+        } catch (\Throwable $e) {
+            // UNIQUE uniq_referred — klub juz polecony. Cichno.
+            error_log('[onboarding-wizard] referral insert skipped: ' . $e->getMessage());
         }
     }
 
