@@ -323,6 +323,11 @@ $router->get('/admin/audit/isolation',   [\App\Controllers\AdminAuditController:
 $router->get('/admin/audit/access-log',  [\App\Controllers\AdminAuditController::class, 'accessLog']);
 $router->post('/admin/audit/export',     [\App\Controllers\AdminAuditController::class, 'exportReport']);
 
+// Admin: GDPR requests (self-service czlonka, art. 17 + art. 20 RODO) — migracja 077
+$router->get('/admin/gdpr',                       [\App\Controllers\AdminGdprController::class, 'index']);
+$router->get('/admin/gdpr/:id',                   [\App\Controllers\AdminGdprController::class, 'detail']);
+$router->post('/admin/gdpr/:id/process',          [\App\Controllers\AdminGdprController::class, 'process']);
+
 // Admin: dashboard zdrowia systemu (Batch A7)
 $router->get('/admin/health', [\App\Controllers\AdminHealthController::class, 'index']);
 
@@ -681,6 +686,15 @@ $router->get('/portal/consents',         [\App\Controllers\MemberPortalControlle
 $router->post('/portal/consents/update', [\App\Controllers\MemberPortalController::class, 'updateConsent']);
 $router->get('/portal/anti-doping',      [\App\Controllers\MemberPortalController::class, 'antiDoping']);
 $router->post('/portal/anti-doping',     [\App\Controllers\MemberPortalController::class, 'storeAntiDoping']);
+
+// Portal: GDPR self-service (right-to-forget art. 17 + data export art. 20) — migracja 077
+$router->get('/portal/gdpr',                          [\App\Controllers\MemberGdprController::class, 'index']);
+$router->get('/portal/gdpr/delete-account',           [\App\Controllers\MemberGdprController::class, 'showDeleteForm']);
+$router->post('/portal/gdpr/delete-account',          [\App\Controllers\MemberGdprController::class, 'submitDelete']);
+$router->get('/portal/gdpr/export',                   [\App\Controllers\MemberGdprController::class, 'showExportForm']);
+$router->post('/portal/gdpr/export',                  [\App\Controllers\MemberGdprController::class, 'submitExport']);
+$router->get('/portal/gdpr/confirm/:token',           [\App\Controllers\MemberGdprController::class, 'confirm']);
+$router->get('/portal/gdpr/download/:id',             [\App\Controllers\MemberGdprController::class, 'download']);
 
 // Portal: ogłoszenia + plan treningów
 $router->get('/portal/announcements',    [\App\Controllers\MemberPortalController::class, 'announcements']);
