@@ -121,8 +121,13 @@ $router = new \App\Helpers\Router();
 $router->get('/favicon.ico', [\App\Controllers\BrandingAssetController::class, 'favicon']);
 
 // In-app help center (publiczne — dostępne dla zalogowanych i anonimowych)
-$router->get('/help',        [\App\Controllers\HelpController::class, 'index']);
-$router->get('/help/:slug',  [\App\Controllers\HelpController::class, 'page']);
+$router->get('/help',                            [\App\Controllers\HelpController::class, 'index']);
+// Manuale per rola — dedykowane podręczniki z mockupami UI (kolejność: specyficzne PRZED /help/:slug)
+$router->get('/help/trainer',                    [\App\Controllers\HelpController::class, 'trainerIndex']);
+$router->get('/help/trainer/:slug',              [\App\Controllers\HelpController::class, 'trainerPage']);
+$router->get('/help/secretariat',                [\App\Controllers\HelpController::class, 'secretariatIndex']);
+$router->get('/help/secretariat/:slug',          [\App\Controllers\HelpController::class, 'secretariatPage']);
+$router->get('/help/:slug',                      [\App\Controllers\HelpController::class, 'page']);
 
 // Strona startowa → logowanie (landing page jest na clubdesk.pl)
 $router->get('/', [\App\Controllers\AuthController::class, 'showLogin']);

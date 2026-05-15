@@ -413,6 +413,8 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <a href="?lang=en" style="color:rgba(255,255,255,0.85); text-decoration:none; <?= \App\Helpers\Translator::getLocale() === 'en' ? 'font-weight:700;' : 'opacity:.6;' ?>">EN</a>
     </div>
     <a href="<?= url('help') ?>"><i class="bi bi-question-circle"></i> <?= __('nav.help') ?></a>
+    <a href="<?= url('help/trainer') ?>" style="padding-left:2.25rem; font-size:.88rem; opacity:.85;"><i class="bi bi-stopwatch-fill"></i> Manual Trenera</a>
+    <a href="<?= url('help/secretariat') ?>" style="padding-left:2.25rem; font-size:.88rem; opacity:.85;"><i class="bi bi-folder-check"></i> Manual Sekretariatu</a>
     <a href="<?= url('auth/logout') ?>"><i class="bi bi-box-arrow-right"></i> <?= __('nav.logout') ?></a>
 </nav>
 
