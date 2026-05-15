@@ -122,8 +122,8 @@ $router->get('/favicon.ico', [\App\Controllers\BrandingAssetController::class, '
 
 // In-app help center (publiczne — dostępne dla zalogowanych i anonimowych)
 $router->get('/help',                  [\App\Controllers\HelpController::class, 'index']);
-// Manuale per-rola (Zawodnik / Rodzic) — pełne podręczniki HTML zamiast markdownu.
-// Routes muszą być przed `/help/:slug`, bo router używa kolejności zarejestrowania.
+// Manuale per-rola (Zawodnik / Rodzic) — muszą być przed `/help/:slug`, bo
+// router dopasowuje po kolei i `:slug` złapałby też `member` / `parent`.
 $router->get('/help/member',           [\App\Controllers\HelpController::class, 'memberIndex']);
 $router->get('/help/member/:slug',     [\App\Controllers\HelpController::class, 'memberPage']);
 $router->get('/help/parent',           [\App\Controllers\HelpController::class, 'parentIndex']);
