@@ -4,6 +4,10 @@ Base URL: `https://<your-domain>/api/v1`
 
 All requests and responses use JSON (`Content-Type: application/json`).
 
+> **Looking for the mobile-app API?** See [mobile-api-v1.md](mobile-api-v1.md) for the
+> `/api/mobile/v1/*` endpoints (bearer-token auth issued per device, member-portal
+> features for the Flutter app).
+
 ---
 
 ## Authentication

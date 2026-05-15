@@ -832,6 +832,54 @@ $router->get('/api/v1/sports/:sportId/disciplines', [\App\Controllers\Api\Sports
 $router->post('/api/v1/devices/register',   [\App\Controllers\Api\DevicesApiController::class, 'register']);
 $router->post('/api/v1/devices/unregister', [\App\Controllers\Api\DevicesApiController::class, 'unregister']);
 
+// ── Mobile API v1 ─────────────
+// Bearer-token auth via member_api_tokens. JSON-only envelope: { ok, data | error }.
+// Auth (public)
+$router->post('/api/mobile/v1/auth/login',           [\App\Controllers\Api\Mobile\AuthController::class, 'login']);
+$router->post('/api/mobile/v1/auth/select-club',     [\App\Controllers\Api\Mobile\AuthController::class, 'selectClub']);
+$router->post('/api/mobile/v1/auth/logout',          [\App\Controllers\Api\Mobile\AuthController::class, 'logout']);
+$router->post('/api/mobile/v1/auth/refresh',         [\App\Controllers\Api\Mobile\AuthController::class, 'refresh']);
+$router->post('/api/mobile/v1/auth/forgot-password', [\App\Controllers\Api\Mobile\AuthController::class, 'forgotPassword']);
+
+// Me / profile
+$router->get(  '/api/mobile/v1/me',         [\App\Controllers\Api\Mobile\MeController::class, 'show']);
+$router->post( '/api/mobile/v1/me',         [\App\Controllers\Api\Mobile\MeController::class, 'update']); // PATCH-style for clients that can't PATCH
+$router->post( '/api/mobile/v1/me/avatar',  [\App\Controllers\Api\Mobile\MeController::class, 'uploadAvatar']);
+
+// Dashboard
+$router->get('/api/mobile/v1/dashboard', [\App\Controllers\Api\Mobile\DashboardController::class, 'index']);
+
+// Fees / dues
+$router->get( '/api/mobile/v1/fees',               [\App\Controllers\Api\Mobile\FeesController::class, 'index']);
+$router->get( '/api/mobile/v1/fees/:id',           [\App\Controllers\Api\Mobile\FeesController::class, 'show']);
+$router->post('/api/mobile/v1/fees/:id/checkout',  [\App\Controllers\Api\Mobile\FeesController::class, 'checkout']);
+
+// Trainings
+$router->get( '/api/mobile/v1/trainings',          [\App\Controllers\Api\Mobile\TrainingsController::class, 'index']);
+$router->get( '/api/mobile/v1/trainings/:id',      [\App\Controllers\Api\Mobile\TrainingsController::class, 'show']);
+$router->post('/api/mobile/v1/trainings/:id/rsvp', [\App\Controllers\Api\Mobile\TrainingsController::class, 'rsvp']);
+
+// Events
+$router->get( '/api/mobile/v1/events',              [\App\Controllers\Api\Mobile\EventsController::class, 'index']);
+$router->get( '/api/mobile/v1/events/:id',          [\App\Controllers\Api\Mobile\EventsController::class, 'show']);
+$router->post('/api/mobile/v1/events/:id/register', [\App\Controllers\Api\Mobile\EventsController::class, 'register']);
+
+// Results / rankings
+$router->get('/api/mobile/v1/results',   [\App\Controllers\Api\Mobile\ResultsController::class, 'index']);
+$router->get('/api/mobile/v1/rankings',  [\App\Controllers\Api\Mobile\ResultsController::class, 'rankings']);
+
+// Documents
+$router->get('/api/mobile/v1/documents',       [\App\Controllers\Api\Mobile\DocumentsController::class, 'index']);
+$router->get('/api/mobile/v1/documents/:type', [\App\Controllers\Api\Mobile\DocumentsController::class, 'show']);
+
+// Notifications
+$router->get( '/api/mobile/v1/notifications',          [\App\Controllers\Api\Mobile\NotificationsController::class, 'index']);
+$router->post('/api/mobile/v1/notifications/:id/read', [\App\Controllers\Api\Mobile\NotificationsController::class, 'markRead']);
+$router->post('/api/mobile/v1/notifications/read-all', [\App\Controllers\Api\Mobile\NotificationsController::class, 'markAllRead']);
+
+// Push token registration
+$router->post('/api/mobile/v1/push/register',   [\App\Controllers\Api\Mobile\PushController::class, 'register']);
+$router->post('/api/mobile/v1/push/unregister', [\App\Controllers\Api\Mobile\PushController::class, 'unregister']);
 // API v1: mobile auth (per-member tokens)
 $router->post('/api/v1/auth/refresh',  [\App\Controllers\Api\AuthApiController::class, 'refresh']);
 $router->post('/api/v1/auth/logout',   [\App\Controllers\Api\AuthApiController::class, 'logout']);
