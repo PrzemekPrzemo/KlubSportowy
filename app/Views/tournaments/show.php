@@ -17,6 +17,9 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0"><i class="bi bi-trophy me-2"></i><?= View::e($tournament['name']) ?></h4>
     <div class="d-flex gap-2">
+        <a href="<?= url('tournaments/' . (int)$tournament['id'] . '/bracket') ?>" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-diagram-3"></i> Drabinka
+        </a>
         <?php if (in_array($tournament['status'], ['active','finished'], true)): ?>
             <a href="<?= url('tournaments/' . (int)$tournament['id'] . '/results') ?>"
                class="btn btn-primary btn-sm">

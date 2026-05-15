@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Helpers\Bracket\BracketAdvancer;
 use App\Helpers\Csrf;
 use App\Helpers\Session;
 use App\Helpers\SportModuleLoader;
@@ -189,6 +190,14 @@ class TournamentsController extends BaseController
         }
 
         $model->recordResult((int)$matchId, $winnerId, $score1, $score2);
+
+        // Posun zwyciezce do nastepnej rundy + opcjonalny SSE push do live channel.
+        try {
+            BracketAdvancer::advance((int)$matchId);
+        } catch (\Throwable) {
+            // Advancement nigdy nie crashuje zapisu wyniku.
+        }
+
         Session::flash('success', 'Wynik zapisany.');
         $this->redirect('tournaments/' . $match['tournament_id']);
     }

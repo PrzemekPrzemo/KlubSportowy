@@ -1028,6 +1028,13 @@ $router->post('/tournaments/:id/generate',           [\App\Controllers\Tournamen
 $router->post('/tournaments/match/:matchId/result',  [\App\Controllers\TournamentsController::class, 'recordResult']);
 $router->post('/tournaments/:id/delete',             [\App\Controllers\TournamentsController::class, 'delete']);
 
+// ── Drabinki turniejowe (single/double elim, round-robin) ──
+$router->get ('/tournaments/:id/bracket',           [\App\Controllers\TournamentBracketController::class, 'show']);
+$router->get ('/tournaments/:id/bracket/generate',  [\App\Controllers\TournamentBracketController::class, 'generateForm']);
+$router->post('/tournaments/:id/bracket/generate',  [\App\Controllers\TournamentBracketController::class, 'generate']);
+$router->get ('/tournaments/:id/bracket/seeds',     [\App\Controllers\TournamentBracketController::class, 'seedsForm']);
+$router->post('/tournaments/:id/bracket/seeds',     [\App\Controllers\TournamentBracketController::class, 'saveSeeds']);
+$router->get ('/tournaments/:id/bracket/pdf',       [\App\Controllers\TournamentBracketController::class, 'exportPdf']);
 // ── Wyniki turniejowe (sędzia) + auto-recalc rankingu ─────────────
 $router->get( '/tournaments/:id/results',          [\App\Controllers\TournamentResultsController::class, 'form']);
 $router->post('/tournaments/:id/results/save',     [\App\Controllers\TournamentResultsController::class, 'save']);
