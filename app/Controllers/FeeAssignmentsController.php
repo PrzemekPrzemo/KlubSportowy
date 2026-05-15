@@ -5,12 +5,15 @@ namespace App\Controllers;
 use App\Helpers\Auth;
 use App\Helpers\Csrf;
 use App\Helpers\Database;
+use App\Helpers\MemberFilter;
+use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Helpers\ValidatesRequest;
 use App\Models\FeeDiscountModel;
 use App\Models\FeeRateModel;
 use App\Models\MemberFeeAssignmentModel;
 use App\Models\MemberModel;
+use App\Models\SportModel;
 
 /**
  * Faza P.3 — przypisanie polityki opłat (fee_rate) do zawodnika
@@ -232,6 +235,101 @@ class FeeAssignmentsController extends BaseController
             'period'    => $rate['period'],
             ...$preview,
         ]);
+    }
+
+    /**
+     * Formularz bulk-assign: wybór fee_rate + filtr członków + okres.
+     * Dostępny dla zarząd/księgowy/admin.
+     */
+    public function bulkAssignForm(): void
+    {
+        $this->requireRole(['zarzad', 'ksiegowy', 'admin']);
+        $rates      = (new FeeRateModel())->listForClub(null, true);
+        $clubSports = (new SportModel())->listForClub($this->currentClub());
+        $statuses   = MemberFeeAssignmentModel::$STATUSES;
+
+        $this->render('assignments/bulk_assign', [
+            'title'      => 'Masowe przypisanie składek',
+            'rates'      => $rates,
+            'clubSports' => $clubSports,
+            'statuses'   => $statuses,
+        ]);
+    }
+
+    /**
+     * Wykonuje bulk-assign na członkach pasujących do filtra.
+     * Tworzy po jednym member_fee_assignment per zawodnika.
+     */
+    public function bulkAssign(): void
+    {
+        Csrf::verify();
+        $this->requireRole(['zarzad', 'ksiegowy', 'admin']);
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!RateLimiter::check($ip, 'bulk_fee_assign', 5, 60)) {
+            Session::flash('error', 'Przekroczono limit bulk operacji (5/godz). Spróbuj później.');
+            $this->redirect('fees/bulk-assign');
+        }
+        RateLimiter::hit($ip, 'bulk_fee_assign', 5, 60);
+
+        $feeRateId = (int)($_POST['fee_rate_id'] ?? 0);
+        $validFrom = $this->validateOptionalDate($_POST['valid_from'] ?? null) ?? date('Y-m-d');
+        $validTo   = $this->validateOptionalDate($_POST['valid_to']   ?? null);
+        $status    = in_array($_POST['status'] ?? 'active', array_keys(MemberFeeAssignmentModel::$STATUSES), true)
+            ? $_POST['status'] : 'active';
+
+        if ($feeRateId <= 0) {
+            Session::flash('error', 'Wybierz stawkę opłat.');
+            $this->redirect('fees/bulk-assign');
+        }
+
+        $rate = (new FeeRateModel())->findById($feeRateId);
+        if (!$rate) {
+            Session::flash('error', 'Nieprawidłowa stawka opłat.');
+            $this->redirect('fees/bulk-assign');
+        }
+
+        $filter = MemberFilter::fromRequest($_POST);
+        $rows   = MemberFilter::query($this->currentClub(), $filter, 5000);
+
+        if (empty($rows)) {
+            Session::flash('warning', 'Filtr nie zwrócił żadnych członków.');
+            $this->redirect('fees/bulk-assign');
+        }
+
+        $model       = new MemberFeeAssignmentModel();
+        $created     = 0;
+        $skipped     = 0;
+        foreach ($rows as $m) {
+            try {
+                // Idempotentnie: nie twórz duplikatu jeśli już istnieje aktywne identyczne
+                $existing = $model->activeForMember((int)$m['id'], $validFrom);
+                $alreadyHas = false;
+                foreach ($existing as $e) {
+                    if ((int)$e['fee_rate_id'] === $feeRateId) {
+                        $alreadyHas = true; break;
+                    }
+                }
+                if ($alreadyHas) { $skipped++; continue; }
+
+                $model->insert([
+                    'member_id'   => (int)$m['id'],
+                    'fee_rate_id' => $feeRateId,
+                    'valid_from'  => $validFrom,
+                    'valid_to'    => $validTo,
+                    'status'      => $status,
+                    'notes'       => 'Bulk assign: ' . MemberFilter::describe($filter),
+                    'created_by'  => Auth::id(),
+                ]);
+                $created++;
+            } catch (\Throwable $e) {
+                $skipped++;
+            }
+        }
+
+        Session::flash('success', "Przypisano stawkę {$created} zawodnikom." .
+            ($skipped > 0 ? " {$skipped} pominięto (duplikat lub błąd)." : ''));
+        $this->redirect('fees/assignments');
     }
 
     private function validateOptionalDate(mixed $value): ?string

@@ -2,8 +2,11 @@
 
 namespace App\Controllers;
 
+use App\Helpers\Auth;
 use App\Helpers\CsvExporter;
 use App\Helpers\Csrf;
+use App\Helpers\MemberFilter;
+use App\Helpers\RateLimiter;
 use App\Helpers\Session;
 use App\Models\ClubOnboardingConfigModel;
 use App\Models\EmailEventCatalogModel;
@@ -12,6 +15,7 @@ use App\Models\MemberIdentityModel;
 use App\Models\MemberModel;
 use App\Models\MemberSportModel;
 use App\Models\SportModel;
+use App\Models\TenantAccessLogModel;
 
 class MembersController extends BaseController
 {
@@ -449,6 +453,110 @@ class MembersController extends BaseController
 
         Session::flash('success', "Zakolejkowano {$sent} wiadomości. Worker email-owy wyśle je w tle." . ($skipped > 0 ? " {$skipped} pominięto (brak email)." : ''));
         $this->redirect('members');
+    }
+
+    /**
+     * Bulk export: formularz wyboru filtrów + kolumn.
+     * Dostępny dla zarząd / księgowy / admin / super admin.
+     */
+    public function exportBulkForm(): void
+    {
+        $this->requireRole(['zarzad', 'ksiegowy', 'admin']);
+        $clubSports = (new SportModel())->listForClub($this->currentClub());
+        $this->render('members/export_bulk', [
+            'title'      => 'Eksport członków',
+            'clubSports' => $clubSports,
+            'canSensitive' => Auth::canAccessSensitiveData(),
+        ]);
+    }
+
+    /**
+     * Bulk export: generuje CSV (zgodne z Excel) z wybranymi kolumnami i filtrami.
+     *
+     * Bezpieczeństwo:
+     *   - rate limit (5 / godz)
+     *   - eksport PESEL/medyczne wymagają canAccessSensitiveData
+     *   - sensitive eksport logujemy do tenant_access_log
+     */
+    public function exportBulk(): void
+    {
+        Csrf::verify();
+        $this->requireRole(['zarzad', 'ksiegowy', 'admin']);
+
+        // Rate limit: max 5 bulk operacji / godz per IP.
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!RateLimiter::check($ip, 'bulk_export', 5, 60)) {
+            Session::flash('error', 'Przekroczono limit eksportów (5/godz). Spróbuj później.');
+            $this->redirect('members/export');
+        }
+        RateLimiter::hit($ip, 'bulk_export', 5, 60);
+
+        $filter  = MemberFilter::fromRequest($_POST);
+        $columns = is_array($_POST['columns'] ?? null) ? $_POST['columns'] : [];
+        if (empty($columns)) {
+            Session::flash('error', 'Wybierz przynajmniej jedną kolumnę do eksportu.');
+            $this->redirect('members/export');
+        }
+        $columns = array_values(array_intersect(
+            $columns,
+            ['member_number','first_name','last_name','email','phone','pesel',
+             'birth_date','gender','address_street','address_city','address_postal',
+             'join_date','status','notes']
+        ));
+
+        $rows = MemberFilter::query($this->currentClub(), $filter, 5000);
+
+        $sensitiveCols = array_intersect($columns, ['pesel']);
+        if (!empty($sensitiveCols) && !Auth::canAccessSensitiveData()) {
+            Session::flash('error', 'Brak uprawnień do eksportu danych szczególnej kategorii (PESEL).');
+            $this->redirect('members/export');
+        }
+
+        // Audit sensitive bulk export
+        if (!empty($sensitiveCols)) {
+            try {
+                (new TenantAccessLogModel())->logBypass(
+                    'members',
+                    'bulk_export_sensitive',
+                    __FILE__,
+                    __LINE__,
+                    self::class,
+                    'warning',
+                    'cols=' . implode(',', $sensitiveCols) . ';filter=' . MemberFilter::describe($filter)
+                );
+            } catch (\Throwable) {}
+        }
+
+        // Build headers + rows
+        $labels = [
+            'member_number'   => 'Nr czlonkowski',
+            'first_name'      => 'Imie',
+            'last_name'       => 'Nazwisko',
+            'email'           => 'Email',
+            'phone'           => 'Telefon',
+            'pesel'           => 'PESEL',
+            'birth_date'      => 'Data urodzenia',
+            'gender'          => 'Plec',
+            'address_street'  => 'Ulica',
+            'address_city'    => 'Miasto',
+            'address_postal'  => 'Kod pocztowy',
+            'join_date'       => 'Data wstapienia',
+            'status'          => 'Status',
+            'notes'           => 'Uwagi',
+        ];
+        $headers = array_map(fn($c) => $labels[$c] ?? $c, $columns);
+
+        $outRows = [];
+        foreach ($rows as $r) {
+            $row = [];
+            foreach ($columns as $c) {
+                $row[] = (string)($r[$c] ?? '');
+            }
+            $outRows[] = $row;
+        }
+
+        $filename = 'members_export_' . date('Ymd_His') . '.csv';
+        CsvExporter::download($filename, $headers, $outRows);
     }
 
     /** Ustawia lub resetuje hasło portalu zawodnika. */
