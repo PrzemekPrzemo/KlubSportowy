@@ -121,8 +121,14 @@ $router = new \App\Helpers\Router();
 $router->get('/favicon.ico', [\App\Controllers\BrandingAssetController::class, 'favicon']);
 
 // In-app help center (publiczne — dostępne dla zalogowanych i anonimowych)
-$router->get('/help',        [\App\Controllers\HelpController::class, 'index']);
-$router->get('/help/:slug',  [\App\Controllers\HelpController::class, 'page']);
+$router->get('/help',                  [\App\Controllers\HelpController::class, 'index']);
+// Manuale per-rola (Zawodnik / Rodzic) — pełne podręczniki HTML zamiast markdownu.
+// Routes muszą być przed `/help/:slug`, bo router używa kolejności zarejestrowania.
+$router->get('/help/member',           [\App\Controllers\HelpController::class, 'memberIndex']);
+$router->get('/help/member/:slug',     [\App\Controllers\HelpController::class, 'memberPage']);
+$router->get('/help/parent',           [\App\Controllers\HelpController::class, 'parentIndex']);
+$router->get('/help/parent/:slug',     [\App\Controllers\HelpController::class, 'parentPage']);
+$router->get('/help/:slug',            [\App\Controllers\HelpController::class, 'page']);
 
 // Strona startowa → logowanie (landing page jest na clubdesk.pl)
 $router->get('/', [\App\Controllers\AuthController::class, 'showLogin']);
@@ -350,9 +356,22 @@ $router->post('/impersonate/stop', [\App\Controllers\ImpersonationController::cl
 // Demo — publiczny dostep przez token
 $router->get('/demo/:token', [\App\Controllers\DemoController::class, 'loginViaToken']);
 
-// Legal pages
+// Legal pages — full document suite (ToS, Privacy, Cookies, DPA, SLA, member_clause)
+$router->get('/legal',                          [\App\Controllers\LegalController::class, 'index']);
+$router->post('/legal/accept',                  [\App\Controllers\LegalController::class, 'accept']);
+$router->post('/legal/accept-cookies',          [\App\Controllers\LegalController::class, 'acceptCookies']);
+$router->get('/legal/:slug',                    [\App\Controllers\LegalController::class, 'show']);
+$router->get('/legal/:slug/v/:version',         [\App\Controllers\LegalController::class, 'showVersion']);
+// Legacy (301 → /legal/...)
 $router->get('/terms',   [\App\Controllers\LegalController::class, 'terms']);
 $router->get('/privacy', [\App\Controllers\LegalController::class, 'privacy']);
+
+// Admin platform — wersjonowanie dokumentów prawnych (super-admin only)
+$router->get('/admin/platform/legal-docs',                           [\App\Controllers\AdminLegalDocsController::class, 'index']);
+$router->get('/admin/platform/legal-docs/:type',                     [\App\Controllers\AdminLegalDocsController::class, 'versions']);
+$router->get('/admin/platform/legal-docs/:type/new',                 [\App\Controllers\AdminLegalDocsController::class, 'createForm']);
+$router->post('/admin/platform/legal-docs/:type/publish',            [\App\Controllers\AdminLegalDocsController::class, 'publish']);
+$router->get('/admin/platform/legal-docs/acceptances',               [\App\Controllers\AdminLegalDocsController::class, 'acceptances']);
 
 // Strony publiczne (bez logowania)
 // Q.1 — Publiczny cennik (no-auth)
