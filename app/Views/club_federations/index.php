@@ -1,4 +1,22 @@
-<?php use App\Helpers\View; ?>
+<?php
+use App\Helpers\View;
+use App\Helpers\Federations\FederationExporterFactory;
+use App\Helpers\Federations\FederationExporterInterface;
+
+$metadata = FederationExporterFactory::supportedWithMetadata();
+
+/** Mapowanie status → Bootstrap badge class + label PL. */
+$statusInfo = static function (string $status): array {
+    return match ($status) {
+        FederationExporterInterface::STATUS_SCRAPING => ['cls' => 'success',   'label' => 'Aktywne scraping', 'icon' => 'broadcast-pin'],
+        FederationExporterInterface::STATUS_LOGIN    => ['cls' => 'warning',   'label' => 'Wymaga loginu',    'icon' => 'key'],
+        FederationExporterInterface::STATUS_API      => ['cls' => 'primary',   'label' => 'REST API',         'icon' => 'cloud-check'],
+        FederationExporterInterface::STATUS_STUB     => ['cls' => 'danger',    'label' => 'Wymaga umowy',     'icon' => 'exclamation-triangle'],
+        FederationExporterInterface::STATUS_CSV_ONLY => ['cls' => 'info',      'label' => 'Tylko CSV',        'icon' => 'filetype-csv'],
+        default                                      => ['cls' => 'secondary', 'label' => $status,             'icon' => 'question-circle'],
+    };
+};
+?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-0">
@@ -12,11 +30,13 @@
 
 <div class="alert alert-info small">
     <i class="bi bi-info-circle me-1"></i>
-    <strong>Każdy klub może mieć własne credentials</strong> do federacji
-    (PZPN/PZSS/PZKosz/PZLA). Pozwala automatyczne zgłaszanie zawodników,
-    aktualizacje danych i odnawianie licencji. Wrażliwe pola (login/hasło/token)
-    są szyfrowane AES-256-GCM przed zapisem do bazy. Federacje bez API obsługujemy
-    przez eksport CSV (manualny import w panelu federacji).
+    <strong>Każdy klub może mieć własne credentials</strong> do federacji.
+    Wrażliwe pola (login/hasło/token) są szyfrowane AES-256-GCM przed zapisem.
+    Status adaptera (kolorowy badge) wskazuje, co rzeczywiście robi integracja:
+    <span class="badge bg-success">scraping publicznych danych</span>,
+    <span class="badge bg-warning text-dark">wymaga loginu klubu</span>,
+    <span class="badge bg-danger">stub / wymaga umowy partnerskiej</span>,
+    <span class="badge bg-info">tylko CSV</span>.
 </div>
 
 <?php if ($flash = \App\Helpers\Session::getFlash('success')): ?>
@@ -32,6 +52,9 @@
         $isConfigured = $row !== null;
         $isActive     = $isConfigured && !empty($row['is_active']);
         $hasCreds     = $isConfigured && (!empty($row['has_username']) || !empty($row['has_token']));
+        $meta         = $metadata[$code] ?? null;
+        $status       = $meta['status'] ?? FederationExporterInterface::STATUS_CSV_ONLY;
+        $si           = $statusInfo($status);
     ?>
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 <?= $isActive ? 'border-success' : '' ?>">
@@ -42,6 +65,10 @@
                             <h5 class="mb-0"><?= View::e($code) ?></h5>
                             <small class="text-muted"><?= View::e($label) ?></small>
                             <div class="mt-1">
+                                <span class="badge bg-<?= View::e($si['cls']) ?>"
+                                      title="Status adaptera">
+                                    <i class="bi bi-<?= View::e($si['icon']) ?> me-1"></i><?= View::e($si['label']) ?>
+                                </span>
                                 <?php if ($isActive): ?>
                                     <span class="badge bg-success">Aktywna</span>
                                 <?php elseif ($isConfigured): ?>
@@ -84,7 +111,15 @@
                         </ul>
                     <?php else: ?>
                         <p class="text-muted small mb-3">
-                            Skonfiguruj credentials, aby eksportować zawodników do federacji.
+                            <?php if ($status === FederationExporterInterface::STATUS_SCRAPING): ?>
+                                Scraping publicznych danych działa bez credentiali. Konfiguracja opcjonalna (org. ID dla CSV).
+                            <?php elseif ($status === FederationExporterInterface::STATUS_LOGIN): ?>
+                                Wymaga loginu klubu w panelu federacji — wpisz credentiale aby aktywować.
+                            <?php elseif ($status === FederationExporterInterface::STATUS_STUB): ?>
+                                Federacja zamknięta — wymaga umowy partnerskiej. Adapter to stub.
+                            <?php else: ?>
+                                Skonfiguruj eksport CSV (manualny import w panelu federacji).
+                            <?php endif; ?>
                         </p>
                     <?php endif; ?>
 
@@ -112,8 +147,17 @@
 
 <div class="mt-4 alert alert-secondary small">
     <i class="bi bi-info-circle me-1"></i>
-    <strong>Adaptery STUB.</strong> Aktualnie zaimplementowane są sygnatury
-    + sanity-check credentials. Pełna integracja z API/portalami federacji
-    wymaga osobnych ticketów (każda federacja ma inną dokumentację, niektóre
-    są zamknięte za logowaniem). Fallback dla federacji bez API: eksport CSV.
+    <strong>Co który adapter realnie robi?</strong>
+    <ul class="mb-0 mt-2">
+        <li><strong>SCRAPING</strong> (PZSS, PZLA, PZHL, PZPS, PZW, PZJ) — pobieramy publiczne dane
+            (wyniki, profile zawodników) z portali federacji, z respektowaniem robots.txt,
+            User-Agent <code>ClubDesk Bot/1.0</code>, rate-limit 5s/domain i cache 1h.
+            Rejestracja zawodników = CSV do ręcznego wgrania w panelu klubu.</li>
+        <li><strong>WYMAGA LOGINU</strong> (PZKosz Probasket, PZTS stat.pzts.pl) — sygnatury gotowe,
+            faktyczny cookie-login flow w osobnym tickecie. Eksport członków = CSV.</li>
+        <li><strong>STUB</strong> (PZPN Łączy Nas Piłka / Extranet) — wymaga umowy partnerskiej
+            z federacją, nie da się ominąć technicznie.</li>
+        <li><strong>TYLKO CSV</strong> — federacje spoza listy automatycznie dostają fallback
+            <code>GenericCsvExporter</code>.</li>
+    </ul>
 </div>

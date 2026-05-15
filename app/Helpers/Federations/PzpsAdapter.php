@@ -3,24 +3,24 @@
 namespace App\Helpers\Federations;
 
 /**
- * Adapter PZLA (Polski Związek Lekkiej Atletyki).
+ * Adapter PZPS (Polski Związek Piłki Siatkowej).
  *
- * STATUS: SCRAPING publicznych danych (rejestr zawodników DOMTEL) + CSV fallback
- * dla rejestracji nowych zawodników (PZLA wymaga rejestracji w panelu klubu).
+ * STATUS: SCRAPING publicznych danych (PlusLiga / PZPS portal).
  *
  * Realne operacje:
- *   - testConnection()    → HEAD do domtel-sport.pl
- *   - fetchMemberStatus() → próba znalezienia profilu w publicznym rejestrze
- *   - exportMember()      → CSV-row dla manualnego importu w panelu klubu DOMTEL
+ *   - testConnection()    → HEAD do pzps.pl
+ *   - fetchMemberStatus() → próba scrapingu profilu/listy zawodników po
+ *                           external_id w plusliga.pl
+ *   - exportMember()      → CSV-row (brak push API; rejestracja idzie przez
+ *                           panel klubu PZPS)
  *
  * Konfiguracja:
- *   - api_username, api_password (DOMTEL klubu) — opcjonalne, login nie używany w tym adapterze
- *   - organization_id (numer klubu PZLA)
+ *   - organization_id (numer klubu PZPS)
  */
-class PzlaAdapter implements FederationExporterInterface
+class PzpsAdapter implements FederationExporterInterface
 {
-    private const PORTAL_BASE = 'https://domtel-sport.pl';
-    private const ATHLETICS_BASE = self::PORTAL_BASE . '/lekkoatletyka';
+    private const PORTAL_BASE = 'https://www.pzps.pl';
+    private const PLUSLIGA_BASE = 'https://www.plusliga.pl';
 
     private FederationScrapingClient $http;
 
@@ -33,7 +33,7 @@ class PzlaAdapter implements FederationExporterInterface
 
     public function federationCode(): string
     {
-        return 'PZLA';
+        return 'PZPS';
     }
 
     public function adapterStatus(): string
@@ -45,7 +45,7 @@ class PzlaAdapter implements FederationExporterInterface
     {
         return ExportResult::success(
             externalId: '',
-            message:    'DOMTEL/PZLA nie udostępnia push API — przygotowano wiersz CSV do ręcznego importu w panelu klubu.',
+            message:    'PZPS nie udostępnia push API — przygotowano wiersz CSV.',
             raw:        ['csv_row' => $this->toCsvRow($member), 'manual_action_required' => true],
         );
     }
@@ -54,7 +54,7 @@ class PzlaAdapter implements FederationExporterInterface
     {
         return ExportResult::success(
             externalId: $member->externalId ?? '',
-            message:    'Aktualizacja w DOMTEL wymaga ręcznego potwierdzenia — wiersz CSV przygotowany.',
+            message:    'Aktualizacja w PZPS wymaga ręcznego potwierdzenia — wiersz CSV przygotowany.',
             raw:        ['csv_row' => $this->toCsvRow($member), 'manual_action_required' => true],
         );
     }
@@ -66,30 +66,27 @@ class PzlaAdapter implements FederationExporterInterface
             return ['status' => 'invalid_input', 'message' => 'Pusty identyfikator zawodnika.'];
         }
 
-        // Próba: profil zawodnika po ID w rejestrze DOMTEL.
-        $url = self::ATHLETICS_BASE . '/zawodnik/' . urlencode($externalId);
+        $url = self::PLUSLIGA_BASE . '/players/id/' . urlencode($externalId) . '.html';
         $html = $this->http->get($url);
-
         if ($html === null) {
             return [
                 'status'     => 'not_found_or_unavailable',
                 'verify_url' => $url,
-                'message'    => 'Nie udało się pobrać profilu z DOMTEL — zweryfikuj ręcznie.',
+                'message'    => 'Nie udało się pobrać profilu z PlusLiga — zweryfikuj ręcznie.',
             ];
         }
 
-        // Best-effort: wyciągnij imię/nazwisko i ranking (najprostszy schemat)
         $name = null;
         if (preg_match('/<h1[^>]*>(?P<name>[^<]+)<\/h1>/u', $html, $m)) {
             $name = trim(html_entity_decode($m['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
         }
 
         return [
-            'status'      => 'found',
+            'status'      => $name !== null ? 'found' : 'page_returned_no_name',
             'external_id' => $externalId,
             'name'        => $name,
             'verify_url'  => $url,
-            'source'      => 'domtel_scrape',
+            'source'      => 'plusliga_scrape',
         ];
     }
 
@@ -112,8 +109,8 @@ class PzlaAdapter implements FederationExporterInterface
         return [
             'ok'          => $ok,
             'message'     => $ok
-                ? 'Portal DOMTEL (PZLA) dostępny. Scraping publicznych profili aktywny.'
-                : "Portal DOMTEL niedostępny (HTTP $code).",
+                ? 'Portal PZPS dostępny. Scraping PlusLiga aktywny.'
+                : "Portal PZPS niedostępny (HTTP $code).",
             'portal_http' => $code,
             'mode'        => 'scraping_public',
         ];
@@ -121,19 +118,15 @@ class PzlaAdapter implements FederationExporterInterface
 
     private function toCsvRow(MemberPayload $m): array
     {
-        $extras = $m->extras;
         return [
             'pesel'           => $m->pesel,
             'imie'            => $m->firstName,
             'nazwisko'        => $m->lastName,
             'data_urodzenia'  => $m->birthDate,
             'plec'            => $m->gender,
-            'klub_id_pzla'    => $this->config['organization_id'] ?? '',
-            'kategoria'       => $extras['kategoria'] ?? '',
-            'konkurencje'     => isset($extras['konkurencje'])
-                ? (is_array($extras['konkurencje']) ? implode(';', $extras['konkurencje']) : (string)$extras['konkurencje'])
-                : '',
-            'badania_do'      => $extras['badania_do'] ?? '',
+            'klub_id_pzps'    => $this->config['organization_id'] ?? '',
+            'pozycja'         => $m->extras['pozycja'] ?? '',
+            'wzrost'          => $m->extras['wzrost'] ?? '',
             'email'           => $m->email,
             'telefon'         => $m->phone,
         ];
