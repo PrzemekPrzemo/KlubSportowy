@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- PRZYKŁAD — uzupełnij `ios/Runner/Info.plist` wygenerowany przez
+     `flutter create .` o klucze niżej (push notifications + URL launcher). -->
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>ClubDesk</string>
+    <key>CFBundleIdentifier</key>
+    <string>pl.clubdesk.mobile</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+        <string>remote-notification</string>
+    </array>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>https</string>
+        <string>http</string>
+    </array>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+    </dict>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>pl</string>
+        <string>en</string>
+    </array>
+</dict>
+</plist>

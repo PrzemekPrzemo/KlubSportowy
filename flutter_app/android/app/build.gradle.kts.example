@@ -1,0 +1,43 @@
+// PRZYKŁAD — wygenerowany przez `flutter create .` zostanie umieszczony
+// w `android/app/build.gradle.kts`. Ten plik to referencja dla
+// minSdk, targetSdk i Firebase google-services plugin.
+
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("dev.flutter.flutter-gradle-plugin")
+    // Odkomentuj po dodaniu google-services.json:
+    // id("com.google.gms.google-services")
+}
+
+android {
+    namespace = "pl.clubdesk.mobile"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "pl.clubdesk.mobile"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "0.1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
