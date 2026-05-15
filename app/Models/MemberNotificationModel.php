@@ -72,4 +72,72 @@ class MemberNotificationModel extends BaseModel
         $stmt->execute([$days]);
         return $stmt->rowCount();
     }
+
+    /**
+     * Cursor-paginated list for mobile inbox. Cursor is the last seen id;
+     * uses id-DESC ordering (created_at correlates with id for inserts).
+     */
+    public function forMember(int $memberId, ?int $cursor = null, int $limit = 20): array
+    {
+        $limit = max(1, min(100, $limit));
+        $sql   = "SELECT * FROM member_notifications WHERE member_id = ?";
+        $params = [$memberId];
+        if ($cursor !== null && $cursor > 0) {
+            $sql .= " AND id < ?";
+            $params[] = $cursor;
+        }
+        $sql .= " ORDER BY id DESC LIMIT " . ($limit + 1);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+
+        $hasMore = count($rows) > $limit;
+        if ($hasMore) {
+            array_pop($rows);
+        }
+        $nextCursor = $hasMore && !empty($rows) ? (int)end($rows)['id'] : null;
+
+        foreach ($rows as &$r) {
+            if (isset($r['data']) && is_string($r['data']) && $r['data'] !== '') {
+                $r['data'] = json_decode($r['data'], true);
+            }
+        }
+        unset($r);
+
+        return [
+            'data'        => $rows,
+            'next_cursor' => $nextCursor,
+        ];
+    }
+
+    public function markAllRead(int $memberId): int
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE member_notifications SET read_at = NOW()
+             WHERE member_id = ? AND read_at IS NULL"
+        );
+        $stmt->execute([$memberId]);
+        return $stmt->rowCount();
+    }
+
+    public function unreadCount(int $memberId): int
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM member_notifications WHERE member_id = ? AND read_at IS NULL"
+        );
+        $stmt->execute([$memberId]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function create(int $memberId, int $clubId, string $type, string $title, ?string $body = null, ?array $data = null): int
+    {
+        return $this->insert([
+            'member_id' => $memberId,
+            'club_id'   => $clubId,
+            'type'      => $type,
+            'title'     => $title,
+            'body'      => $body,
+            'data'      => $data !== null ? json_encode($data, JSON_UNESCAPED_UNICODE) : null,
+        ]);
+    }
 }
