@@ -57,7 +57,14 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         .sidebar .section-toggle[aria-expanded="false"] .bi-chevron-down { transform: rotate(-90deg); }
         .sidebar .section-items { overflow: hidden; max-height: 2000px; transition: max-height .25s ease; }
         .sidebar .section-toggle[aria-expanded="false"] + .section-items { max-height: 0; }
-        .main-content { margin-left: 260px; padding: 1.5rem; min-height: 100vh; background: var(--cd-slate, #F0F2F5); }
+        .main-content { margin-left: 260px; padding: 1.5rem; min-height: 100vh; background: var(--cd-slate, #F0F2F5); display: flex; flex-direction: column; }
+        .main-content > .cd-page { flex: 1; }
+        .cd-footer { margin-top: 2rem; padding: 1.25rem 0 .5rem; border-top: 1px solid rgba(0,0,0,.08);
+            font-size: .8rem; color: #6c757d; }
+        .cd-footer a { color: var(--app-primary); text-decoration: none; }
+        .cd-footer a:hover { text-decoration: underline; }
+        .cd-footer .legal-links { white-space: nowrap; }
+        @media (max-width: 768px) { .cd-footer .row { gap: .5rem; } }
         .btn-primary, .bg-primary { background-color: var(--app-primary) !important; border-color: var(--app-primary) !important; }
         .text-primary { color: var(--app-primary) !important; }
         .card { border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
@@ -492,7 +499,24 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         <?php endif; ?>
     <?php endforeach; ?>
 
-    <?= $content ?? '' ?>
+    <div class="cd-page">
+        <?= $content ?? '' ?>
+    </div>
+
+    <footer class="cd-footer">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <span>&copy; <?= date('Y') ?> <?= View::e($appName ?? 'ClubDesk') ?> &middot; Sendormeco Holding Sp. z o.o. &middot; NIP 5252866457</span>
+            </div>
+            <div class="col-md-5 text-md-end legal-links">
+                <a href="<?= url('legal/regulamin') ?>">Regulamin</a> &middot;
+                <a href="<?= url('legal/polityka-prywatnosci') ?>">Polityka prywatności</a> &middot;
+                <a href="<?= url('legal/cookies') ?>">Cookies</a> &middot;
+                <a href="<?= url('legal/dpa') ?>">RODO</a> &middot;
+                <a href="mailto:kontakt@clubdesk.pl">Kontakt</a>
+            </div>
+        </div>
+    </footer>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

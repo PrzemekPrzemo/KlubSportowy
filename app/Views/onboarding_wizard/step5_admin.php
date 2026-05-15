@@ -58,14 +58,25 @@ $nFees   = count($summary['fees'] ?? []);
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="accept_terms" id="t1" required>
                                         <label class="form-check-label" for="t1">
-                                            Akceptuje <a href="/help/regulamin" target="_blank">regulamin</a> i <a href="/help/polityka-prywatnosci" target="_blank">polityke prywatnosci</a> <span class="text-danger">*</span>
+                                            Akceptuję <a href="<?= url('legal/regulamin') ?>" target="_blank">Regulamin</a>
+                                            i <a href="<?= url('legal/polityka-prywatnosci') ?>" target="_blank">Politykę prywatności</a>
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="accept_dpa" id="t_dpa" required>
+                                        <label class="form-check-label" for="t_dpa">
+                                            Akceptuję
+                                            <a href="<?= url('legal/dpa') ?>" target="_blank">umowę powierzenia przetwarzania danych osobowych (DPA)</a>,
+                                            niezbędną do przetwarzania danych Członków klubu w platformie ClubDesk
+                                            (art. 28 RODO) <span class="text-danger">*</span>
                                         </label>
                                     </div>
                                     <div class="form-check mb-4">
                                         <input class="form-check-input" type="checkbox" name="accept_marketing" id="t2"
                                                <?= !empty($data['marketing']) ? 'checked' : '' ?>>
                                         <label class="form-check-label" for="t2">
-                                            Chce otrzymywac informacje o nowosciach i poradach (opcjonalnie).
+                                            Chcę otrzymywać informacje o nowościach i poradach (opcjonalnie).
                                         </label>
                                     </div>
 
