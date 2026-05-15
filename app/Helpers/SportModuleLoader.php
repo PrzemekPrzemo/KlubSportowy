@@ -67,6 +67,12 @@ class SportModuleLoader
 
     /**
      * Zwraca listę pozycji nawigacyjnych dla aktualnie aktywnej sekcji sportowej.
+     *
+     * Łączy:
+     *   1) Statyczny `nav` z manifest.php sportu (dedykowane controllery)
+     *   2) Dynamiczne wpisy z tabeli `sport_module_resources` (generic CRUD)
+     *      pod URL-em `sport/<key>/<resource>` — generic SportModuleController.
+     *
      * Jeśli SportContext nie jest ustawiony — zwraca pustą tablicę.
      */
     public static function navForActiveSport(): array
@@ -74,7 +80,42 @@ class SportModuleLoader
         $key = SportContext::currentSportKey();
         if ($key === null) return [];
         $module = self::get($key);
-        return $module['nav'] ?? [];
+        $manifestNav = $module['nav'] ?? [];
+
+        // Mapa już-zarejestrowanych URL-i (z manifestu) aby unikac duplikatow
+        $existingUrls = [];
+        foreach ($manifestNav as $item) {
+            if (!empty($item['url'])) $existingUrls[trim((string)$item['url'], '/')] = true;
+        }
+
+        // Doloz generic resources (jesli tabela istnieje)
+        $generic = [];
+        try {
+            $pdo = Database::pdo();
+            $check = $pdo->query("SHOW TABLES LIKE 'sport_module_resources'");
+            if ($check && $check->fetchColumn()) {
+                $stmt = $pdo->prepare(
+                    'SELECT resource_key, resource_label, icon
+                     FROM sport_module_resources
+                     WHERE sport_key = ? AND is_active = 1
+                     ORDER BY sort_order ASC, resource_label ASC'
+                );
+                $stmt->execute([$key]);
+                foreach ($stmt->fetchAll() as $r) {
+                    $url = 'sport/' . $key . '/' . (string)$r['resource_key'];
+                    if (isset($existingUrls[$url])) continue;
+                    $generic[] = [
+                        'label' => (string)$r['resource_label'],
+                        'icon'  => (string)($r['icon'] ?: 'bi-table'),
+                        'url'   => $url,
+                    ];
+                }
+            }
+        } catch (\Throwable) {
+            // DB nie dostępna / migracja 073 nie uruchomiona — zwracamy tylko manifest
+        }
+
+        return array_merge($manifestNav, $generic);
     }
 
     /** Reset cache — używane w testach. */
