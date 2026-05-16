@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Helpers\Csrf;
 use App\Helpers\Ksef\KsefApiClient;
 use App\Helpers\Session;
+use App\Models\ClubInvoiceModel;
 use App\Models\ClubKsefConfigModel;
 
 /**
@@ -59,11 +60,40 @@ class ClubKsefController extends BaseController
     {
         $clubId = (int)$this->currentClub();
         $cfg    = $this->model->findForClub($clubId);
+
+        // Phase 2 — bieżący format numeracji dla aktualnego roku.
+        $year             = (int)date('Y');
+        $invModel         = new ClubInvoiceModel();
+        $numberingFormat  = $invModel->numberingFormat($clubId, $year);
+
         $this->render('club/ksef_settings/index', [
             'title'  => 'KSeF — konfiguracja',
             'cfg'    => $cfg,
             'clubId' => $clubId,
+            'numberingFormat' => $numberingFormat,
+            'numberingYear'   => $year,
         ]);
+    }
+
+    /**
+     * Phase 2 — zmiana formatu numeru faktur dla danego roku.
+     * Placeholder {seq} jest WYMAGANY.
+     */
+    public function saveNumbering(): void
+    {
+        Csrf::verify();
+        $clubId = (int)$this->currentClub();
+        $year   = (int)($_POST['year'] ?? date('Y'));
+        $format = (string)($_POST['format'] ?? '');
+
+        if (strpos($format, '{seq}') === false) {
+            Session::flash('error', 'Format numeru musi zawierać placeholder {seq}.');
+            $this->redirect('club/ksef-settings');
+        }
+        (new ClubInvoiceModel())->setNumberingFormat($clubId, $year, $format);
+        $this->model->audit($clubId, 'config_change', "Numbering {$year}: {$format}");
+        Session::flash('success', 'Format numeracji zapisany.');
+        $this->redirect('club/ksef-settings');
     }
 
     public function update(): void

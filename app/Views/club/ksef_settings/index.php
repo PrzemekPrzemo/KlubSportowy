@@ -175,6 +175,34 @@ $sLabel   = match($status) { 'ok' => 'OK', 'failed' => 'Błąd', default => 'Nie
     </div>
 </form>
 
+<!-- Phase 2 — Numeracja faktur klubowych -->
+<div class="card p-3 mb-3">
+    <h6 class="mb-2"><i class="bi bi-hash"></i> Numeracja faktur klubowych (Phase 2)</h6>
+    <small class="text-muted d-block mb-2">
+        Format numeru wystawianych faktur. Placeholdery: <code>{seq}</code> (kolejny numer w roku), <code>{year}</code>, <code>{month}</code>.
+        <strong>{seq} jest wymagane.</strong> Numer szkicu (DRAFT-xxx) zostaje zastąpiony przy wystawieniu.
+    </small>
+    <form method="POST" action="<?= url('club/ksef-settings/numbering') ?>" class="row g-2 align-items-end">
+        <?= csrf_field() ?>
+        <div class="col-md-3">
+            <label class="form-label small">Rok</label>
+            <input type="number" name="year" class="form-control form-control-sm"
+                   value="<?= (int)($numberingYear ?? date('Y')) ?>" min="2020" max="2099" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small">Format</label>
+            <input type="text" name="format" class="form-control form-control-sm font-monospace"
+                   value="<?= View::e((string)($numberingFormat ?? 'FV/{seq}/{year}')) ?>"
+                   maxlength="50" required>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-outline-primary btn-sm w-100">
+                <i class="bi bi-save"></i> Zapisz format
+            </button>
+        </div>
+    </form>
+</div>
+
 <!-- Test connection (osobny formularz / endpoint) -->
 <div class="card p-3 bg-light">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
