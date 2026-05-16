@@ -211,6 +211,20 @@ class TrainingsController extends BaseController
             error_log('Achievements trigger after markAttendance failed: ' . $e->getMessage());
         }
 
+        // Webhook: training.completed dla zewnetrznych subskrybentow.
+        try {
+            $clubId = \App\Helpers\ClubContext::current();
+            if ($clubId !== null) {
+                \App\Helpers\Webhooks\WebhookDispatcher::publish((int)$clubId, 'training.completed', [
+                    'training_id'      => (int)$id,
+                    'attendees_marked' => count($touchedMembers),
+                    'member_ids'       => array_keys($touchedMembers),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('Webhook publish training.completed failed: ' . $e->getMessage());
+        }
+
         Session::flash('success', 'Obecność zapisana.');
         $this->redirect('trainings/' . $id);
     }

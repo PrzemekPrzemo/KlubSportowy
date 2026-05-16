@@ -133,6 +133,7 @@ $router->get('/help/member',                     [\App\Controllers\HelpControlle
 $router->get('/help/member/:slug',               [\App\Controllers\HelpController::class, 'memberPage']);
 $router->get('/help/parent',                     [\App\Controllers\HelpController::class, 'parentIndex']);
 $router->get('/help/parent/:slug',               [\App\Controllers\HelpController::class, 'parentPage']);
+$router->get('/help/api/v2',                     [\App\Controllers\HelpController::class, 'apiV2']);
 $router->get('/help/:slug',                      [\App\Controllers\HelpController::class, 'page']);
 
 // Strona startowa → logowanie (landing page jest na clubdesk.pl)
@@ -1083,6 +1084,26 @@ $router->post('/api/v1/identity/switch',    [\App\Controllers\Api\IdentityApiCon
 
 // API v1: event attendance (member)
 $router->post('/api/v1/events/:id/attendance', [\App\Controllers\Api\EventsApiController::class, 'attendance']);
+
+// ============================================================
+// Public API v2 (integracje zewnetrzne, bearer token, scope-based)
+// Auth: api_v2_tokens (SHA-256 hashed, plain pokazany raz)
+// Rate: 100 req/min per token, format {"data": ..., "meta": ...}
+// ============================================================
+$router->get('/api/v2/me',              [\App\Controllers\Api\V2\MeV2Controller::class, 'show']);
+$router->get('/api/v2/members',         [\App\Controllers\Api\V2\MembersV2Controller::class, 'index']);
+$router->get('/api/v2/members/:id',     [\App\Controllers\Api\V2\MembersV2Controller::class, 'show']);
+$router->get('/api/v2/trainings',       [\App\Controllers\Api\V2\TrainingsV2Controller::class, 'index']);
+$router->get('/api/v2/tournaments',     [\App\Controllers\Api\V2\TournamentsV2Controller::class, 'index']);
+$router->get('/api/v2/payments',        [\App\Controllers\Api\V2\PaymentsV2Controller::class, 'index']);
+
+// Admin UI: Webhooki + Tokeny API v2 (role: zarzad)
+$router->get( '/club/integrations',                            [\App\Controllers\ClubIntegrationsController::class, 'index']);
+$router->post('/club/integrations/webhook/store',              [\App\Controllers\ClubIntegrationsController::class, 'storeWebhook']);
+$router->post('/club/integrations/webhook/:id/delete',         [\App\Controllers\ClubIntegrationsController::class, 'deleteWebhook']);
+$router->post('/club/integrations/webhook/:id/test',           [\App\Controllers\ClubIntegrationsController::class, 'testWebhook']);
+$router->post('/club/integrations/token/store',                [\App\Controllers\ClubIntegrationsController::class, 'storeToken']);
+$router->post('/club/integrations/token/:id/revoke',           [\App\Controllers\ClubIntegrationsController::class, 'revokeToken']);
 
 // Sklep klubowy
 $router->get('/shop/products',               [\App\Controllers\ShopController::class, 'products']);

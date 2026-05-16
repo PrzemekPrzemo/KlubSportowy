@@ -119,6 +119,13 @@ class HelpController extends BaseController
                 'desc'  => 'Pełny podręcznik dla sekretariatu: członkowie, faktury, korespondencja, compliance.',
                 'url'   => 'help/secretariat',
             ],
+            'api-v2' => [
+                'file'  => '',
+                'title' => 'API v2 dla integracji',
+                'icon'  => 'bi-braces',
+                'desc'  => 'Public REST API v2 + webhooki — dokumentacja dla developerów integrujących systemy zewnetrzne.',
+                'url'   => 'help/api/v2',
+            ],
         ];
     }
 
@@ -443,6 +450,20 @@ class HelpController extends BaseController
             'prev'          => $prev,
             'next'          => $next,
             'innerView'     => $page['view'],
+        ]);
+    }
+
+    /**
+     * `/help/api/v2` — dokumentacja Public API v2 dla integracji zewnetrznych.
+     * Statyczna strona; bez auth dostepna.
+     */
+    public function apiV2(): void
+    {
+        if (!Auth::id()) {
+            $this->view->setLayout('landing');
+        }
+        $this->render('help/api/v2', [
+            'title' => 'Public API v2 — dokumentacja dla integracji',
         ]);
     }
 
