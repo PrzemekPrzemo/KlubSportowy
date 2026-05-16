@@ -240,6 +240,26 @@ class MemberModel extends ClubScopedModel
     }
 
     /**
+     * Lista czlonkow klubu (id, imie, nazwisko) z wykluczeniem siebie.
+     * Uzywane przez komunikator do modal "nowa rozmowa".
+     *
+     * @return array<int,array{id:int,first_name:string,last_name:string}>
+     */
+    public function listForClubExcept(int $clubId, int $excludeMemberId, int $limit = 500): array
+    {
+        $limit = max(1, min(2000, $limit));
+        $stmt = $this->db->prepare(
+            "SELECT id, first_name, last_name
+             FROM members
+             WHERE club_id = ? AND id <> ? AND status = 'aktywny'
+             ORDER BY last_name ASC, first_name ASC
+             LIMIT " . $limit
+        );
+        $stmt->execute([$clubId, $excludeMemberId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Lista wszystkich profili z visibility=public (do sitemap.xml / discovery).
      */
     public function listPublicProfiles(int $limit = 1000): array
