@@ -502,6 +502,8 @@ return [
     'nav.affiliate_program'     => 'Affiliate program',
     'nav.ads'                   => 'Reklamy',
     'nav.sponsors'              => 'Sponsorzy',
+    'nav.ksef_platform'         => 'KSeF — zarządzanie',
+    'nav.ksef_club'             => 'KSeF — faktury',
     'nav.feature_flags'         => 'Feature flags',
     'nav.system_logo'           => 'Logo systemu',
     'nav.support_tickets'       => 'Support tickets',

@@ -251,6 +251,10 @@ $router->get('/admin/platform/support/:id',          [\App\Controllers\AdminPlat
 $router->post('/admin/platform/support/:id/reply',   [\App\Controllers\AdminPlatformController::class, 'replyTicket']);
 $router->post('/admin/platform/support/:id/close',   [\App\Controllers\AdminPlatformController::class, 'closeTicket']);
 
+// Admin: KSeF (Phase 1 foundation) — toggle dostępu klubów + monitoring
+$router->get( '/admin/platform/ksef',                 [\App\Controllers\AdminPlatformKsefController::class, 'index']);
+$router->post('/admin/platform/ksef/:clubId/toggle',  [\App\Controllers\AdminPlatformKsefController::class, 'toggle']);
+
 // Admin: feature flags (per-klub boolean włącz/wyłącz feature'ów)
 $router->get('/admin/platform/feature-flags',                  [\App\Controllers\AdminFeatureFlagsController::class, 'index']);
 $router->get('/admin/platform/feature-flags/clubs/:clubId',    [\App\Controllers\AdminFeatureFlagsController::class, 'clubOverrides']);
@@ -525,6 +529,11 @@ $router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatew
 $router->post('/club/gateways/:provider/test',       [\App\Controllers\ClubGatewayController::class, 'testConnection']);
 $router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatewayController::class, 'toggleActive']);
 $router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
+
+// Per-klub KSeF (Phase 1 foundation) — config + test połączenia
+$router->get( '/club/ksef-settings',         [\App\Controllers\ClubKsefController::class, 'index']);
+$router->post('/club/ksef-settings/update',  [\App\Controllers\ClubKsefController::class, 'update']);
+$router->post('/club/ksef-settings/test',    [\App\Controllers\ClubKsefController::class, 'testConnection']);
 
 // Per-klub FederationExporter — credentials do federacji sportowych
 $router->get('/club/federations',                          [\App\Controllers\ClubFederationController::class, 'index']);

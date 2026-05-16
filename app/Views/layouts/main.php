@@ -320,6 +320,14 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('fees/bulk-assign') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.bulk_fees') ?></a>
                 <a href="<?= url('admin/campaigns') ?>"><i class="bi bi-megaphone"></i> <?= __('nav.email_sms_campaigns') ?></a>
                 <a href="<?= url('club/sponsors') ?>"><i class="bi bi-award"></i> <?= __('nav.sponsors') ?></a>
+                <?php
+                // KSeF — pokazuj wyłącznie gdy super admin włączył integrację dla tego klubu (enabled=1)
+                try {
+                    $ksefEnabled = (new \App\Models\ClubKsefConfigModel())->isEnabledForClub((int)$currentClubId);
+                } catch (\Throwable) { $ksefEnabled = false; }
+                if ($ksefEnabled): ?>
+                    <a href="<?= url('club/ksef-settings') ?>"><i class="bi bi-receipt-cutoff"></i> <?= __('nav.ksef_club') ?></a>
+                <?php endif; ?>
             </div>
         </div>
         <div class="nav-section" data-section="settings-dev">
@@ -373,6 +381,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <div class="section-items" id="sec-platform-config">
                 <a href="<?= url('admin/sports/catalog') ?>"><i class="bi bi-grid-3x3-gap"></i> <?= __('nav.sports_catalog') ?></a>
                 <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> <?= __('nav.feature_flags') ?></a>
+                <a href="<?= url('admin/platform/ksef') ?>"><i class="bi bi-receipt-cutoff"></i> <?= __('nav.ksef_platform') ?></a>
                 <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> <?= __('nav.system_logo') ?></a>
                 <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> <?= __('nav.support_tickets') ?></a>
                 <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> <?= __('nav.activity_log') ?></a>
