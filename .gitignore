@@ -10,6 +10,8 @@
 /storage/ksef/*/cert.p12
 /storage/ksef/*/cert.pfx
 /storage/ksef/*/test_logs/
+/storage/gdpr_exports/*/
+/storage/gdpr_exports/*/*.zip
 !/storage/logs/.gitkeep
 !/storage/uploads/.gitkeep
 !/storage/uploads/support/
@@ -17,6 +19,7 @@
 !/storage/backups/.gitkeep
 !/storage/cache/.gitkeep
 !/storage/ksef/.gitkeep
+!/storage/gdpr_exports/.gitkeep
 .DS_Store
 Thumbs.db
 *.log
