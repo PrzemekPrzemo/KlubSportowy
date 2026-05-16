@@ -18,6 +18,7 @@
 //                                                          adapterów + testConnection)
 // ============================================================
 declare(strict_types=1);
+require_once __DIR__ . '/../bootstrap/php_version_check.php';
 
 define('ROOT_PATH', dirname(__DIR__));
 

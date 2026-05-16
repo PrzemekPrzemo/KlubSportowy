@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../bootstrap/php_version_check.php';
 // Generate encryption key for AES-256-GCM
 // Usage: php cli/generate-key.php
 // Copy the output to config/encryption.local.php

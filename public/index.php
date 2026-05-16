@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../bootstrap/php_version_check.php';
+
 // ============================================================
 // Front Controller — KlubSportowy
 // ============================================================

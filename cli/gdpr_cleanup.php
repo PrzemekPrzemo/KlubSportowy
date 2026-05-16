@@ -8,6 +8,7 @@
 //   0 3 * * * /usr/bin/php /var/www/.../cli/gdpr_cleanup.php
 // ============================================================
 declare(strict_types=1);
+require_once __DIR__ . '/../bootstrap/php_version_check.php';
 
 define('ROOT_PATH', dirname(__DIR__));
 
