@@ -86,6 +86,7 @@ final class AdminManualManifest
                     'commissions'     => ['title' => 'Prowizje trenerów — reguły i raport', 'view' => 'help/manual/finance/commissions', 'reading_time' => '5 min', 'last_updated' => $lu],
                     'jpk'             => ['title' => 'Eksport JPK_FA dla księgowości', 'view' => 'help/manual/finance/jpk', 'reading_time' => '4 min', 'last_updated' => $lu],
                     'bulk-invoices'   => ['title' => 'Faktury masowe (bulk_invoices)', 'view' => 'help/manual/finance/bulk-invoices', 'reading_time' => '4 min', 'last_updated' => $lu],
+                    'invoices-club'   => ['title' => 'Faktury sprzedaży klubu (KSeF Phase 2)', 'view' => 'help/manual/finance/invoices-club', 'reading_time' => '5 min', 'last_updated' => $lu],
                     'referral'        => ['title' => 'Polecenia i rabaty', 'view' => 'help/manual/finance/referral', 'reading_time' => '4 min', 'last_updated' => $lu],
                 ],
             ],

@@ -531,9 +531,25 @@ $router->post('/club/gateways/:provider/toggle',     [\App\Controllers\ClubGatew
 $router->post('/club/gateways/:provider/delete',     [\App\Controllers\ClubGatewayController::class, 'delete']);
 
 // Per-klub KSeF (Phase 1 foundation) — config + test połączenia
-$router->get( '/club/ksef-settings',         [\App\Controllers\ClubKsefController::class, 'index']);
-$router->post('/club/ksef-settings/update',  [\App\Controllers\ClubKsefController::class, 'update']);
-$router->post('/club/ksef-settings/test',    [\App\Controllers\ClubKsefController::class, 'testConnection']);
+$router->get( '/club/ksef-settings',           [\App\Controllers\ClubKsefController::class, 'index']);
+$router->post('/club/ksef-settings/update',    [\App\Controllers\ClubKsefController::class, 'update']);
+$router->post('/club/ksef-settings/test',      [\App\Controllers\ClubKsefController::class, 'testConnection']);
+$router->post('/club/ksef-settings/numbering', [\App\Controllers\ClubKsefController::class, 'saveNumbering']);
+
+// Per-klub faktury sprzedaży (KSeF Phase 2 — bez wysyłki, tylko draft + issue + XML preview)
+$router->get( '/club/invoices',                              [\App\Controllers\ClubInvoicesController::class, 'index']);
+$router->get( '/club/invoices/create',                       [\App\Controllers\ClubInvoicesController::class, 'create']);
+$router->post('/club/invoices/store',                        [\App\Controllers\ClubInvoicesController::class, 'store']);
+$router->get( '/club/invoices/bulk-from-payments',           [\App\Controllers\ClubInvoicesController::class, 'bulkFromPayments']);
+$router->post('/club/invoices/bulk-from-payments/store',     [\App\Controllers\ClubInvoicesController::class, 'bulkFromPaymentsStore']);
+$router->get( '/club/invoices/from-payment/:paymentId',      [\App\Controllers\ClubInvoicesController::class, 'createFromPayment']);
+$router->get( '/club/invoices/:id',                          [\App\Controllers\ClubInvoicesController::class, 'show']);
+$router->get( '/club/invoices/:id/edit',                     [\App\Controllers\ClubInvoicesController::class, 'edit']);
+$router->post('/club/invoices/:id/update',                   [\App\Controllers\ClubInvoicesController::class, 'update']);
+$router->post('/club/invoices/:id/issue',                    [\App\Controllers\ClubInvoicesController::class, 'issue']);
+$router->post('/club/invoices/:id/cancel',                   [\App\Controllers\ClubInvoicesController::class, 'cancel']);
+$router->get( '/club/invoices/:id/pdf',                      [\App\Controllers\ClubInvoicesController::class, 'downloadPdf']);
+$router->get( '/club/invoices/:id/xml',                      [\App\Controllers\ClubInvoicesController::class, 'previewXml']);
 
 // Per-klub FederationExporter — credentials do federacji sportowych
 $router->get('/club/federations',                          [\App\Controllers\ClubFederationController::class, 'index']);

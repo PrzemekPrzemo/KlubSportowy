@@ -133,6 +133,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'achievements'   => ['url' => 'club/achievements',          'icon' => 'bi-trophy-fill',            'label' => 'Osiągnięcia',             'mod' => null],
         'fees'           => ['url' => 'fees',                       'icon' => 'bi-cash-coin',              'label' => __('nav.finances'),        'mod' => 'fees'],
         'fees_rates'     => ['url' => 'fees/rates',                 'icon' => 'bi-tag',                    'label' => __('nav.fee_rates'),       'mod' => 'fees'],
+        'ksef_invoices'  => ['url' => 'club/invoices',              'icon' => 'bi-receipt-cutoff',         'label' => 'Faktury sprzedaży',       'mod' => 'fees'],
         'commissions'    => ['url' => 'club/trainers/commissions',  'icon' => 'bi-cash-coin',              'label' => __('nav.trainer_commissions'), 'mod' => 'fees'],
         'subscription'   => ['url' => 'club/subscription',          'icon' => 'bi-credit-card-2-front',    'label' => __('nav.club_subscription'),  'mod' => null],
         'medical'        => ['url' => 'medical',                    'icon' => 'bi-heart-pulse',            'label' => __('nav.medical'),         'mod' => 'medical',          'sensitive' => true],
@@ -149,7 +150,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     $clubGroups = [
         'core'      => ['label' => __('nav.club'),                'items' => ['dashboard', 'members', 'members_all', 'sports', 'calendar', 'import']],
         'schedule'  => ['label' => __('nav.group.actions'),       'items' => ['events', 'trainings', 'trainer_schedule', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
-        'finance'   => ['label' => __('nav.group.finance'),       'items' => ['fees', 'fees_rates', 'commissions', 'subscription']],
+        'finance'   => ['label' => __('nav.group.finance'),       'items' => ['fees', 'fees_rates', 'ksef_invoices', 'commissions', 'subscription']],
         'health'    => ['label' => __('nav.group.health'),        'items' => ['medical', 'compliance', 'certifications', 'equipment']],
         'reports'   => ['label' => __('nav.group.reports'),       'items' => ['analytics', 'reports', 'reports_builder', 'documents', 'gallery', 'gdpr']],
     ];
@@ -163,6 +164,16 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             if (!$item) continue;
             if (!empty($item['sensitive']) && !$canSensitive) continue;
             if ($item['mod'] !== null && $allowed !== null && !in_array($item['mod'], $allowed, true)) continue;
+            // Phase 2 KSeF: ukryj "Faktury sprzedaży" gdy klub nie ma włączonego KSeF (super admin toggle)
+            if ($k === 'ksef_invoices') {
+                $ksefOk = false;
+                if (!empty($currentClubId)) {
+                    try {
+                        $ksefOk = (new \App\Models\ClubKsefConfigModel())->isEnabledForClub((int)$currentClubId);
+                    } catch (\Throwable) {}
+                }
+                if (!$ksefOk) continue;
+            }
             $visible[$k] = $item;
         }
         if (empty($visible)) continue;
