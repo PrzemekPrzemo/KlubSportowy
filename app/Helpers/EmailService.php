@@ -39,6 +39,11 @@ class EmailService
         $isAlreadyHtml = str_starts_with(trim($body), '<') || str_contains($body, '<html');
         $htmlBody = $isAlreadyHtml ? $body : self::brandedHtml($clubId, $body);
 
+        // Sponsor footer placeholder ({{sponsors_footer}}) — best-effort.
+        // Działa zarówno w plain body (po wrapie do HTML) jak i już-HTML body.
+        // Nieobecny placeholder => zero kosztu i zero side-effects.
+        $htmlBody = self::injectSponsorsFooter($clubId, $htmlBody);
+
         // SMTP — multipart/alternative (HTML + plain text)
         if ($config['enabled'] && class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
             return self::sendViaSmtp($config, $toEmail, $toName, $subject, $htmlBody, $body);
@@ -213,6 +218,62 @@ HTML;
             }
         }
         return $sent;
+    }
+
+    /**
+     * Wstaw rendered HTML footer z 1-3 logo top sponsorów w miejsce
+     * placeholdera `{{sponsors_footer}}` w body. Jeśli placeholder nie wystepuje
+     * w body — funkcja zwraca body bez zmian (no-op, brak dodatkowych zapytan).
+     *
+     * Tabela sponsors moze nie istniec (np. migracja 083 nieprzejechana) —
+     * defensive: catch any error i zwroc oryginalny body.
+     */
+    public static function injectSponsorsFooter(int $clubId, string $body): string
+    {
+        if (!str_contains($body, '{{sponsors_footer}}')) {
+            return $body;
+        }
+
+        $html = '';
+        try {
+            $model = new \App\Models\SponsorModel();
+            $list  = $model->activeForClub($clubId, 'email', 3);
+
+            if (!empty($list)) {
+                $base = defined('BASE_URL') ? rtrim(BASE_URL, '/') : '';
+                $items = [];
+                foreach ($list as $sp) {
+                    // Rejestruj ekspozycje email (best-effort, idempotent ze wzgledu na timing)
+                    $model->recordExposure((int)$sp['id'], 'email_view', null);
+
+                    $name = htmlspecialchars((string)$sp['name'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($sp['logo_path'])) {
+                        $logoSrc = $base . '/' . ltrim((string)$sp['logo_path'], '/');
+                        $logoSrcEsc = htmlspecialchars($logoSrc, ENT_QUOTES, 'UTF-8');
+                        $img = '<img src="' . $logoSrcEsc . '" alt="' . $name
+                             . '" style="max-height:36px;max-width:100px;vertical-align:middle;margin:0 8px;">';
+                    } else {
+                        $img = '<span style="display:inline-block;padding:6px 10px;border:1px solid #ddd;border-radius:4px;margin:0 6px;font-size:12px;">'
+                             . $name . '</span>';
+                    }
+                    if (!empty($sp['website'])) {
+                        $url = htmlspecialchars((string)$sp['website'], ENT_QUOTES, 'UTF-8');
+                        $img = '<a href="' . $url . '" target="_blank" rel="noopener sponsored" style="text-decoration:none;color:inherit;">' . $img . '</a>';
+                    }
+                    $items[] = $img;
+                }
+
+                $html = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #eee;padding-top:12px;">'
+                      . '<tr><td style="text-align:center;font-size:11px;color:#999;padding-bottom:6px;">Nasi sponsorzy</td></tr>'
+                      . '<tr><td style="text-align:center;">' . implode('', $items) . '</td></tr>'
+                      . '</table>';
+            }
+        } catch (\Throwable $e) {
+            error_log('EmailService::injectSponsorsFooter failed: ' . $e->getMessage());
+            $html = '';
+        }
+
+        return str_replace('{{sponsors_footer}}', $html, $body);
     }
 
     /** Rozwiązuje konfigurację SMTP: per-klub → globalna → null. */

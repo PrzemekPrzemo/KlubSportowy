@@ -194,3 +194,9 @@ $tiles[] = ['portal/tournaments',  'bi-trophy',          'primary',   __('portal
     </div>
 </div>
 <?php endif; ?>
+
+<?php
+// Sponsor logo rotation — renderuje sie tylko gdy klub ma aktywnych sponsorow
+// z display_in_portal=1 i kontrakt active TODAY (warunki w partialu).
+include __DIR__ . '/../partials/sponsors_widget.php';
+?>

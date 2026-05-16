@@ -314,6 +314,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('members/export') ?>"><i class="bi bi-file-earmark-spreadsheet"></i> <?= __('nav.members_export') ?></a>
                 <a href="<?= url('fees/bulk-assign') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.bulk_fees') ?></a>
                 <a href="<?= url('admin/campaigns') ?>"><i class="bi bi-megaphone"></i> <?= __('nav.email_sms_campaigns') ?></a>
+                <a href="<?= url('club/sponsors') ?>"><i class="bi bi-award"></i> <?= __('nav.sponsors') ?></a>
             </div>
         </div>
         <div class="nav-section" data-section="settings-dev">

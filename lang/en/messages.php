@@ -501,6 +501,7 @@ return [
     'nav.jpk_fa'                => 'JPK_FA',
     'nav.affiliate_program'     => 'Affiliate program',
     'nav.ads'                   => 'Ads',
+    'nav.sponsors'              => 'Sponsors',
     'nav.feature_flags'         => 'Feature flags',
     'nav.system_logo'           => 'System logo',
     'nav.support_tickets'       => 'Support tickets',
