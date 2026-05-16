@@ -13,14 +13,19 @@ use App\Helpers\View;
         <h3 class="mb-0"><i class="bi bi-receipt-cutoff text-primary me-2"></i>KSeF — zarządzanie integracją</h3>
         <small class="text-muted">Phase 1: foundation — toggle dostępu klubom + monitoring testów.</small>
     </div>
-    <div class="btn-group btn-group-sm">
-        <a href="<?= url('admin/platform/ksef?filter=all') ?>"
-           class="btn btn-outline-secondary <?= $filter === 'all' ? 'active' : '' ?>">
-            Wszystkie kluby
-        </a>
-        <a href="<?= url('admin/platform/ksef?filter=enabled') ?>"
-           class="btn btn-outline-secondary <?= $filter === 'enabled' ? 'active' : '' ?>">
-            Tylko aktywne
+    <div class="d-flex gap-2 flex-wrap">
+        <div class="btn-group btn-group-sm">
+            <a href="<?= url('admin/platform/ksef?filter=all') ?>"
+               class="btn btn-outline-secondary <?= $filter === 'all' ? 'active' : '' ?>">
+                Wszystkie kluby
+            </a>
+            <a href="<?= url('admin/platform/ksef?filter=enabled') ?>"
+               class="btn btn-outline-secondary <?= $filter === 'enabled' ? 'active' : '' ?>">
+                Tylko aktywne
+            </a>
+        </div>
+        <a href="<?= url('admin/platform/ksef/queue') ?>" class="btn btn-sm btn-primary">
+            <i class="bi bi-cloud-arrow-up"></i> Kolejka wysylki
         </a>
     </div>
 </div>
