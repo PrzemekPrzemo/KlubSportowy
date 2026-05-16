@@ -125,6 +125,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'import'         => ['url' => 'import',                     'icon' => 'bi-upload',                 'label' => __('nav.import_csv'),      'mod' => 'members'],
         'events'         => ['url' => 'events',                     'icon' => 'bi-calendar-event',         'label' => __('nav.events'),          'mod' => 'events'],
         'trainings'      => ['url' => 'trainings',                  'icon' => 'bi-stopwatch',              'label' => __('nav.trainings'),       'mod' => 'trainings'],
+        'trainer_schedule' => ['url' => 'club/trainer-schedule',    'icon' => 'bi-calendar2-week',         'label' => 'Plany trenerow',          'mod' => 'trainings'],
         'bookings'       => ['url' => 'bookings',                   'icon' => 'bi-calendar-check',         'label' => __('nav.bookings'),        'mod' => null],
         'resources'      => ['url' => 'club/resources',             'icon' => 'bi-box-seam',               'label' => __('nav.bookable_resources'), 'mod' => null],
         'announcements'  => ['url' => 'announcements',              'icon' => 'bi-megaphone',              'label' => __('nav.announcements'),   'mod' => 'announcements'],
@@ -146,7 +147,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     ];
     $clubGroups = [
         'core'      => ['label' => __('nav.club'),                'items' => ['dashboard', 'members', 'members_all', 'sports', 'calendar', 'import']],
-        'schedule'  => ['label' => __('nav.group.actions'),       'items' => ['events', 'trainings', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
+        'schedule'  => ['label' => __('nav.group.actions'),       'items' => ['events', 'trainings', 'trainer_schedule', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
         'finance'   => ['label' => __('nav.group.finance'),       'items' => ['fees', 'fees_rates', 'commissions', 'subscription']],
         'health'    => ['label' => __('nav.group.health'),        'items' => ['medical', 'compliance', 'certifications', 'equipment']],
         'reports'   => ['label' => __('nav.group.reports'),       'items' => ['analytics', 'reports', 'documents', 'gallery', 'gdpr']],
@@ -177,6 +178,9 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <?php endforeach; ?>
             <?php if ($groupKey === 'finance' && \App\Helpers\Auth::hasRole(['trener', 'instruktor'])): ?>
                 <a href="<?= url('trainer/commissions/my') ?>"><i class="bi bi-wallet2"></i> <?= __('nav.my_commissions') ?></a>
+            <?php endif; ?>
+            <?php if ($groupKey === 'schedule' && \App\Helpers\Auth::hasRole(['trener', 'instruktor'])): ?>
+                <a href="<?= url('trainer/schedule') ?>"><i class="bi bi-person-badge"></i> Moja dostepnosc</a>
             <?php endif; ?>
             </div>
         </div>
