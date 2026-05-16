@@ -967,6 +967,16 @@ $router->get('/portal/bookings/new',             [\App\Controllers\PortalBooking
 $router->post('/portal/bookings/store',          [\App\Controllers\PortalBookingsController::class, 'store']);
 $router->post('/portal/bookings/:id/cancel',     [\App\Controllers\PortalBookingsController::class, 'cancel']);
 
+// Portal: messenger (real-time chat z SSE + long-poll fallback)
+// Specyficzne sciezki PRZED parametrycznymi :id (Router::dispatch zwraca pierwsze trafienie).
+$router->get('/portal/messenger',                       [\App\Controllers\PortalMessengerController::class, 'index']);
+$router->post('/portal/messenger/send',                 [\App\Controllers\PortalMessengerController::class, 'send']);
+$router->post('/portal/messenger/new-direct',           [\App\Controllers\PortalMessengerController::class, 'newDirect']);
+$router->get('/portal/messenger/:id/stream',            [\App\Controllers\PortalMessengerController::class, 'stream']);
+$router->get('/portal/messenger/:id/poll',              [\App\Controllers\PortalMessengerController::class, 'poll']);
+$router->post('/portal/messenger/:id/mark-read',        [\App\Controllers\PortalMessengerController::class, 'markRead']);
+$router->get('/portal/messenger/:id',                   [\App\Controllers\PortalMessengerController::class, 'thread']);
+
 // ── REST API v1 ─────────────
 $router->post('/api/v1/auth/login',    [\App\Controllers\Api\AuthApiController::class, 'login']);
 $router->get('/api/v1/members',                  [\App\Controllers\Api\MembersApiController::class, 'index']);

@@ -14,10 +14,15 @@ $pwaAppleIconUrl = $pwaBranding->appleTouchIconUrl();
 
 // Unread notification count (only when logged in)
 $unreadNotifCount = 0;
+$unreadChatCount  = 0;
 if (MemberAuth::check() && MemberAuth::id() && MemberAuth::clubId()) {
     try {
         $unreadNotifCount = (new \App\Models\MemberNotificationModel())
             ->countUnread((int)MemberAuth::id(), (int)MemberAuth::clubId());
+    } catch (\Throwable) {}
+    try {
+        $unreadChatCount = (new \App\Models\MessageThreadModel())
+            ->totalUnreadForMember((int)MemberAuth::id(), (int)MemberAuth::clubId());
     } catch (\Throwable) {}
 }
 
@@ -155,6 +160,12 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <span class="text-white-50">|</span>
             <a href="<?= url('portal/announcements') ?>" class="<?= $isActive('announcements') ?>">
                 <i class="bi bi-megaphone me-1"></i><?= __('portal.nav.announcements') ?>
+            </a>
+            <a href="<?= url('portal/messenger') ?>" class="<?= $isActive('messenger') ?>">
+                <i class="bi bi-chat-dots me-1"></i>Wiadomosci
+                <?php if ($unreadChatCount > 0): ?>
+                    <span class="badge bg-danger rounded-pill"><?= (int)$unreadChatCount ?></span>
+                <?php endif; ?>
             </a>
             <a href="<?= url('portal/schedule') ?>" class="<?= $isActive('schedule') ?>">
                 <i class="bi bi-calendar3 me-1"></i><?= __('portal.nav.schedule') ?>
