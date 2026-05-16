@@ -7,12 +7,16 @@
 /storage/uploads/*
 /storage/backups/*
 /storage/cache/*
+/storage/ksef/*/cert.p12
+/storage/ksef/*/cert.pfx
+/storage/ksef/*/test_logs/
 !/storage/logs/.gitkeep
 !/storage/uploads/.gitkeep
 !/storage/uploads/support/
 !/storage/uploads/support/.gitkeep
 !/storage/backups/.gitkeep
 !/storage/cache/.gitkeep
+!/storage/ksef/.gitkeep
 .DS_Store
 Thumbs.db
 *.log

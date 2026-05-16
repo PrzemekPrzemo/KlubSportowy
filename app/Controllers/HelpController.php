@@ -47,6 +47,12 @@ class HelpController extends BaseController
                 'icon'  => 'bi-braces',
                 'desc'  => 'REST API ClubDesk — endpointy, autoryzacja, przykłady requestów.',
             ],
+            'ksef' => [
+                'file'  => 'ksef.md',
+                'title' => 'KSeF — integracja',
+                'icon'  => 'bi-receipt-cutoff',
+                'desc'  => 'Krajowy System e-Faktur (MF) — jak skonfigurować integrację dla klubu (Phase 1: foundation).',
+            ],
             // 'installation' — celowo wyłączone w trybie SaaS (instrukcje deploy
             // nie powinny być widoczne dla klientów portalu klubdesk.pl).
             // Plik docs/plesk-installation.md istnieje w repo dla self-hosting.
