@@ -13,6 +13,8 @@ use App\Models\ClubInvoiceItemModel;
 use App\Models\ClubInvoiceModel;
 use App\Models\ClubKsefConfigModel;
 use App\Models\ClubModel;
+use App\Models\KsefSendQueueModel;
+use App\Models\KsefUpoArchiveModel;
 use App\Models\MemberModel;
 use App\Models\PaymentModel;
 
@@ -118,11 +120,116 @@ class ClubInvoicesController extends BaseController
         }
         $items = $this->items->listForInvoice((int)$id);
 
+        $queueModel = new KsefSendQueueModel();
+        $queueEntry = $queueModel->findByInvoice((int)$id, $clubId);
+        $ksefCfg    = (new ClubKsefConfigModel())->findForClub($clubId);
+        $upo        = (new KsefUpoArchiveModel())->findForInvoice((int)$id, $clubId);
+
         $this->render('club/invoices/show', [
-            'title'   => 'Faktura ' . $invoice['invoice_number'],
-            'invoice' => $invoice,
-            'items'   => $items,
+            'title'      => 'Faktura ' . $invoice['invoice_number'],
+            'invoice'    => $invoice,
+            'items'      => $items,
+            'queueEntry' => $queueEntry,
+            'ksefEnabled'=> $ksefCfg !== null && (int)($ksefCfg['enabled'] ?? 0) === 1,
+            'upo'        => $upo,
         ]);
+    }
+
+    // -------------------------------------------------------------- KSeF send / retry / UPO
+
+    /**
+     * Zakolejkuj fakture do wysylki do KSeF (Phase 3).
+     */
+    public function sendKsef(string $id): void
+    {
+        Csrf::verify();
+        $clubId  = $this->currentClub();
+        $invoice = $this->invoices->findForClub((int)$id, $clubId);
+        if (!$invoice) {
+            $this->notFoundAndBack();
+        }
+        if ($invoice['status'] !== 'issued') {
+            Session::flash('error', 'Mozna wyslac tylko wystawione faktury (status=issued).');
+            $this->redirect('club/invoices/' . (int)$id);
+        }
+        $cfgModel = new ClubKsefConfigModel();
+        $cfg      = $cfgModel->findForClub($clubId);
+        if (!$cfg || (int)($cfg['enabled'] ?? 0) !== 1) {
+            Session::flash('error', 'KSeF nie jest aktywny dla tego klubu (skontaktuj sie z administratorem platformy).');
+            $this->redirect('club/invoices/' . (int)$id);
+        }
+
+        $queueModel = new KsefSendQueueModel();
+        $qid = $queueModel->enqueue($clubId, (int)$id);
+        if ($qid === null) {
+            Session::flash('warning', 'Faktura juz znajduje sie w kolejce KSeF.');
+        } else {
+            $cfgModel->audit($clubId, 'queue_enqueued', 'invoice_id=' . (int)$id);
+            Session::flash('success', 'Faktura zakolejkowana do wyslania do KSeF.');
+        }
+        $this->redirect('club/invoices/' . (int)$id);
+    }
+
+    /**
+     * Ponow probe wysylki po failure (resetuje attempts, status=queued).
+     */
+    public function retryKsef(string $id): void
+    {
+        Csrf::verify();
+        $clubId  = $this->currentClub();
+        $invoice = $this->invoices->findForClub((int)$id, $clubId);
+        if (!$invoice) {
+            $this->notFoundAndBack();
+        }
+        $queueModel = new KsefSendQueueModel();
+        $entry = $queueModel->findByInvoice((int)$id, $clubId);
+        if (!$entry) {
+            Session::flash('error', 'Brak wpisu w kolejce — uzyj "Wyslij do KSeF".');
+            $this->redirect('club/invoices/' . (int)$id);
+        }
+        if (!in_array((string)$entry['status'], ['failed', 'retrying'], true)) {
+            Session::flash('warning', 'Faktura nie jest w stanie wymagajacym ponowienia.');
+            $this->redirect('club/invoices/' . (int)$id);
+        }
+        $queueModel->forceRetry((int)$entry['id']);
+        (new ClubKsefConfigModel())->audit($clubId, 'queue_force_retry', 'invoice_id=' . (int)$id);
+        Session::flash('success', 'Wymuszono ponowienie wysylki.');
+        $this->redirect('club/invoices/' . (int)$id);
+    }
+
+    /**
+     * Pobierz UPO XML jesli istnieje w archiwum.
+     */
+    public function downloadUpo(string $id): void
+    {
+        $clubId  = $this->currentClub();
+        $invoice = $this->invoices->findForClub((int)$id, $clubId);
+        if (!$invoice) {
+            $this->notFoundAndBack();
+        }
+        $upo = (new KsefUpoArchiveModel())->findForInvoice((int)$id, $clubId);
+        if (!$upo) {
+            Session::flash('error', 'UPO niedostepne dla tej faktury.');
+            $this->redirect('club/invoices/' . (int)$id);
+        }
+        $path = (string)$upo['upo_xml_path'];
+        // Sanity check — sciezka MUSI byc w storage/ksef/upo/{clubId}/
+        $expectedPrefix = ROOT_PATH . '/storage/ksef/upo/' . $clubId . '/';
+        $realPath       = realpath($path);
+        if ($realPath === false || !str_starts_with($realPath, realpath(ROOT_PATH . '/storage/ksef/upo/' . $clubId) ?: $expectedPrefix)) {
+            Session::flash('error', 'UPO niedostepne (sciezka odrzucona).');
+            $this->redirect('club/invoices/' . (int)$id);
+        }
+        if (!is_readable($realPath)) {
+            Session::flash('error', 'UPO niedostepne (brak pliku).');
+            $this->redirect('club/invoices/' . (int)$id);
+        }
+        $fname = 'upo-' . preg_replace('/[^a-z0-9_\-]/i', '_', (string)$invoice['invoice_number']) . '.xml';
+        header('Content-Type: application/xml; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $fname . '"');
+        header('Content-Length: ' . (string)filesize($realPath));
+        readfile($realPath);
+        exit;
     }
 
     // -------------------------------------------------------------- edit / update

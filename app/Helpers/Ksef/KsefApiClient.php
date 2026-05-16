@@ -118,6 +118,111 @@ final class KsefApiClient
     }
 
     /**
+     * POST /online/Session/InitSigned
+     *
+     * Wariant XAdES — body to gotowy podpisany XML (cala koperta SessionToken
+     * + ds:Signature). Wymagany Content-Type: application/octet-stream
+     * (KSeF traktuje to jak surowy strumien dokumentu).
+     *
+     * @return array<string,mixed> w tym 'sessionToken' => ['token' => '...']
+     */
+    public function initSessionXAdES(string $signedXml): array
+    {
+        return $this->rawRequest(
+            'POST',
+            '/online/Session/InitSigned',
+            $signedXml,
+            ['Content-Type: application/octet-stream'],
+        );
+    }
+
+    /**
+     * PUT /online/Invoice/Send — wysyla pojedyncza fakture.
+     *
+     * Body: JSON z polami invoiceHash (sha256 + base64) i invoicePayload
+     * (base64 surowego XML). Zwraca elementReferenceNumber + referenceNumber +
+     * processingCode/processingDescription.
+     *
+     * @param string $invoiceXmlBase64 base64-encoded FA(2) XML
+     *
+     * @return array<string,mixed>
+     */
+    public function sendInvoice(string $sessionToken, string $invoiceXmlBase64): array
+    {
+        $rawXml = base64_decode($invoiceXmlBase64, true);
+        if ($rawXml === false) {
+            throw new RuntimeException('KSeF sendInvoice: invalid base64 payload.');
+        }
+        $hash = base64_encode(hash('sha256', $rawXml, true));
+        $size = strlen($rawXml);
+        unset($rawXml);
+
+        $payload = [
+            'invoiceHash' => [
+                'hashSHA' => [
+                    'algorithm' => 'SHA-256',
+                    'encoding'  => 'Base64',
+                    'value'     => $hash,
+                ],
+                'fileSize' => $size,
+            ],
+            'invoicePayload' => [
+                'type'        => 'plain',
+                'invoiceBody' => $invoiceXmlBase64,
+            ],
+        ];
+        return $this->request('PUT', '/online/Invoice/Send', $payload, [
+            'SessionToken: ' . $sessionToken,
+        ]);
+    }
+
+    /**
+     * GET /online/Invoice/Status/{referenceNumber} — status pojedynczej faktury.
+     *
+     * @return array<string,mixed>
+     */
+    public function getInvoiceStatus(string $sessionToken, string $referenceNumber): array
+    {
+        $ref = rawurlencode($referenceNumber);
+        return $this->request('GET', '/online/Invoice/Status/' . $ref, null, [
+            'SessionToken: ' . $sessionToken,
+        ]);
+    }
+
+    /**
+     * GET /online/Invoice/Upo/{referenceNumber} — pobiera UPO XML.
+     *
+     * UPO to oficjalne urzedowe potwierdzenie odbioru z MF (XML).
+     * KSeF API zwraca albo XML bezposrednio (Content-Type: application/xml),
+     * albo JSON z polem 'upo' (Base64). Obslugujemy obie warianty.
+     */
+    public function getUpo(string $sessionToken, string $referenceNumber): string
+    {
+        $ref     = rawurlencode($referenceNumber);
+        $payload = $this->rawRequestText('GET', '/online/Invoice/Upo/' . $ref, null, [
+            'SessionToken: ' . $sessionToken,
+            'Accept: application/xml, application/json',
+        ]);
+        if ($payload === '') {
+            throw new RuntimeException('KSeF UPO: empty response.');
+        }
+        // JSON?
+        $decoded = json_decode($payload, true);
+        if (is_array($decoded)) {
+            $upoB64 = (string)($decoded['upo'] ?? $decoded['payload'] ?? '');
+            if ($upoB64 !== '') {
+                $raw = base64_decode($upoB64, true);
+                if ($raw !== false && $raw !== '') {
+                    return $raw;
+                }
+            }
+            throw new RuntimeException('KSeF UPO: JSON without upo payload.');
+        }
+        // Raw XML
+        return $payload;
+    }
+
+    /**
      * GET /online/Session/Status — health-check sesji.
      *
      * @return array<string,mixed>
@@ -248,13 +353,28 @@ final class KsefApiClient
     }
 
     /**
-     * Surowe wywołanie HTTP do KSeF API. Zwraca zdekodowane JSON (lub
-     * pustą tablicę dla pustego body z 200/204).
-     *
-     * @param array<int,string> $extraHeaders
      * @return array<string,mixed>
      */
     private function rawRequest(string $method, string $path, ?string $rawBody, array $extraHeaders = []): array
+    {
+        $resp = $this->rawRequestText($method, $path, $rawBody, $extraHeaders);
+        if ($resp === '') {
+            return [];
+        }
+        $decoded = json_decode($resp, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+        return $decoded;
+    }
+
+    /**
+     * Surowe wywolanie HTTP do KSeF API. Zwraca surowy body jako string
+     * (do interpretacji przez wywolujacego). Throws na 4xx/5xx + transport errors.
+     *
+     * @param array<int,string> $extraHeaders
+     */
+    private function rawRequestText(string $method, string $path, ?string $rawBody, array $extraHeaders = []): string
     {
         $url = $this->baseUrl . $path;
         $ch  = curl_init();
@@ -304,13 +424,8 @@ final class KsefApiClient
         }
 
         if ($resp === '' || $resp === null) {
-            return [];
+            return '';
         }
-        $decoded = json_decode((string)$resp, true);
-        if (!is_array($decoded)) {
-            // Niektóre endpointy (np. DELETE Session) zwracają pusty body
-            return [];
-        }
-        return $decoded;
+        return (string)$resp;
     }
 }

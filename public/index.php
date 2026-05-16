@@ -254,6 +254,10 @@ $router->post('/admin/platform/support/:id/close',   [\App\Controllers\AdminPlat
 // Admin: KSeF (Phase 1 foundation) — toggle dostępu klubów + monitoring
 $router->get( '/admin/platform/ksef',                 [\App\Controllers\AdminPlatformKsefController::class, 'index']);
 $router->post('/admin/platform/ksef/:clubId/toggle',  [\App\Controllers\AdminPlatformKsefController::class, 'toggle']);
+// Phase 3: queue overview + force-actions
+$router->get( '/admin/platform/ksef/queue',                       [\App\Controllers\AdminPlatformKsefController::class, 'queue']);
+$router->post('/admin/platform/ksef/queue/:queueId/force-retry',  [\App\Controllers\AdminPlatformKsefController::class, 'queueForceRetry']);
+$router->post('/admin/platform/ksef/queue/:queueId/force-fail',   [\App\Controllers\AdminPlatformKsefController::class, 'queueForceFail']);
 
 // Admin: feature flags (per-klub boolean włącz/wyłącz feature'ów)
 $router->get('/admin/platform/feature-flags',                  [\App\Controllers\AdminFeatureFlagsController::class, 'index']);
@@ -551,6 +555,10 @@ $router->post('/club/invoices/:id/issue',                    [\App\Controllers\C
 $router->post('/club/invoices/:id/cancel',                   [\App\Controllers\ClubInvoicesController::class, 'cancel']);
 $router->get( '/club/invoices/:id/pdf',                      [\App\Controllers\ClubInvoicesController::class, 'downloadPdf']);
 $router->get( '/club/invoices/:id/xml',                      [\App\Controllers\ClubInvoicesController::class, 'previewXml']);
+// Phase 3: send to KSeF + retry + download UPO
+$router->post('/club/invoices/:id/send-ksef',                [\App\Controllers\ClubInvoicesController::class, 'sendKsef']);
+$router->post('/club/invoices/:id/retry-ksef',               [\App\Controllers\ClubInvoicesController::class, 'retryKsef']);
+$router->get( '/club/invoices/:id/upo',                      [\App\Controllers\ClubInvoicesController::class, 'downloadUpo']);
 
 // Per-klub FederationExporter — credentials do federacji sportowych
 $router->get('/club/federations',                          [\App\Controllers\ClubFederationController::class, 'index']);

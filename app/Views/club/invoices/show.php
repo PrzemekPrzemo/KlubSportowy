@@ -1,7 +1,10 @@
 <?php
 /**
- * @var array              $invoice
- * @var array<int,array>   $items
+ * @var array               $invoice
+ * @var array<int,array>    $items
+ * @var array<string,mixed>|null $queueEntry
+ * @var bool                $ksefEnabled
+ * @var array<string,mixed>|null $upo
  */
 use App\Helpers\View;
 
@@ -158,18 +161,89 @@ $status = (string)$invoice['status'];
         <div class="card">
             <div class="card-header py-2"><strong>KSeF</strong></div>
             <div class="card-body small">
-                <?php if ($status === 'draft'): ?>
-                    <p class="text-muted mb-1">Faktura jest szkicem. Wystaw, aby otrzymać oficjalny numer.</p>
-                <?php elseif ($status === 'issued'): ?>
-                    <p class="mb-1"><i class="bi bi-info-circle text-info"></i>
-                        Wystawiona. Wysyłka do KSeF zostanie uruchomiona w Phase 3.</p>
+                <?php
+                $queueEntry  = $queueEntry  ?? null;
+                $ksefEnabled = $ksefEnabled ?? false;
+                $upo         = $upo         ?? null;
+                $queueStatus = $queueEntry !== null ? (string)$queueEntry['status'] : null;
+                $queueBadge  = match($queueStatus) {
+                    'queued'      => 'secondary',
+                    'signing'     => 'info',
+                    'sending'     => 'info',
+                    'awaiting_upo'=> 'warning text-dark',
+                    'completed'   => 'success',
+                    'failed'      => 'danger',
+                    'retrying'    => 'warning text-dark',
+                    default       => null,
+                };
+                $queueLabel  = match($queueStatus) {
+                    'queued'      => 'W kolejce',
+                    'signing'     => 'Podpisywanie XAdES',
+                    'sending'     => 'Wysylanie do KSeF',
+                    'awaiting_upo'=> 'Oczekiwanie na UPO',
+                    'completed'   => 'Zaakceptowana (UPO)',
+                    'failed'      => 'Bład - wymaga interwencji',
+                    'retrying'    => 'Ponawianie...',
+                    default       => null,
+                };
+                ?>
+                <?php if (!$ksefEnabled): ?>
+                    <div class="alert alert-secondary py-2 mb-2 small">
+                        <i class="bi bi-lock"></i> KSeF nie jest aktywny dla tego klubu.
+                    </div>
                 <?php endif; ?>
+
+                <?php if ($queueEntry !== null): ?>
+                    <div class="mb-2">
+                        Status wysyłki:
+                        <span class="badge bg-<?= $queueBadge ?? 'secondary' ?>"><?= View::e($queueLabel ?? $queueStatus ?? '-') ?></span>
+                        <?php if ((int)$queueEntry['attempts'] > 0): ?>
+                            <small class="text-muted">(prob: <?= (int)$queueEntry['attempts'] ?>)</small>
+                        <?php endif; ?>
+                    </div>
+                    <?php if (!empty($queueEntry['ksef_reference'])): ?>
+                        <div>Reference KSeF: <code><?= View::e((string)$queueEntry['ksef_reference']) ?></code></div>
+                    <?php endif; ?>
+                    <?php if (!empty($queueEntry['last_error_message']) && in_array($queueStatus, ['failed','retrying'], true)): ?>
+                        <div class="alert alert-warning py-1 px-2 mt-2 mb-2 small">
+                            <strong>Ostatni blad:</strong>
+                            <?= View::e(mb_substr((string)$queueEntry['last_error_message'], 0, 240)) ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($queueStatus === 'failed' || $queueStatus === 'retrying'): ?>
+                        <form method="POST" action="<?= url('club/invoices/' . $id . '/retry-ksef') ?>" class="d-grid mt-2">
+                            <?= csrf_field() ?>
+                            <button class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-arrow-clockwise"></i> Ponow probe wysylki
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                <?php elseif ($status === 'issued' && $ksefEnabled): ?>
+                    <form method="POST" action="<?= url('club/invoices/' . $id . '/send-ksef') ?>" class="d-grid mb-2"
+                          onsubmit="return confirm('Zakolejkowac fakture do wyslania do KSeF?');">
+                        <?= csrf_field() ?>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="bi bi-send"></i> Wyslij do KSeF
+                        </button>
+                    </form>
+                <?php elseif ($status === 'draft'): ?>
+                    <p class="text-muted mb-1">Faktura jest szkicem. Wystaw, aby otrzymać oficjalny numer.</p>
+                <?php endif; ?>
+
                 <?php if (!empty($invoice['ksef_reference_number'])): ?>
                     <div>Numer KSeF: <code><?= View::e((string)$invoice['ksef_reference_number']) ?></code></div>
                 <?php endif; ?>
-                <?php if (!empty($invoice['ksef_session_id'])): ?>
-                    <div>Sesja: <code><?= View::e((string)$invoice['ksef_session_id']) ?></code></div>
+                <?php if ($upo !== null): ?>
+                    <div class="mt-2">
+                        <a href="<?= url('club/invoices/' . $id . '/upo') ?>" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-file-earmark-zip"></i> Pobierz UPO (XML)
+                        </a>
+                        <small class="d-block text-muted mt-1">
+                            Otrzymano: <?= View::e((string)$upo['acquisition_timestamp']) ?>
+                        </small>
+                    </div>
                 <?php endif; ?>
+
                 <hr class="my-2">
                 <div>Status płatności:
                     <span class="badge bg-<?= $invoice['payment_status'] === 'paid' ? 'success' : 'warning text-dark' ?>">
