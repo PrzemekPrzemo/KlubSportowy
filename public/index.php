@@ -909,6 +909,18 @@ $router->get('/reports/finances-csv',       [\App\Controllers\ReportsController:
 $router->get('/reports/event-protocol/:id', [\App\Controllers\ReportsController::class, 'eventProtocolPdf']);
 $router->get('/reports/member-card/:id',    [\App\Controllers\ReportsController::class, 'memberCardPdf']);
 
+// Custom Report Builder — drag-drop kreator raportów (whitelisted SQL)
+$router->get ('/club/reports-builder',                 [\App\Controllers\ClubReportBuilderController::class, 'index']);
+$router->get ('/club/reports-builder/new',             [\App\Controllers\ClubReportBuilderController::class, 'create']);
+$router->post('/club/reports-builder/store',           [\App\Controllers\ClubReportBuilderController::class, 'store']);
+$router->post('/club/reports-builder/preview',         [\App\Controllers\ClubReportBuilderController::class, 'preview']);
+$router->get ('/club/reports-builder/:id/edit',        [\App\Controllers\ClubReportBuilderController::class, 'edit']);
+$router->post('/club/reports-builder/:id/update',      [\App\Controllers\ClubReportBuilderController::class, 'update']);
+$router->post('/club/reports-builder/:id/delete',      [\App\Controllers\ClubReportBuilderController::class, 'delete']);
+$router->get ('/club/reports-builder/:id/run',         [\App\Controllers\ClubReportBuilderController::class, 'run']);
+$router->get ('/club/reports-builder/:id/export.csv',  [\App\Controllers\ClubReportBuilderController::class, 'exportCsv']);
+$router->get ('/club/reports-builder/:id/export.pdf',  [\App\Controllers\ClubReportBuilderController::class, 'exportPdf']);
+
 // Klucze API (panel klubu)
 $router->get('/club/api-keys',              [\App\Controllers\ApiKeysController::class, 'index']);
 $router->post('/club/api-keys/generate',    [\App\Controllers\ApiKeysController::class, 'generate']);

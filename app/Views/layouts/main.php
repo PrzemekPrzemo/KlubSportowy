@@ -140,6 +140,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'equipment'      => ['url' => 'equipment',                  'icon' => 'bi-box-seam',               'label' => __('nav.club_equipment'),     'mod' => null],
         'analytics'      => ['url' => 'analytics',                  'icon' => 'bi-graph-up',               'label' => __('nav.analytics'),       'mod' => null],
         'reports'        => ['url' => 'reports',                    'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),         'mod' => 'reports'],
+        'reports_builder'=> ['url' => 'club/reports-builder',       'icon' => 'bi-tools',                  'label' => 'Raporty własne',         'mod' => 'reports'],
         'documents'      => ['url' => 'documents',                  'icon' => 'bi-file-earmark-pdf',       'label' => __('nav.documents'),       'mod' => null],
         'gallery'        => ['url' => 'gallery',                    'icon' => 'bi-images',                 'label' => __('nav.gallery'),         'mod' => null],
         'gdpr'           => ['url' => 'gdpr',                       'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
@@ -149,7 +150,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'schedule'  => ['label' => __('nav.group.actions'),       'items' => ['events', 'trainings', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
         'finance'   => ['label' => __('nav.group.finance'),       'items' => ['fees', 'fees_rates', 'commissions', 'subscription']],
         'health'    => ['label' => __('nav.group.health'),        'items' => ['medical', 'compliance', 'certifications', 'equipment']],
-        'reports'   => ['label' => __('nav.group.reports'),       'items' => ['analytics', 'reports', 'documents', 'gallery', 'gdpr']],
+        'reports'   => ['label' => __('nav.group.reports'),       'items' => ['analytics', 'reports', 'reports_builder', 'documents', 'gallery', 'gdpr']],
     ];
     $allowed = $navModules ?? null;
     $canSensitive = \App\Helpers\Auth::canAccessSensitiveData();
