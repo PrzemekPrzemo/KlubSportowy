@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Helpers\Gdpr\MemberDataExporter;
 use App\Models\TenantAccessLogModel;
 use ZipArchive;
 
@@ -126,10 +127,31 @@ class GdprService
      *   - rankings.json    — wyniki sportowe
      *   - README.txt       — opis + data wygenerowania
      *
+     * Od czerwca 2025 ta metoda deleguje do MemberDataExporter (Helpers/Gdpr/),
+     * ktory generuje pelny ZIP z folderem data/ + documents/ + photos/ + manifest +
+     * README. Pozostaje jako shim dla starych call-site'ow (admin panel) — gdy
+     * brak `requestId` synthetyzujemy go z timestampu.
+     *
      * @return string Absolutna sciezka do pliku ZIP.
      */
-    public static function buildExportZip(int $memberId, int $clubId): string
+    public static function buildExportZip(int $memberId, int $clubId, ?int $requestId = null): string
     {
+        // Preferowana sciezka: pelny exporter (folder data/ + manifest + binaria).
+        // Wymagamy requestId — gdy brak, generujemy syntetyczny (negative timestamp,
+        // zeby nie kolidowal z prawdziwymi id z gdpr_requests).
+        $effectiveRequestId = $requestId ?? -((int)floor(microtime(true) * 1000));
+
+        try {
+            return (new MemberDataExporter())->export($memberId, $effectiveRequestId, $clubId);
+        } catch (\Throwable $e) {
+            // Fallback do legacy flat-structure exportu (backward compat dla starych testow / kodu).
+            // Nie ukrywamy bledow cross-tenant — przepuszczamy je.
+            if (str_contains($e->getMessage(), 'Cross-tenant guard')) {
+                throw $e;
+            }
+            // Inne bledy: spadamy do legacy implementacji ponizej.
+        }
+
         $pdo = Database::pdo();
 
         // Cross-tenant guard

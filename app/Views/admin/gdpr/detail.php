@@ -98,9 +98,53 @@
         <?php elseif ($request['status'] === 'completed' && $request['request_type'] === 'export' && !empty($request['export_file_path'])): ?>
             <div class="card border-success">
                 <div class="card-body">
-                    <h6><i class="bi bi-file-zip me-1"></i>Plik eksportu</h6>
-                    <p class="small text-muted"><?= View::e(basename($request['export_file_path'])) ?></p>
-                    <p class="small">Wygasa: <?= View::e($request['export_file_expires_at'] ?? '—') ?></p>
+                    <h6><i class="bi bi-file-zip me-1"></i>Plik eksportu ZIP</h6>
+                    <?php
+                    $path = (string)$request['export_file_path'];
+                    $exists = is_file($path);
+                    $size   = $exists ? @filesize($path) : false;
+                    $sizeKB = $size !== false ? number_format($size / 1024, 1, ',', ' ') . ' kB' : '—';
+                    $expired = !empty($request['export_file_expires_at'])
+                        && strtotime($request['export_file_expires_at']) < time();
+                    $generationSeconds = null;
+                    if (!empty($request['processed_at']) && !empty($request['confirmed_at'])) {
+                        $generationSeconds = max(0,
+                            strtotime((string)$request['processed_at'])
+                            - strtotime((string)$request['confirmed_at']));
+                    }
+                    ?>
+                    <dl class="row small mb-2">
+                        <dt class="col-5">Plik</dt>
+                        <dd class="col-7"><code><?= View::e(basename($path)) ?></code></dd>
+                        <dt class="col-5">Rozmiar</dt>
+                        <dd class="col-7"><?= View::e($sizeKB) ?></dd>
+                        <dt class="col-5">Czas generacji</dt>
+                        <dd class="col-7"><?= $generationSeconds !== null ? (int)$generationSeconds . ' s' : '—' ?></dd>
+                        <dt class="col-5">Wygasa</dt>
+                        <dd class="col-7">
+                            <?= View::e($request['export_file_expires_at'] ?? '—') ?>
+                            <?php if ($expired): ?>
+                                <span class="badge bg-warning text-dark ms-1">wygasl</span>
+                            <?php endif; ?>
+                        </dd>
+                        <dt class="col-5">Plik na dysku</dt>
+                        <dd class="col-7">
+                            <?php if ($exists): ?>
+                                <span class="text-success">istnieje</span>
+                            <?php else: ?>
+                                <span class="text-danger">brak (cleanup?)</span>
+                            <?php endif; ?>
+                        </dd>
+                    </dl>
+
+                    <form method="POST"
+                          action="<?= url('admin/gdpr/' . (int)$request['id'] . '/regenerate') ?>"
+                          onsubmit="return confirm('Usunac istniejacy ZIP i wygenerowac od nowa? Czlonek otrzyma nowy plik (waznosc 7 dni).');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-warning w-100">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Force regenerate
+                        </button>
+                    </form>
                 </div>
             </div>
         <?php endif; ?>

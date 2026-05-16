@@ -348,6 +348,7 @@ $router->get('/admin/audit-log/:source/:id',           [\App\Controllers\AuditLo
 $router->get('/admin/gdpr',                       [\App\Controllers\AdminGdprController::class, 'index']);
 $router->get('/admin/gdpr/:id',                   [\App\Controllers\AdminGdprController::class, 'detail']);
 $router->post('/admin/gdpr/:id/process',          [\App\Controllers\AdminGdprController::class, 'process']);
+$router->post('/admin/gdpr/:id/regenerate',       [\App\Controllers\AdminGdprController::class, 'forceRegenerate']);
 
 // Admin: dashboard zdrowia systemu (Batch A7)
 $router->get('/admin/health', [\App\Controllers\AdminHealthController::class, 'index']);
@@ -771,6 +772,8 @@ $router->get('/portal/gdpr/export',                   [\App\Controllers\MemberGd
 $router->post('/portal/gdpr/export',                  [\App\Controllers\MemberGdprController::class, 'submitExport']);
 $router->get('/portal/gdpr/confirm/:token',           [\App\Controllers\MemberGdprController::class, 'confirm']);
 $router->get('/portal/gdpr/download/:id',             [\App\Controllers\MemberGdprController::class, 'download']);
+// Alias z semantyczna nazwa (zgodny ze specyfikacja GDPR ZIP export):
+$router->get('/portal/gdpr/export/:id/download',      [\App\Controllers\MemberGdprController::class, 'downloadExport']);
 
 // Portal: ogłoszenia + plan treningów
 $router->get('/portal/announcements',    [\App\Controllers\MemberPortalController::class, 'announcements']);

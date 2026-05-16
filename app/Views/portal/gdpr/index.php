@@ -92,17 +92,37 @@
                             <td class="small"><?= View::e($r['requested_at']) ?></td>
                             <td class="small"><?= View::e($r['processed_at'] ?? '—') ?></td>
                             <td>
-                                <?php if ($r['request_type'] === 'export' && $r['status'] === 'completed' && !empty($r['export_file_path'])): ?>
+                                <?php if ($r['request_type'] === 'export' && $r['status'] === 'completed'): ?>
                                     <?php
-                                    $expired = !empty($r['export_file_expires_at']) && strtotime($r['export_file_expires_at']) < time();
+                                    $hasFile = !empty($r['export_file_path']);
+                                    $expired = !$hasFile
+                                        || (!empty($r['export_file_expires_at'])
+                                            && strtotime($r['export_file_expires_at']) < time());
+                                    $daysLeft = null;
+                                    if ($hasFile && !$expired && !empty($r['export_file_expires_at'])) {
+                                        $secsLeft = strtotime($r['export_file_expires_at']) - time();
+                                        $daysLeft = max(0, (int)ceil($secsLeft / 86400));
+                                    }
                                     ?>
                                     <?php if ($expired): ?>
-                                        <span class="text-muted small"><i class="bi bi-clock"></i> Wygasl</span>
+                                        <span class="text-muted small d-block">
+                                            <i class="bi bi-clock"></i> Plik wygasl
+                                        </span>
+                                        <a href="<?= url('portal/gdpr/export') ?>" class="btn btn-sm btn-outline-primary mt-1">
+                                            <i class="bi bi-arrow-repeat"></i> Zloz nowa prosbe
+                                        </a>
                                     <?php else: ?>
-                                        <a href="<?= url('portal/gdpr/download/' . (int)$r['id']) ?>" class="btn btn-sm btn-success">
+                                        <a href="<?= url('portal/gdpr/export/' . (int)$r['id'] . '/download') ?>"
+                                           class="btn btn-sm btn-success">
                                             <i class="bi bi-download"></i> Pobierz ZIP
                                         </a>
-                                        <div class="small text-muted">do <?= View::e($r['export_file_expires_at']) ?></div>
+                                        <?php if ($daysLeft !== null): ?>
+                                            <div class="small text-muted">
+                                                wygasa za <?= (int)$daysLeft ?> <?= $daysLeft === 1 ? 'dzien' : 'dni' ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="small text-muted">do <?= View::e($r['export_file_expires_at']) ?></div>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 <?php else: ?>
                                     <span class="text-muted small">—</span>

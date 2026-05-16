@@ -211,17 +211,46 @@ class MemberGdprController extends BaseController
         ]);
     }
 
+    /**
+     * Pobieranie wygenerowanego ZIP-a z eksportem danych czlonka.
+     *
+     * Bezpieczenstwo:
+     *   - request_type MUSI byc 'export'
+     *   - status MUSI byc 'completed'
+     *   - export_file_expires_at > NOW()
+     *   - member_id == sesyjny member_id (findOwnedBy enforced w modelu)
+     *   - path NIGDY z user input — odczytujemy z bazy
+     *   - storage/gdpr_exports/ jest poza /public/, file servimy przez readfile()
+     */
     public function download(string $id): void
+    {
+        $this->downloadExport($id);
+    }
+
+    /**
+     * Alias dla download() — semantyczna nazwa zgodna z route
+     * /portal/gdpr/export/:requestId/download.
+     */
+    public function downloadExport(string $id): void
     {
         MemberAuth::requireLogin();
         $memberId = (int)MemberAuth::id();
         $clubId   = (int)MemberAuth::clubId();
         $reqId    = (int)$id;
 
+        if ($reqId <= 0) {
+            Session::flash('error', 'Nieprawidlowy identyfikator prosby.');
+            $this->redirect('portal/gdpr');
+        }
+
         $model = new GdprRequestModel();
         $req   = $model->findOwnedBy($reqId, $memberId, $clubId);
 
-        if (!$req || $req['request_type'] !== 'export' || empty($req['export_file_path'])) {
+        if (!$req
+            || $req['request_type'] !== 'export'
+            || $req['status'] !== 'completed'
+            || empty($req['export_file_path'])
+        ) {
             Session::flash('error', 'Plik eksportu niedostepny.');
             $this->redirect('portal/gdpr');
         }
@@ -240,20 +269,48 @@ class MemberGdprController extends BaseController
             $this->redirect('portal/gdpr');
         }
 
-        $path = $req['export_file_path'];
+        $path = (string)$req['export_file_path'];
         if (!is_file($path)) {
             Session::flash('error', 'Plik eksportu nie istnieje na dysku. Skontaktuj sie z administratorem.');
             $this->redirect('portal/gdpr');
         }
 
-        // Stream the file
-        $filename = basename($path);
+        // Audit log download — best-effort.
+        try {
+            (new TenantAccessLogModel())->logBypass(
+                'gdpr_requests',
+                'read',
+                __FILE__,
+                __LINE__,
+                self::class,
+                'info',
+                'GDPR export download req=' . $reqId . ' member=' . $memberId
+            );
+        } catch (\Throwable) {}
+
+        // Buduj user-friendly filename: moje_dane_klubowe_{club}_{date}.zip
+        $clubName = $this->clubName($clubId);
+        $clubSlug = $this->slugify($clubName);
+        $datePart = date('Y-m-d', strtotime((string)$req['processed_at']) ?: time());
+        $downloadName = sprintf('moje_dane_klubowe_%s_%s.zip', $clubSlug, $datePart);
+
         header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . $downloadName . '"');
         header('Content-Length: ' . filesize($path));
         header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+
         readfile($path);
         exit;
+    }
+
+    private function slugify(string $s): string
+    {
+        $s = mb_strtolower($s, 'UTF-8');
+        $s = preg_replace('/[^a-z0-9]+/u', '_', $s) ?? 'klub';
+        $s = trim($s, '_');
+        return $s !== '' ? mb_substr($s, 0, 40) : 'klub';
     }
 
     // ----------------------------------------------------------
@@ -305,7 +362,7 @@ class MemberGdprController extends BaseController
     {
         $model = new GdprRequestModel();
         try {
-            $zipPath = GdprService::buildExportZip($memberId, $clubId);
+            $zipPath = GdprService::buildExportZip($memberId, $clubId, $reqId);
         } catch (\Throwable $e) {
             $model->markRejected($reqId, null, 'Blad generacji eksportu: ' . substr($e->getMessage(), 0, 400));
             return;
