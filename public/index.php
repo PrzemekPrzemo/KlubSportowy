@@ -866,6 +866,16 @@ $router->post('/trainings/:id/attendee/add',      [\App\Controllers\TrainingsCon
 $router->post('/trainings/:id/attendee/:attendeeId/remove', [\App\Controllers\TrainingsController::class, 'removeAttendee']);
 $router->post('/trainings/:id/attendance',        [\App\Controllers\TrainingsController::class, 'markAttendance']);
 
+// Trener — dostepnosc, urlopy, conflict detection (Faza 084)
+$router->get( '/club/trainer-schedule',                              [\App\Controllers\TrainerAvailabilityController::class, 'index']);
+$router->get( '/club/trainer-schedule/:userId/edit',                 [\App\Controllers\TrainerAvailabilityController::class, 'editAvailability']);
+$router->post('/club/trainer-schedule/:userId/availability/store',   [\App\Controllers\TrainerAvailabilityController::class, 'storeAvailability']);
+$router->get( '/club/trainer-schedule/:userId/leaves/add',           [\App\Controllers\TrainerAvailabilityController::class, 'addLeave']);
+$router->post('/club/trainer-schedule/:userId/leaves/store',         [\App\Controllers\TrainerAvailabilityController::class, 'storeLeave']);
+$router->post('/club/trainer-schedule/leaves/:leaveId/delete',       [\App\Controllers\TrainerAvailabilityController::class, 'deleteLeave']);
+$router->post('/club/trainings/check-conflicts',                     [\App\Controllers\TrainerAvailabilityController::class, 'checkConflicts']);
+$router->get( '/trainer/schedule',                                   [\App\Controllers\MyScheduleController::class, 'index']);
+
 // Import CSV
 $router->get('/import',               [\App\Controllers\ImportController::class, 'index']);
 $router->post('/import/upload',       [\App\Controllers\ImportController::class, 'upload']);

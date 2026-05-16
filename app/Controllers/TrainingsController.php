@@ -6,6 +6,7 @@ use App\Helpers\Auth;
 use App\Helpers\ClubContext;
 use App\Helpers\Csrf;
 use App\Helpers\NotificationDispatcher;
+use App\Helpers\Scheduling\TrainerScheduleService;
 use App\Helpers\Session;
 use App\Models\MemberModel;
 use App\Models\SportModel;
@@ -53,7 +54,27 @@ class TrainingsController extends BaseController
         $data = $this->parsePost();
         if ($data === null) return;
         $data['created_by'] = Auth::id();
+
+        // Conflict detection — warning, nie blokuje (admin moze nadpisac).
+        $force = !empty($_POST['force_save']);
+        $conflicts = $this->scanForConflicts($data, null);
+        if (!empty($conflicts) && !$force) {
+            Session::flash('warning', $this->formatConflictsForFlash($conflicts));
+            Session::set('pending_training_data', $data);
+            $this->redirect('trainings/create');
+        }
+
         $id = (new TrainingModel())->insert($data);
+
+        // Persistuj konflikty (audit) jezeli byly ignorowane przy zapisie
+        if (!empty($conflicts) && !empty($data['instructor_id'])) {
+            (new TrainerScheduleService())->persistConflicts(
+                (int)$data['instructor_id'],
+                (int)ClubContext::current(),
+                $id,
+                $conflicts
+            );
+        }
 
         // Notify club members about future trainings
         if (!empty($data['start_time']) && strtotime($data['start_time']) > time()) {
@@ -106,7 +127,26 @@ class TrainingsController extends BaseController
         Csrf::verify();
         $data = $this->parsePost();
         if ($data === null) return;
+
+        $force = !empty($_POST['force_save']);
+        $conflicts = $this->scanForConflicts($data, (int)$id);
+        if (!empty($conflicts) && !$force) {
+            Session::flash('warning', $this->formatConflictsForFlash($conflicts));
+            Session::set('pending_training_data', $data);
+            $this->redirect('trainings/' . $id . '/edit');
+        }
+
         (new TrainingModel())->update((int)$id, $data);
+
+        if (!empty($conflicts) && !empty($data['instructor_id'])) {
+            (new TrainerScheduleService())->persistConflicts(
+                (int)$data['instructor_id'],
+                (int)ClubContext::current(),
+                (int)$id,
+                $conflicts
+            );
+        }
+
         Session::flash('success', 'Zapisano zmiany.');
         $this->redirect('trainings/' . $id);
     }
@@ -199,5 +239,45 @@ class TrainingsController extends BaseController
         $data['start_time'] = str_replace('T', ' ', $data['start_time']);
         if ($data['end_time']) $data['end_time'] = str_replace('T', ' ', $data['end_time']);
         return $data;
+    }
+
+    /**
+     * Skanuje przyszle konflikty dla zadanych danych treningu.
+     * Pomija jezeli brak instructor_id albo treningu w przeszlosci.
+     *
+     * @return array<int, array<string,mixed>>
+     */
+    private function scanForConflicts(array $data, ?int $excludeTrainingId): array
+    {
+        if (empty($data['instructor_id'])) return [];
+        if (empty($data['start_time'])) return [];
+        try {
+            $start = new \DateTimeImmutable((string)$data['start_time']);
+            $end   = !empty($data['end_time'])
+                ? new \DateTimeImmutable((string)$data['end_time'])
+                : $start->modify('+1 hour');
+        } catch (\Throwable) {
+            return [];
+        }
+        $clubId = ClubContext::current();
+        return (new TrainerScheduleService())->detectConflicts(
+            (int)$data['instructor_id'],
+            $start,
+            $end,
+            $excludeTrainingId,
+            $clubId ? (int)$clubId : null
+        );
+    }
+
+    private function formatConflictsForFlash(array $conflicts): string
+    {
+        $count = count($conflicts);
+        $lines = array_map(static fn(array $c): string => '• ' . ($c['details'] ?? $c['type']), array_slice($conflicts, 0, 5));
+        return sprintf(
+            'Wykryto %d konflikt(ow) terminu trenera: <br>%s<br>'
+            . 'Zaznacz "Zapisz mimo to" w formularzu, aby kontynuowac.',
+            $count,
+            implode('<br>', $lines)
+        );
     }
 }
