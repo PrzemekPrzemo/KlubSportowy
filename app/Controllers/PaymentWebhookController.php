@@ -53,6 +53,13 @@ class PaymentWebhookController extends BaseController
                 "INSERT INTO activity_log (club_id, action, entity, details, ip_address)
                  VALUES (?, 'payment_received', 'billing', ?, ?)"
             )->execute([$clubId, 'Stripe webhook: checkout.session.completed', $_SERVER['REMOTE_ADDR'] ?? null]);
+
+            // Wyemituj webhook do zewnetrznych subskrybentow klubu (API v2).
+            \App\Helpers\Webhooks\WebhookDispatcher::publish($clubId, 'payment.received', [
+                'provider'   => 'stripe',
+                'event_type' => $event['type'] ?? 'checkout.session.completed',
+                'object'     => $event['data']['object'] ?? null,
+            ]);
         }
 
         $this->json(['status' => 'ok'], 200);

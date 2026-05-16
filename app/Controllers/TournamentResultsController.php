@@ -198,6 +198,23 @@ class TournamentResultsController extends BaseController
             $recalculatedFor = 0;
         }
 
+        // Webhook: tournament.finished — tylko jesli oznaczony jako finished.
+        if (!empty($_POST['mark_finished'])) {
+            try {
+                $clubId = \App\Helpers\ClubContext::current();
+                if ($clubId !== null) {
+                    \App\Helpers\Webhooks\WebhookDispatcher::publish((int)$clubId, 'tournament.finished', [
+                        'tournament_id'      => $tournamentId,
+                        'tournament_name'    => $tournament['name'] ?? null,
+                        'participants_count' => $participantCount,
+                        'recalculated_for'   => $recalculatedFor,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                error_log('Webhook publish tournament.finished failed: ' . $e->getMessage());
+            }
+        }
+
         // 5. Live push (opcjonalnie).
         $this->maybePushLive($tournament, $postParticipants);
 

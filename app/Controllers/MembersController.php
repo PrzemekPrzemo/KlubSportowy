@@ -123,6 +123,15 @@ class MembersController extends BaseController
             error_log('Achievements trigger after member store failed: ' . $e->getMessage());
         }
 
+        // Webhook: member.created (Public API v2 subscribers).
+        \App\Helpers\Webhooks\WebhookDispatcher::publish($this->currentClub(), 'member.created', [
+            'member_id'    => (int)$id,
+            'first_name'   => $data['first_name'] ?? null,
+            'last_name'    => $data['last_name'] ?? null,
+            'member_number'=> $data['member_number'] ?? null,
+            'status'       => $data['status'] ?? null,
+        ]);
+
         Session::flash('success', 'Zawodnik dodany.');
         $this->redirect('members/' . $id);
     }
