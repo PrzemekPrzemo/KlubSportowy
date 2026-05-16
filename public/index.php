@@ -1103,6 +1103,14 @@ $router->post('/api/v1/notifications/:id/read',         [\App\Controllers\Api\No
 $router->post('/api/v1/notifications/read-all',         [\App\Controllers\Api\NotificationsApiController::class, 'markAllRead']);
 $router->get('/api/v1/notifications/unread-count',      [\App\Controllers\Api\NotificationsApiController::class, 'unreadCount']);
 
+// API v1: member-to-member messages (chat, polling, FCM push)
+$router->get( '/api/v1/messages/threads',              [\App\Controllers\Api\MessagesApiController::class, 'threads']);
+$router->get( '/api/v1/messages/poll',                 [\App\Controllers\Api\MessagesApiController::class, 'poll']);
+$router->get( '/api/v1/messages/unread-count',         [\App\Controllers\Api\MessagesApiController::class, 'unreadCount']);
+$router->post('/api/v1/messages/send',                 [\App\Controllers\Api\MessagesApiController::class, 'send']);
+$router->get( '/api/v1/messages/thread/:peerId',       [\App\Controllers\Api\MessagesApiController::class, 'thread']);
+$router->post('/api/v1/messages/thread/:peerId/read',  [\App\Controllers\Api\MessagesApiController::class, 'markThreadRead']);
+
 // API v1: identity / club switching
 $router->get('/api/v1/identity/clubs',      [\App\Controllers\Api\IdentityApiController::class, 'clubs']);
 $router->post('/api/v1/identity/switch',    [\App\Controllers\Api\IdentityApiController::class, 'switchClub']);
