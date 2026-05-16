@@ -596,6 +596,14 @@ $router->post('/club/users/:userId/revoke', [\App\Controllers\ClubManagementCont
 // Club export
 $router->get('/club/export', [\App\Controllers\ClubExportController::class, 'export']);
 
+// Sponsorzy klubu
+$router->get('/club/sponsors',                 [\App\Controllers\ClubSponsorsController::class, 'index']);
+$router->get('/club/sponsors/create',          [\App\Controllers\ClubSponsorsController::class, 'create']);
+$router->post('/club/sponsors/store',          [\App\Controllers\ClubSponsorsController::class, 'store']);
+$router->get('/club/sponsors/:id/edit',        [\App\Controllers\ClubSponsorsController::class, 'edit']);
+$router->post('/club/sponsors/:id/update',     [\App\Controllers\ClubSponsorsController::class, 'update']);
+$router->post('/club/sponsors/:id/delete',     [\App\Controllers\ClubSponsorsController::class, 'destroy']);
+
 // Webhooki
 $router->get('/club/webhooks',              [\App\Controllers\WebhooksController::class, 'index']);
 $router->get('/club/webhooks/create',       [\App\Controllers\WebhooksController::class, 'create']);
