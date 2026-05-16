@@ -49,4 +49,13 @@ class PaymentModel extends ClubScopedModel
         $stmt->execute($params);
         return (float)$stmt->fetchColumn();
     }
+
+    public function totalForMemberThisYear(int $memberId): float
+    {
+        $sql  = "SELECT COALESCE(SUM(amount), 0) FROM payments
+                 WHERE member_id = ? AND period_year = YEAR(CURDATE())";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$memberId]);
+        return (float)$stmt->fetchColumn();
+    }
 }
