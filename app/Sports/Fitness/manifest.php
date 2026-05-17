@@ -1,15 +1,20 @@
 <?php
 // ============================================================
-// Modul sportu: FITNESS (gimnastyka/grace, ogolnorozwojowy)
-// Bootstrap — minimalny manifest, bez routes/nav.
+// Modul sportu: FITNESS (studio sport, FULL)
+// Migracja 101 (studio_*) + dedykowany FitnessModule (klasy/karnety).
 // ============================================================
 
 return [
     'key'        => 'fitness',
     'name'       => 'Fitness',
     'federation' => null,
-    'features'   => [],
+    'family'     => 'studio',
+    'module'     => \App\Sports\Fitness\FitnessModule::class,
+    'features'   => ['classes', 'passes', 'checkin'],
     'routes'     => [],
-    'nav'        => [],
+    'nav'        => [
+        ['label' => 'Klasy', 'icon' => 'bi-calendar-week', 'url' => 'club/studio/fitness/schedules'],
+        ['label' => 'Karnety', 'icon' => 'bi-card-checklist', 'url' => 'club/studio/fitness/pass-types'],
+    ],
     'migrations' => __DIR__ . '/migrations',
 ];

@@ -793,6 +793,40 @@ $router->get('/certifications',             [\App\Controllers\CoachCertification
 $router->post('/certifications/store',      [\App\Controllers\CoachCertificationsController::class, 'store']);
 $router->post('/certifications/:id/delete', [\App\Controllers\CoachCertificationsController::class, 'delete']);
 
+// ─────────────────────────────────────────────────────────
+// Studio sports FULL — yoga, fitness, pilates
+// (klasy + karnety + check-in + portal zapisow)
+// ─────────────────────────────────────────────────────────
+// Admin / instruktor
+$router->get('/club/studio/:sport/schedules',                        [\App\Controllers\ClubStudioController::class, 'schedules']);
+$router->get('/club/studio/:sport/schedules/new',                    [\App\Controllers\ClubStudioController::class, 'scheduleForm']);
+$router->post('/club/studio/:sport/schedules/store',                 [\App\Controllers\ClubStudioController::class, 'scheduleStore']);
+$router->get('/club/studio/:sport/schedules/:id/edit',               [\App\Controllers\ClubStudioController::class, 'scheduleForm']);
+$router->post('/club/studio/:sport/schedules/:id/update',            [\App\Controllers\ClubStudioController::class, 'scheduleUpdate']);
+$router->post('/club/studio/:sport/schedules/:id/delete',            [\App\Controllers\ClubStudioController::class, 'scheduleDelete']);
+
+$router->get('/club/studio/:sport/pass-types',                       [\App\Controllers\ClubStudioController::class, 'passTypes']);
+$router->get('/club/studio/:sport/pass-types/new',                   [\App\Controllers\ClubStudioController::class, 'passTypeForm']);
+$router->post('/club/studio/:sport/pass-types/store',                [\App\Controllers\ClubStudioController::class, 'passTypeStore']);
+$router->get('/club/studio/:sport/pass-types/:id/edit',              [\App\Controllers\ClubStudioController::class, 'passTypeForm']);
+$router->post('/club/studio/:sport/pass-types/:id/update',           [\App\Controllers\ClubStudioController::class, 'passTypeUpdate']);
+$router->post('/club/studio/:sport/pass-types/:id/delete',           [\App\Controllers\ClubStudioController::class, 'passTypeDelete']);
+
+$router->get('/club/studio/:sport/roster/:sched/:date',              [\App\Controllers\ClubStudioController::class, 'roster']);
+$router->post('/club/studio/:sport/roster/attend/:id',               [\App\Controllers\ClubStudioController::class, 'rosterAttend']);
+$router->post('/club/studio/:sport/roster/no-show/:id',              [\App\Controllers\ClubStudioController::class, 'rosterNoShow']);
+$router->get('/club/studio/:sport/passes-report',                    [\App\Controllers\ClubStudioController::class, 'passesReport']);
+
+// Portal zawodnika
+$router->get('/portal/studio',                            [\App\Controllers\PortalStudioController::class, 'mySchedule']);
+$router->get('/portal/studio/my-schedule',                [\App\Controllers\PortalStudioController::class, 'mySchedule']);
+$router->get('/portal/studio/catalog',                    [\App\Controllers\PortalStudioController::class, 'classCatalog']);
+$router->post('/portal/studio/book',                      [\App\Controllers\PortalStudioController::class, 'book']);
+$router->post('/portal/studio/cancel/:id',                [\App\Controllers\PortalStudioController::class, 'cancel']);
+$router->get('/portal/studio/my-passes',                  [\App\Controllers\PortalStudioController::class, 'myPasses']);
+$router->get('/portal/studio/buy-pass',                   [\App\Controllers\PortalStudioController::class, 'buyPass']);
+$router->post('/portal/studio/buy-pass',                  [\App\Controllers\PortalStudioController::class, 'buyPassStore']);
+
 // Admin: sprzęt klubowy
 $router->get('/equipment',                          [\App\Controllers\ClubEquipmentController::class, 'index']);
 $router->get('/equipment/:id',                      [\App\Controllers\ClubEquipmentController::class, 'show']);

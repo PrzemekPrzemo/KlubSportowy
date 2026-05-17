@@ -237,6 +237,28 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                     <i class="bi bi-lightning-charge me-1"></i><?= $sportLabels[$sk] ?>
                 </a>
             <?php endforeach; ?>
+            <?php
+            // Studio sports — link "Zajecia / Karnety" widoczny gdy klub ma yoga/fitness/pilates
+            $studioActive = false;
+            try {
+                $portalClubIdStudio = \App\Helpers\MemberAuth::clubId();
+                if ($portalClubIdStudio !== null) {
+                    $stmtStudio = \App\Helpers\Database::pdo()->prepare(
+                        "SELECT COUNT(*) FROM club_sports cs
+                         JOIN sports s ON s.id = cs.sport_id
+                         WHERE cs.club_id = ? AND cs.is_active = 1
+                           AND s.`key` IN ('yoga','fitness','pilates')"
+                    );
+                    $stmtStudio->execute([$portalClubIdStudio]);
+                    $studioActive = ((int)$stmtStudio->fetchColumn()) > 0;
+                }
+            } catch (\Throwable) {}
+            if ($studioActive):
+            ?>
+                <a href="<?= url('portal/studio') ?>" class="<?= $isActive('/studio') ?>">
+                    <i class="bi bi-flower1 me-1"></i>Zajecia / Karnety
+                </a>
+            <?php endif; ?>
             <span class="text-white-50">|</span>
             <a href="<?= url('portal/fees') ?>" class="<?= $isActive('fees') ?>">
                 <i class="bi bi-receipt me-1"></i><?= __('portal.nav.fees') ?>

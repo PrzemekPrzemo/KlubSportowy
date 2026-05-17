@@ -48,4 +48,13 @@ class Database
     {
         return self::getInstance();
     }
+
+    /**
+     * Wstrzyknij wlasny PDO (do testow z in-memory SQLite).
+     * Uzywaj WYLACZNIE w testach — w produkcji nigdy.
+     */
+    public static function setInstance(?PDO $pdo): void
+    {
+        self::$instance = $pdo;
+    }
 }
