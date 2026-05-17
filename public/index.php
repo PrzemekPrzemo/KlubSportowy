@@ -1295,6 +1295,23 @@ $router->post('/tournaments/:id/results/save',     [\App\Controllers\TournamentR
 $router->get( '/tournaments/:id/protocol-pdf',     [\App\Controllers\TournamentResultsController::class, 'protocolPdf']);
 $router->get( '/admin/tournaments/pending',        [\App\Controllers\TournamentResultsController::class, 'pending']);
 
+// ── Racket sports FULL (badminton, squash, golf, padel, archery) — migracja 103 ─
+// Portal: my_record + self-report scorecardów (golf, archery)
+$router->get( '/portal/sport/:key/my_record',         [\App\Controllers\PortalRacketController::class, 'myRecord']);
+$router->get( '/portal/sport/:key/scorecard/new',     [\App\Controllers\PortalRacketController::class, 'newScorecard']);
+$router->post('/portal/sport/:key/scorecard/store',   [\App\Controllers\PortalRacketController::class, 'storeScorecard']);
+// Admin: pola golf, pary padel, weryfikacja scorecardów
+$router->get( '/club/sport/golf/courses',             [\App\Controllers\AdminRacketController::class, 'golfCourses']);
+$router->post('/club/sport/golf/courses/store',       [\App\Controllers\AdminRacketController::class, 'golfCoursesStore']);
+$router->post('/club/sport/golf/courses/:id/delete',  [\App\Controllers\AdminRacketController::class, 'golfCoursesDelete']);
+$router->get( '/club/sport/padel/pairs',              [\App\Controllers\AdminRacketController::class, 'padelPairs']);
+$router->post('/club/sport/padel/pairs/store',        [\App\Controllers\AdminRacketController::class, 'padelPairsStore']);
+$router->post('/club/sport/padel/pairs/:id/toggle',   [\App\Controllers\AdminRacketController::class, 'padelPairsToggle']);
+$router->post('/club/sport/padel/pairs/:id/delete',   [\App\Controllers\AdminRacketController::class, 'padelPairsDelete']);
+$router->get( '/club/sport/:key/scorecards',          [\App\Controllers\AdminRacketController::class, 'scorecards']);
+$router->post('/club/sport/:key/scorecards/:id/verify', [\App\Controllers\AdminRacketController::class, 'scorecardVerify']);
+$router->post('/club/sport/:key/scorecards/:id/delete', [\App\Controllers\AdminRacketController::class, 'scorecardDelete']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 
