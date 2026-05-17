@@ -52,6 +52,15 @@ use App\Sports\Boxing\Models\BoxingMedicalModel;
     </div>
 </div>
 
+<?php
+// Pelna kartoteka bokserska (po promocji PARTIAL -> FULL)
+echo View::partial('portal/sport/boxing/my_record', [
+    'boxingCard'    => $boxingCard    ?? null,
+    'licenseLevels' => $licenseLevels ?? [],
+    'weightHistory' => $weightHistory ?? [],
+]);
+?>
+
 <!-- Medical status -->
 <div class="card shadow-sm mb-4">
     <div class="card-header"><i class="bi bi-heart-pulse me-1"></i> Status badań lekarskich</div>
