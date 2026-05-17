@@ -117,6 +117,103 @@
     </div>
 </div>
 
+<!-- Protokol PDF (auto-publish + public share) -->
+<?php
+    $protocol = null;
+    try {
+        $protocol = (new \App\Models\TournamentProtocolModel())->latestForTournament((int)$tournament['id']);
+    } catch (\Throwable) {
+        $protocol = null;
+    }
+    $protocolEnabled = $protocol && (int)($protocol['public_share_enabled'] ?? 0) === 1;
+    $protocolSlug    = $protocol['public_share_slug'] ?? null;
+    $protocolUrl     = ($protocolEnabled && $protocolSlug) ? url('protocols/' . $protocolSlug) : null;
+?>
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-file-earmark-pdf me-1"></i>Protokol turniejowy (PDF)</strong>
+        <?php if ($protocol): ?>
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Wygenerowany (v<?= (int)$protocol['version'] ?>)</span>
+        <?php else: ?>
+            <span class="badge bg-secondary">Brak protokolu</span>
+        <?php endif; ?>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            Protokol PDF jest generowany automatycznie po zakonczeniu turnieju.
+            Mozesz odswiezyc go recznie (np. po korekcie wynikow) — kazda wersja
+            jest zachowana. Opcjonalnie wystaw publiczny link bez logowania
+            dla rodzicow, sponsorow i federacji.
+        </p>
+
+        <?php if ($protocol): ?>
+            <dl class="row small mb-3">
+                <dt class="col-sm-3">Wersja</dt>
+                <dd class="col-sm-9">v<?= (int)$protocol['version'] ?>
+                    <?php if ((int)($protocol['auto_generated'] ?? 1) === 1): ?>
+                        <span class="text-muted">(auto)</span>
+                    <?php else: ?>
+                        <span class="text-muted">(manual)</span>
+                    <?php endif; ?>
+                </dd>
+                <dt class="col-sm-3">Wygenerowano</dt>
+                <dd class="col-sm-9"><?= View::e($protocol['generated_at'] ?? '') ?></dd>
+                <?php if (!empty($protocol['pdf_size_bytes'])): ?>
+                <dt class="col-sm-3">Rozmiar</dt>
+                <dd class="col-sm-9"><?= number_format(((int)$protocol['pdf_size_bytes']) / 1024, 1) ?> KB</dd>
+                <?php endif; ?>
+            </dl>
+        <?php endif; ?>
+
+        <?php if ($protocolEnabled && $protocolUrl): ?>
+            <div class="alert alert-light border d-flex align-items-center gap-3">
+                <img src="<?= url('protocols/' . $protocolSlug . '/qr') ?>"
+                     alt="QR" width="90" height="90" style="background:#fff;padding:4px;border-radius:4px;">
+                <div class="flex-grow-1">
+                    <div class="small text-muted mb-1">Publiczny link PDF:</div>
+                    <code class="d-block text-break"><?= View::e($protocolUrl) ?></code>
+                    <div class="mt-2 d-flex gap-2 flex-wrap">
+                        <a href="<?= View::e($protocolUrl) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i> Otworz strone
+                        </a>
+                        <a href="<?= url('protocols/' . $protocolSlug . '/download') ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-download"></i> Pobierz PDF
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="navigator.clipboard.writeText('<?= View::e($protocolUrl) ?>'); this.textContent='Skopiowano!';">
+                            <i class="bi bi-clipboard"></i> Kopiuj link
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <div class="d-flex gap-2 flex-wrap mt-2">
+            <form method="POST" action="<?= url('tournaments/' . (int)$tournament['id'] . '/regenerate-protocol') ?>"
+                  onsubmit="return confirm('Wygenerowac/odswiezyc PDF protokolu?')">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn btn-sm <?= $protocol ? 'btn-outline-primary' : 'btn-primary' ?>">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <?= $protocol ? 'Odswiez PDF' : 'Wygeneruj PDF' ?>
+                </button>
+            </form>
+
+            <form method="POST" action="<?= url('tournaments/' . (int)$tournament['id'] . '/toggle-public-protocol') ?>"
+                  onsubmit="return confirm('<?= $protocolEnabled ? "Wylaczyc publiczny link?" : "Wlaczyc publiczny link? Bedzie dostepny bez logowania." ?>')">
+                <?= csrf_field() ?>
+                <input type="hidden" name="enable" value="<?= $protocolEnabled ? 0 : 1 ?>">
+                <button type="submit" class="btn btn-sm <?= $protocolEnabled ? 'btn-outline-danger' : 'btn-outline-success' ?>">
+                    <?php if ($protocolEnabled): ?>
+                        <i class="bi bi-x-circle"></i> Wylacz publiczny link
+                    <?php else: ?>
+                        <i class="bi bi-share"></i> Wlacz publiczny link
+                    <?php endif; ?>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php if ($tournament['status'] === 'draft'): ?>
 <!-- Participants management (draft only) -->
 <div class="card mb-4">

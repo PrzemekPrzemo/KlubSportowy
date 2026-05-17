@@ -281,4 +281,79 @@ class TournamentsController extends BaseController
         );
         $this->redirect('tournaments/' . (int)$id);
     }
+
+    /**
+     * POST /tournaments/:id/regenerate-protocol
+     *
+     * Re-publikuje PDF protokol turnieju (nowa wersja). Slug share-linka
+     * zachowany. Dziala tylko gdy turniej nalezy do biezacego klubu.
+     */
+    public function regenerateProtocol(string $id): void
+    {
+        Csrf::verify();
+
+        $model      = new TournamentModel();
+        $tournament = $model->findById((int)$id);
+        if (!$tournament) {
+            Session::flash('error', 'Turniej nie istnieje.');
+            $this->redirect('tournaments');
+        }
+        $clubId = \App\Helpers\ClubContext::current();
+        if ($clubId === null || (int)$tournament['club_id'] !== (int)$clubId) {
+            Session::flash('error', 'Brak dostepu do turnieju.');
+            $this->redirect('tournaments');
+        }
+
+        try {
+            $result = (new \App\Helpers\Tournaments\ProtocolPublisher())->republish((int)$id);
+            Session::flash(
+                'success',
+                'PDF protokol odswiezony (wersja v' . (int)$result['version'] . ').'
+            );
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Nie udalo sie wygenerowac PDF: ' . $e->getMessage());
+        }
+
+        $this->redirect('tournaments/' . (int)$id);
+    }
+
+    /**
+     * POST /tournaments/:id/toggle-public-protocol
+     *
+     * Wlacza / wylacza publiczny share link do PDF protokolu. Przy pierwszym
+     * wlaczeniu generuje globalnie unikalny slug.
+     */
+    public function togglePublicProtocol(string $id): void
+    {
+        Csrf::verify();
+
+        $model      = new TournamentModel();
+        $tournament = $model->findById((int)$id);
+        if (!$tournament) {
+            Session::flash('error', 'Turniej nie istnieje.');
+            $this->redirect('tournaments');
+        }
+        $clubId = \App\Helpers\ClubContext::current();
+        if ($clubId === null || (int)$tournament['club_id'] !== (int)$clubId) {
+            Session::flash('error', 'Brak dostepu do turnieju.');
+            $this->redirect('tournaments');
+        }
+
+        $enable = (int)($_POST['enable'] ?? 0) === 1;
+
+        try {
+            $shareUrl = (new \App\Helpers\Tournaments\ProtocolPublisher())
+                ->setSharing((int)$id, $enable);
+            Session::flash(
+                'success',
+                $enable && $shareUrl
+                    ? 'Publiczny link do protokolu wlaczony: ' . $shareUrl
+                    : 'Publiczny link do protokolu wylaczony.'
+            );
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Nie udalo sie zmienic ustawien share: ' . $e->getMessage());
+        }
+
+        $this->redirect('tournaments/' . (int)$id);
+    }
 }
