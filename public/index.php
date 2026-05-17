@@ -1031,9 +1031,13 @@ $router->post('/portal/bookings/:id/cancel',     [\App\Controllers\PortalBooking
 $router->get('/portal/messenger',                       [\App\Controllers\PortalMessengerController::class, 'index']);
 $router->post('/portal/messenger/send',                 [\App\Controllers\PortalMessengerController::class, 'send']);
 $router->post('/portal/messenger/new-direct',           [\App\Controllers\PortalMessengerController::class, 'newDirect']);
+$router->post('/portal/messenger/e2e/setup',            [\App\Controllers\PortalMessengerController::class, 'setupE2E']);
+$router->post('/portal/messenger/e2e/disable',          [\App\Controllers\PortalMessengerController::class, 'disableE2E']);
 $router->get('/portal/messenger/:id/stream',            [\App\Controllers\PortalMessengerController::class, 'stream']);
 $router->get('/portal/messenger/:id/poll',              [\App\Controllers\PortalMessengerController::class, 'poll']);
 $router->post('/portal/messenger/:id/mark-read',        [\App\Controllers\PortalMessengerController::class, 'markRead']);
+$router->post('/portal/messenger/:id/e2e/enable',       [\App\Controllers\PortalMessengerController::class, 'enableE2EForThread']);
+$router->post('/portal/messenger/:id/e2e/disable',      [\App\Controllers\PortalMessengerController::class, 'disableE2EForThread']);
 $router->get('/portal/messenger/:id',                   [\App\Controllers\PortalMessengerController::class, 'thread']);
 
 // ── REST API v1 ─────────────
