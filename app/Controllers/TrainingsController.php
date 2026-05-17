@@ -183,6 +183,35 @@ class TrainingsController extends BaseController
     public function markAttendance(string $id): void
     {
         Csrf::verify();
+
+        // Defense-in-depth: cross-club + ownership guard.
+        // Trener/instruktor moze wpisac obecnosc TYLKO na swoim treningu (instructor_id = current user)
+        // i tylko w aktualnym klubie (training.club_id = ClubContext::current()).
+        // Zarzad/admin/super admin moze edytowac w ramach swojego klubu.
+        $trainingId = (int)$id;
+        $db = \App\Helpers\Database::pdo();
+        $stmt = $db->prepare("SELECT club_id, instructor_id FROM trainings WHERE id = ? LIMIT 1");
+        $stmt->execute([$trainingId]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            Session::flash('error', 'Nie znaleziono treningu.');
+            $this->redirect('trainings');
+        }
+        $currentClub = (int)\App\Helpers\ClubContext::current();
+        if ((int)$row['club_id'] !== $currentClub) {
+            http_response_code(403);
+            Session::flash('error', 'Nie mozna modyfikowac treningu z innego klubu.');
+            $this->redirect('trainings');
+        }
+        $userId       = (int)Auth::id();
+        $isOwner      = (int)($row['instructor_id'] ?? 0) === $userId;
+        $isPrivileged = Auth::isSuperAdmin() || Auth::hasRole(['zarzad','admin']);
+        if (!$isPrivileged && !$isOwner) {
+            http_response_code(403);
+            Session::flash('error', 'Mozesz wpisac obecnosc tylko na swoim treningu.');
+            $this->redirect('trainings/' . $trainingId);
+        }
+
         $statuses = $_POST['status'] ?? [];
         $model = new TrainingAttendeeModel();
         $touchedMembers = [];

@@ -33,19 +33,63 @@ $weekdays = [1=>'Pon', 2=>'Wt', 3=>'Sr', 4=>'Czw', 5=>'Pt', 6=>'Sob', 7=>'Nd'];
         </div>
 
         <div class="card mt-3">
-            <div class="card-header"><strong>Nadchodzace treningi</strong></div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Moje treningi</strong>
+                <a href="<?= url('trainer/dashboard') ?>" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-speedometer2"></i> Panel trenera
+                </a>
+            </div>
             <div class="card-body p-0">
                 <?php if (empty($upcoming)): ?>
                     <p class="text-muted p-3 mb-0">Brak zaplanowanych treningow.</p>
                 <?php else: ?>
                     <table class="table table-sm mb-0">
-                        <thead><tr><th>Data</th><th>Nazwa</th><th>Klub</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Nazwa</th><th>Klub</th><th>Status</th><th class="text-end">Akcje</th></tr></thead>
                         <tbody>
-                            <?php foreach ($upcoming as $t): ?>
-                                <tr>
+                            <?php
+                            $today = (new DateTimeImmutable('today'))->format('Y-m-d');
+                            foreach ($upcoming as $t):
+                                $startDate = substr((string)$t['start_time'], 0, 10);
+                                $total  = (int)($t['total_attendees'] ?? 0);
+                                $marked = (int)($t['marked_attendees'] ?? 0);
+                                $submitted = $total > 0 && $marked >= $total;
+
+                                if ($startDate < $today) {
+                                    if ($submitted) {
+                                        $badgeClass = 'bg-success';
+                                        $badgeText  = 'wpisane';
+                                        $rowClass   = '';
+                                    } else {
+                                        $badgeClass = 'bg-danger';
+                                        $badgeText  = 'WYMAGA WPISU';
+                                        $rowClass   = 'table-danger';
+                                    }
+                                } elseif ($startDate === $today) {
+                                    $badgeClass = 'bg-warning text-dark';
+                                    $badgeText  = 'do wpisania po treningu';
+                                    $rowClass   = 'table-warning';
+                                } else {
+                                    $badgeClass = 'bg-secondary';
+                                    $badgeText  = 'planowany';
+                                    $rowClass   = '';
+                                }
+                            ?>
+                                <tr class="<?= $rowClass ?>">
                                     <td><small><?= View::e($t['start_time']) ?></small></td>
                                     <td><a href="<?= url('trainings/' . (int)$t['id']) ?>"><?= View::e($t['name']) ?></a></td>
                                     <td><small><?= View::e($t['club_name'] ?? '#' . $t['club_id']) ?></small></td>
+                                    <td>
+                                        <span class="badge <?= $badgeClass ?>"><?= $badgeText ?></span>
+                                        <?php if ($total > 0): ?>
+                                            <small class="d-block text-muted"><?= $marked ?>/<?= $total ?></small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="<?= url('trainer/training/' . (int)$t['id'] . '/attendance') ?>"
+                                           class="btn btn-sm <?= $submitted ? 'btn-outline-success' : 'btn-primary' ?>">
+                                            <i class="bi bi-check2-square"></i> Wpisz obecnosc
+                                        </a>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
