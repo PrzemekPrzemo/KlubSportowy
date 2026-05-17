@@ -3,8 +3,10 @@ return [
     'key'        => 'rollerskating',
     'name'       => 'Wrotkarstwo',
     'federation' => 'PZW',
+    'status'     => 'full',
+    'module'     => \App\Sports\Rollerskating\RollerskatingModule::class,
     'archetype'  => \App\Sports\Rollerskating\RollerskatingArchetype::class,
-    'features'   => ['equipment','times','disciplines','demo-ready'],
+    'features'   => ['equipment','times','disciplines','timing_results','verified_results','demo-ready'],
     'routes' => [
         ['GET',  '/rollerskating/equipment',              [\App\Sports\Rollerskating\Controllers\EquipmentController::class, 'index']],
         ['GET',  '/rollerskating/equipment/create',       [\App\Sports\Rollerskating\Controllers\EquipmentController::class, 'create']],
@@ -16,8 +18,9 @@ return [
         ['POST', '/rollerskating/times/:id/delete',       [\App\Sports\Rollerskating\Controllers\TimesController::class, 'delete']],
     ],
     'nav' => [
-        ['label' => 'Sprzęt',  'icon' => 'bi-box-seam',  'url' => 'rollerskating/equipment'],
-        ['label' => 'Pomiary', 'icon' => 'bi-stopwatch',  'url' => 'rollerskating/times'],
+        ['label' => 'Sprzęt',                'icon' => 'bi-box-seam',  'url' => 'rollerskating/equipment'],
+        ['label' => 'Pomiary',               'icon' => 'bi-stopwatch', 'url' => 'rollerskating/times'],
+        ['label' => 'Wyniki (zunifikowane)', 'icon' => 'bi-stopwatch', 'url' => 'club/sport/rollerskating/results'],
     ],
     'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',

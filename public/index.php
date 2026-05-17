@@ -1295,6 +1295,23 @@ $router->post('/tournaments/:id/results/save',     [\App\Controllers\TournamentR
 $router->get( '/tournaments/:id/protocol-pdf',     [\App\Controllers\TournamentResultsController::class, 'protocolPdf']);
 $router->get( '/admin/tournaments/pending',        [\App\Controllers\TournamentResultsController::class, 'pending']);
 
+// ── Timing sports FULL (swimming, cycling, rowing, triathlon, biathlon,
+//    alpineski, xcski, skijump, snowboard, rollerskating, kayaking) — migracja 105 ─
+// Wspólny model `sport_timing_results` z discriminator `sport_key`.
+$router->get( '/club/sport/:key/results',                  [\App\Sports\Support\Controllers\SportTimingResultsController::class, 'index']);
+$router->get( '/club/sport/:key/result/create',            [\App\Sports\Support\Controllers\SportTimingResultsController::class, 'create']);
+$router->post('/club/sport/:key/result/store',             [\App\Sports\Support\Controllers\SportTimingResultsController::class, 'store']);
+$router->post('/club/sport/:key/result/:id/verify',        [\App\Sports\Support\Controllers\SportTimingResultsController::class, 'verify']);
+$router->post('/club/sport/:key/result/:id/delete',        [\App\Sports\Support\Controllers\SportTimingResultsController::class, 'delete']);
+$router->get( '/portal/sport/:key/my_results',             [\App\Sports\Support\Controllers\SportTimingPortalController::class, 'myResults']);
+
+// ── Strength sports FULL (powerlifting, strongman, weightlifting) — migracja 105 ─
+$router->get( '/club/sport/:key/attempts',                       [\App\Sports\Support\Controllers\SportStrengthAttemptsController::class, 'index']);
+$router->post('/club/sport/:key/attempt/store',                  [\App\Sports\Support\Controllers\SportStrengthAttemptsController::class, 'store']);
+$router->post('/club/sport/:key/attempt/:id/delete',             [\App\Sports\Support\Controllers\SportStrengthAttemptsController::class, 'delete']);
+$router->get( '/club/sport/:key/tournament/:id/scoreboard',      [\App\Sports\Support\Controllers\SportStrengthAttemptsController::class, 'scoreboard']);
+$router->get( '/portal/sport/:key/my_pbs',                       [\App\Sports\Support\Controllers\SportStrengthPortalController::class, 'myPbs']);
+
 // ── Trasy z modułów sportowych (plugin-like) ─────────────
 \App\Helpers\SportModuleLoader::registerRoutes($router);
 

@@ -237,6 +237,36 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                     <i class="bi bi-lightning-charge me-1"></i><?= $sportLabels[$sk] ?>
                 </a>
             <?php endforeach; ?>
+            <?php
+            // ── Migracja 105 — sport-specific link "Moje wyniki/PB" (timing/strength).
+            // Pokazujemy jeden najbardziej trafny link dla pierwszego aktywnego
+            // sportu zawodnika z grupy timing/strength.
+            $timingKeys   = ['swimming','cycling','rowing','triathlon','biathlon','alpineski',
+                             'xcski','skijump','snowboard','rollerskating','kayaking'];
+            $strengthKeys = ['powerlifting','strongman','weightlifting'];
+            $primaryTiming   = null;
+            $primaryStrength = null;
+            if (!empty($activeSports)) {
+                foreach ($timingKeys as $tk) {
+                    if (in_array($tk, $activeSports, true)) { $primaryTiming = $tk; break; }
+                }
+                foreach ($strengthKeys as $stk) {
+                    if (in_array($stk, $activeSports, true)) { $primaryStrength = $stk; break; }
+                }
+            }
+            if ($primaryTiming):
+            ?>
+                <a href="<?= url('portal/sport/' . $primaryTiming . '/my_results') ?>"
+                   class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/my_results') !== false ? 'active' : '' ?>">
+                    <i class="bi bi-stopwatch me-1"></i>Moje wyniki
+                </a>
+            <?php endif; ?>
+            <?php if ($primaryStrength): ?>
+                <a href="<?= url('portal/sport/' . $primaryStrength . '/my_pbs') ?>"
+                   class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/my_pbs') !== false ? 'active' : '' ?>">
+                    <i class="bi bi-shield-shaded me-1"></i>Moje PB
+                </a>
+            <?php endif; ?>
             <span class="text-white-50">|</span>
             <a href="<?= url('portal/fees') ?>" class="<?= $isActive('fees') ?>">
                 <i class="bi bi-receipt me-1"></i><?= __('portal.nav.fees') ?>

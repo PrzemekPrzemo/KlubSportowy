@@ -27,6 +27,14 @@
                                 <i class="bi bi-exclamation-triangle me-1"></i>Deprecated
                             </span>
                         <?php endif; ?>
+                        <?php $status = $m['status'] ?? null; ?>
+                        <?php if ($status === 'full'): ?>
+                            <span class="badge bg-success ms-1">FULL</span>
+                        <?php elseif ($status === 'partial'): ?>
+                            <span class="badge bg-secondary ms-1">PARTIAL</span>
+                        <?php elseif ($status === 'stub'): ?>
+                            <span class="badge bg-light text-muted border ms-1">STUB</span>
+                        <?php endif; ?>
                     </div>
                 </td>
                 <td class="small">
