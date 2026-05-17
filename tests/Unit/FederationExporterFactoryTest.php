@@ -7,11 +7,15 @@ use App\Helpers\Federations\FederationExporterInterface;
 use App\Helpers\Federations\GenericCsvExporter;
 use App\Helpers\Federations\PzhlAdapter;
 use App\Helpers\Federations\PzjAdapter;
+use App\Helpers\Federations\PzkarateAdapter;
+use App\Helpers\Federations\PzkolAdapter;
 use App\Helpers\Federations\PzkoszAdapter;
 use App\Helpers\Federations\PzlaAdapter;
 use App\Helpers\Federations\PznpAdapter;
 use App\Helpers\Federations\PzpsAdapter;
 use App\Helpers\Federations\PzssAdapter;
+use App\Helpers\Federations\PzszachAdapter;
+use App\Helpers\Federations\PztaekAdapter;
 use App\Helpers\Federations\PztsAdapter;
 use App\Helpers\Federations\PzwAdapter;
 use App\Helpers\Federations\PzbAdapter;
@@ -38,6 +42,10 @@ class FederationExporterFactoryTest extends TestCase
         $this->assertInstanceOf(PztsAdapter::class,    FederationExporterFactory::forCode('PZTS', []));
         $this->assertInstanceOf(PzwAdapter::class,     FederationExporterFactory::forCode('PZW', []));
         $this->assertInstanceOf(PzjAdapter::class,     FederationExporterFactory::forCode('PZJ', []));
+        $this->assertInstanceOf(PztaekAdapter::class,   FederationExporterFactory::forCode('PZTAEK', []));
+        $this->assertInstanceOf(PzkarateAdapter::class, FederationExporterFactory::forCode('PZKARATE', []));
+        $this->assertInstanceOf(PzkolAdapter::class,    FederationExporterFactory::forCode('PZKOL', []));
+        $this->assertInstanceOf(PzszachAdapter::class,  FederationExporterFactory::forCode('PZSZACH', []));
         $this->assertInstanceOf(ZprpAdapter::class,    FederationExporterFactory::forCode('ZPRP', []));
         $this->assertInstanceOf(PzpAdapter::class,     FederationExporterFactory::forCode('PZP', []));
         $this->assertInstanceOf(PztenAdapter::class,   FederationExporterFactory::forCode('PZTEN', []));
@@ -62,7 +70,7 @@ class FederationExporterFactoryTest extends TestCase
     public function testSupportedCodesContainsAllAdapters(): void
     {
         $codes = FederationExporterFactory::supportedCodes();
-        foreach (['PZPN','PZSS','PZKosz','PZLA','PZHL','PZPS','PZTS','PZW','PZJ','ZPRP','PZP','PZTEN','PZB'] as $c) {
+        foreach (['PZPN','PZSS','PZKosz','PZLA','PZHL','PZPS','PZTS','PZW','PZJ','PZTAEK','PZKARATE','PZKOL','PZSZACH','ZPRP','PZP','PZTEN','PZB'] as $c) {
             $this->assertArrayHasKey($c, $codes, "Missing $c in supportedCodes");
             $this->assertNotEmpty($codes[$c]);
         }
@@ -116,6 +124,10 @@ class FederationExporterFactoryTest extends TestCase
         $this->assertSame('PZTS',   FederationExporterFactory::forCode('PZTS',   [])->federationCode());
         $this->assertSame('PZW',    FederationExporterFactory::forCode('PZW',    [])->federationCode());
         $this->assertSame('PZJ',    FederationExporterFactory::forCode('PZJ',    [])->federationCode());
+        $this->assertSame('PZTAEK',   FederationExporterFactory::forCode('PZTAEK',   [])->federationCode());
+        $this->assertSame('PZKARATE', FederationExporterFactory::forCode('PZKARATE', [])->federationCode());
+        $this->assertSame('PZKOL',    FederationExporterFactory::forCode('PZKOL',    [])->federationCode());
+        $this->assertSame('PZSZACH',  FederationExporterFactory::forCode('PZSZACH',  [])->federationCode());
         $this->assertSame('ZPRP',   FederationExporterFactory::forCode('ZPRP',   [])->federationCode());
         $this->assertSame('PZP',    FederationExporterFactory::forCode('PZP',    [])->federationCode());
         $this->assertSame('PZTEN',  FederationExporterFactory::forCode('PZTEN',  [])->federationCode());

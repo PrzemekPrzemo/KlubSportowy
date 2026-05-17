@@ -18,6 +18,10 @@ use App\Models\ClubFederationCredentialModel;
  *   - PZTS   → PztsAdapter   (LOGIN — stat.pzts.pl, cookie session w osobnym tickecie)
  *   - PZW    → PzwAdapter    (SCRAPING wrotkarstwo + CSV)
  *   - PZJ    → PzjAdapter    (SCRAPING pzj.pl + CSV)
+ *   - PZTAEK   → PztaekAdapter   (SCRAPING pztaekwondo.pl + CSV) — taekwondo
+ *   - PZKARATE → PzkarateAdapter (SCRAPING pzkarate.pl/pzkt.pl + CSV) — karate
+ *   - PZKOL    → PzkolAdapter    (SCRAPING pzkol.pl ranking UCI + CSV) — kolarstwo
+ *   - PZSZACH  → PzszachAdapter  (SCRAPING cr-pzszach.pl + ELO + CSV) — szachy
  *   - ZPRP   → ZprpAdapter   (SCRAPING zprp.pl + CSV) — piłka ręczna
  *   - PZP    → PzpAdapter    (SCRAPING polswim.pl + livetiming.pl + CSV) — pływanie
  *   - PZTEN  → PztenAdapter  (SCRAPING pzt.pl + TIE rankings + CSV) — tenis
@@ -41,6 +45,10 @@ class FederationExporterFactory
         'PZTS'   => ['label' => 'Polski Związek Tenisa Stołowego',     'status' => FederationExporterInterface::STATUS_LOGIN],
         'PZW'    => ['label' => 'Polski Związek Wrotkarstwa',          'status' => FederationExporterInterface::STATUS_SCRAPING],
         'PZJ'    => ['label' => 'Polski Związek Judo',                 'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZTAEK'   => ['label' => 'Polski Związek Taekwondo Olimpijskiego', 'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZKARATE' => ['label' => 'Polski Związek Karate',                  'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZKOL'    => ['label' => 'Polski Związek Kolarski',                'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZSZACH'  => ['label' => 'Polski Związek Szachowy',                'status' => FederationExporterInterface::STATUS_SCRAPING],
         'ZPRP'   => ['label' => 'Związek Piłki Ręcznej w Polsce',      'status' => FederationExporterInterface::STATUS_SCRAPING],
         'PZP'    => ['label' => 'Polski Związek Pływacki',             'status' => FederationExporterInterface::STATUS_SCRAPING],
         'PZTEN'  => ['label' => 'Polski Związek Tenisowy',             'status' => FederationExporterInterface::STATUS_SCRAPING],
@@ -64,6 +72,10 @@ class FederationExporterFactory
             'PZTS'   => new PztsAdapter($config),
             'PZW'    => new PzwAdapter($config),
             'PZJ'    => new PzjAdapter($config),
+            'PZTAEK'   => new PztaekAdapter($config),
+            'PZKARATE' => new PzkarateAdapter($config),
+            'PZKOL'    => new PzkolAdapter($config),
+            'PZSZACH'  => new PzszachAdapter($config),
             'ZPRP'   => new ZprpAdapter($config),
             'PZP'    => new PzpAdapter($config),
             'PZTEN'  => new PztenAdapter($config),

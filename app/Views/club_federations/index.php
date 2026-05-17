@@ -149,9 +149,10 @@ $statusInfo = static function (string $status): array {
     <i class="bi bi-info-circle me-1"></i>
     <strong>Co który adapter realnie robi?</strong>
     <ul class="mb-0 mt-2">
-        <li><strong>SCRAPING</strong> (PZSS, PZLA, PZHL, PZPS, PZW, PZJ) — pobieramy publiczne dane
-            (wyniki, profile zawodników) z portali federacji, z respektowaniem robots.txt,
-            User-Agent <code>ClubDesk Bot/1.0</code>, rate-limit 5s/domain i cache 1h.
+        <li><strong>SCRAPING</strong> (PZSS, PZLA, PZHL, PZPS, PZW, PZJ, PZTAEK, PZKARATE, PZKOL, PZSZACH) —
+            pobieramy publiczne dane (wyniki, profile zawodników, ELO szachowe, ranking UCI)
+            z portali federacji, z respektowaniem robots.txt, User-Agent
+            <code>ClubDesk Bot/1.0</code>, rate-limit 5s/domain i cache 1h.
             Rejestracja zawodników = CSV do ręcznego wgrania w panelu klubu.</li>
         <li><strong>WYMAGA LOGINU</strong> (PZKosz Probasket, PZTS stat.pzts.pl) — sygnatury gotowe,
             faktyczny cookie-login flow w osobnym tickecie. Eksport członków = CSV.</li>
