@@ -507,6 +507,7 @@ return [
     'nav.ads'                   => 'Reklamy',
     'nav.sponsors'              => 'Sponsorzy',
     'nav.ksef_platform'         => 'KSeF — zarządzanie',
+    'nav.webhooks_queue'        => 'Webhooks — kolejka',
     'nav.ksef_club'             => 'KSeF — faktury',
     'nav.feature_flags'         => 'Feature flags',
     'nav.system_logo'           => 'Logo systemu',

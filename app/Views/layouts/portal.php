@@ -215,7 +215,8 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                           'taekwondo','weightlifting','climbing',
                           // X1-X13 (droga do 50)
                           'rugby','alpineski','xcski','skijump','snowboard','figureskating',
-                          'biathlon','kickboxing','mma','kayaking','golf','bridge','fieldhockey'];
+                          'biathlon','kickboxing','mma','kayaking','golf','bridge','fieldhockey',
+                          'esport'];
             $sportLabels = [
                 'bjj'=>'BJJ','gymnastics'=>'Gimnastyka','floorball'=>'Floorball',
                 'padel'=>'Padel','sailing'=>'Żeglarstwo','triathlon'=>'Triathlon','crossfit'=>'CrossFit',
@@ -227,6 +228,7 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                 'skijump'=>'Skoki','snowboard'=>'Snowboard','figureskating'=>'Łyż.fig.',
                 'biathlon'=>'Biathlon','kickboxing'=>'Kickbox','mma'=>'MMA',
                 'kayaking'=>'Kajak','golf'=>'Golf','bridge'=>'Brydż','fieldhockey'=>'Hok.trawa',
+                'esport'=>'E-sport',
             ];
             foreach ($sportKeys as $sk):
                 $activeSports = $activeSports ?? [];

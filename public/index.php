@@ -274,6 +274,11 @@ $router->get( '/admin/platform/ksef/queue',                       [\App\Controll
 $router->post('/admin/platform/ksef/queue/:queueId/force-retry',  [\App\Controllers\AdminPlatformKsefController::class, 'queueForceRetry']);
 $router->post('/admin/platform/ksef/queue/:queueId/force-fail',   [\App\Controllers\AdminPlatformKsefController::class, 'queueForceFail']);
 
+// Admin: Webhooks queue (cross-klub) — super admin monitoring + force retry/fail
+$router->get( '/admin/platform/webhooks/queue',                       [\App\Controllers\AdminPlatformWebhooksController::class, 'queue']);
+$router->post('/admin/platform/webhooks/:id/retry',                   [\App\Controllers\AdminPlatformWebhooksController::class, 'retry']);
+$router->post('/admin/platform/webhooks/:id/fail-permanently',        [\App\Controllers\AdminPlatformWebhooksController::class, 'failPermanently']);
+
 // Admin: feature flags (per-klub boolean włącz/wyłącz feature'ów)
 $router->get('/admin/platform/feature-flags',                  [\App\Controllers\AdminFeatureFlagsController::class, 'index']);
 $router->get('/admin/platform/feature-flags/clubs/:clubId',    [\App\Controllers\AdminFeatureFlagsController::class, 'clubOverrides']);

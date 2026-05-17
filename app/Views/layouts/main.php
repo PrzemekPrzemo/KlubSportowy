@@ -413,6 +413,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('admin/sports/catalog') ?>"><i class="bi bi-grid-3x3-gap"></i> <?= __('nav.sports_catalog') ?></a>
                 <a href="<?= url('admin/platform/feature-flags') ?>"><i class="bi bi-toggles2"></i> <?= __('nav.feature_flags') ?></a>
                 <a href="<?= url('admin/platform/ksef') ?>"><i class="bi bi-receipt-cutoff"></i> <?= __('nav.ksef_platform') ?></a>
+                <a href="<?= url('admin/platform/webhooks/queue') ?>"><i class="bi bi-plug"></i> <?= __('nav.webhooks_queue') ?></a>
                 <a href="<?= url('admin/platform/system-branding') ?>"><i class="bi bi-image"></i> <?= __('nav.system_logo') ?></a>
                 <a href="<?= url('admin/platform/support') ?>"><i class="bi bi-headset"></i> <?= __('nav.support_tickets') ?></a>
                 <a href="<?= url('admin/activity') ?>"><i class="bi bi-clock-history"></i> <?= __('nav.activity_log') ?></a>
