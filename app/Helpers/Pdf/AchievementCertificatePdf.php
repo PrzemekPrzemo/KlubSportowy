@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Helpers\Pdf;
 
 use App\Helpers\PdfHelper;
+use App\Helpers\Translator;
 
 /**
  * Certyfikat osiągnięcia (np. ukończenie kursu, miejsce w turnieju).
  * Format A4 landscape z ozdobnym tłem.
  *
  * Dane wejściowe:
- *   - member:      array (first_name, last_name, member_number)
+ *   - member:      array (first_name, last_name, member_number, preferred_locale)
  *   - achievement: string (np. "Ukończenie kursu pierwszej pomocy" / "I miejsce w Turnieju ...")
  *   - issued_at:   string (data wystawienia)
  *   - issued_place:string (miejscowość)
@@ -23,30 +24,50 @@ use App\Helpers\PdfHelper;
  */
 class AchievementCertificatePdf
 {
-    public static function generate(array $data): string
+    /**
+     * @param string|null $locale 'pl'|'en'; null = current request locale.
+     */
+    public static function generate(array $data, ?string $locale = null): string
+    {
+        if ($locale !== null) {
+            return Translator::withLocale($locale, fn() => self::doGenerate($data));
+        }
+        return self::doGenerate($data);
+    }
+
+    private static function doGenerate(array $data): string
     {
         $e = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 
         $member       = $data['member'] ?? [];
         $fullName     = $e(trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? '')));
         $memberNo     = $e($member['member_number'] ?? '');
-        $achievement  = $e($data['achievement']   ?? 'osiągnięcie sportowe');
-        $issuedAt     = $e($data['issued_at']     ?? date('d.m.Y'));
-        $issuedPlace  = $e($data['issued_place']  ?? '');
+        $achievement  = $e($data['achievement']   ?? __('pdf.achievement.default_text'));
+        $issuedAt     = (string)($data['issued_at']     ?? date('d.m.Y'));
+        $issuedPlace  = (string)($data['issued_place']  ?? '');
         $clubName     = $e($data['club_name']     ?? 'Klub Sportowy');
         $accent       = $e(self::normaliseColor((string)($data['accent_color'] ?? '#0d6efd')));
-        $president    = $e($data['president_name'] ?? 'Prezes Zarządu');
-        $coach        = $e($data['coach_name']     ?? 'Trener prowadzący');
+        $president    = $e($data['president_name'] ?? __('pdf.achievement.president'));
+        $coach        = $e($data['coach_name']     ?? __('pdf.achievement.coach'));
 
+        $memberNoLbl  = $e(__('pdf.achievement.member_no'));
         $memberLine = $memberNo !== ''
-            ? '<div style="font-size:12px;color:#888;margin-top:4px;">Nr ewidencyjny: ' . $memberNo . '</div>'
+            ? '<div style="font-size:12px;color:#888;margin-top:4px;">' . $memberNoLbl . ': ' . $memberNo . '</div>'
             : '';
 
         $genTime = $e(date('d.m.Y H:i'));
 
+        // i18n labels
+        $title         = $e(__('pdf.achievement.title'));
+        $subtitle      = $e(__('pdf.achievement.subtitle'));
+        $intro         = $e(__('pdf.achievement.intro'));
+        $placeDate     = $e(__('pdf.achievement.place_date', ['place' => $issuedPlace, 'date' => $issuedAt]));
+        $generatedLbl  = $e(__('pdf.achievement.generated_at'));
+        $htmlLang      = $e(Translator::getLocale());
+
         return <<<HTML
 <!DOCTYPE html>
-<html lang="pl"><head><meta charset="UTF-8"><style>
+<html lang="{$htmlLang}"><head><meta charset="UTF-8"><style>
   @page { margin: 0; }
   body { font-family: DejaVu Sans, Arial, sans-serif; margin: 0; padding: 0; }
   .frame {
@@ -112,31 +133,31 @@ class AchievementCertificatePdf
   <span class="corner bl"></span><span class="corner br"></span>
 
   <div class="club">{$clubName}</div>
-  <h1>CERTYFIKAT</h1>
-  <div class="sub">— uznania osiągnięcia —</div>
+  <h1>{$title}</h1>
+  <div class="sub">{$subtitle}</div>
 
-  <div class="recipient">Niniejszym potwierdzamy, że</div>
+  <div class="recipient">{$intro}</div>
   <div class="name">{$fullName}</div>
   {$memberLine}
 
   <div class="achievement">{$achievement}</div>
 
-  <div class="date-place">{$issuedPlace}, dnia {$issuedAt}</div>
+  <div class="date-place">{$placeDate}</div>
 
   <table class="signatures"><tr>
     <td><div class="sig-line">{$president}</div></td>
     <td><div class="sig-line">{$coach}</div></td>
   </tr></table>
 
-  <div class="footer">Wygenerowano: {$genTime}</div>
+  <div class="footer">{$generatedLbl}: {$genTime}</div>
 </div>
 </body></html>
 HTML;
     }
 
-    public static function download(array $data, ?string $filename = null): never
+    public static function download(array $data, ?string $filename = null, ?string $locale = null): never
     {
-        $html = self::generate($data);
+        $html = self::generate($data, $locale);
         $name = $filename ?? ('certyfikat-' . preg_replace(
             '/[^a-z0-9_\-]/i', '_', (string)($data['member']['member_number'] ?? ($data['member']['id'] ?? 'czlonek'))
         ) . '.pdf');

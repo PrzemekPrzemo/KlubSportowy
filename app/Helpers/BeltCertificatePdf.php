@@ -10,10 +10,11 @@ class BeltCertificatePdf
      * Generate a belt certificate PDF and send it inline to the browser.
      *
      * @param array  $belt      Belt record (belt_level, granted_date, examiner, location)
-     * @param array  $member    Member record (first_name, last_name, member_number, birth_date)
+     * @param array  $member    Member record (first_name, last_name, member_number, birth_date, preferred_locale)
      * @param array  $beltMap   Static belt map from the sport model (key => ['label', 'color', ...])
      * @param string $sportName Display name of the sport (e.g. "Judo")
      * @param string $federation Federation abbreviation (e.g. "PZJ")
+     * @param string|null $locale 'pl'|'en'; null = inferred from member.preferred_locale, else current request locale.
      */
     public static function generate(
         array $belt,
@@ -24,7 +25,6 @@ class BeltCertificatePdf
         ?string $locale = null
     ): void {
         // Respektuj preferowany jezyk czlonka (jesli przekazany).
-        // Pozwala renderowac przyszle __()-zwracane teksty w certyfikacie.
         if ($locale === null && isset($member['preferred_locale'])
             && in_array($member['preferred_locale'], Translator::SUPPORTED, true)) {
             $locale = (string)$member['preferred_locale'];
@@ -58,7 +58,7 @@ class BeltCertificatePdf
         $sportHtml  = htmlspecialchars($sportName, ENT_QUOTES, 'UTF-8');
         $fedHtml    = htmlspecialchars($federation, ENT_QUOTES, 'UTF-8');
 
-        $grantedDate = self::formatPolishDate($belt['granted_date'] ?? '');
+        $grantedDate = self::formatLocalDate($belt['granted_date'] ?? '', Translator::getLocale());
         $examiner    = trim($belt['examiner'] ?? '');
         $location    = trim($belt['location'] ?? '');
 
@@ -68,23 +68,35 @@ class BeltCertificatePdf
             ? '#ffffff'
             : '#333333';
 
+        // i18n labels
+        $subtitle       = htmlspecialchars(__('pdf.belt_cert.subtitle'), ENT_QUOTES, 'UTF-8');
+        $intro          = htmlspecialchars(__('pdf.belt_cert.intro'), ENT_QUOTES, 'UTF-8');
+        $memberNoLabel  = htmlspecialchars(__('pdf.belt_cert.member_number'), ENT_QUOTES, 'UTF-8');
+        $awardedRank    = htmlspecialchars(__('pdf.belt_cert.awarded_rank'), ENT_QUOTES, 'UTF-8');
+        $onDate         = htmlspecialchars(__('pdf.belt_cert.on_date'), ENT_QUOTES, 'UTF-8');
+        $examinerLabel  = htmlspecialchars(__('pdf.belt_cert.examiner'), ENT_QUOTES, 'UTF-8');
+        $locationLabel  = htmlspecialchars(__('pdf.belt_cert.location'), ENT_QUOTES, 'UTF-8');
+        $footerFed      = htmlspecialchars(__('pdf.belt_cert.footer_fed', ['fed' => $federation, 'sport' => $sportName]), ENT_QUOTES, 'UTF-8');
+        $generatedLabel = htmlspecialchars(__('pdf.belt_cert.generated_at'), ENT_QUOTES, 'UTF-8');
+        $htmlLang       = htmlspecialchars(Translator::getLocale(), ENT_QUOTES, 'UTF-8');
+
         $examinerHtml = '';
         if ($examiner !== '') {
             $examinerHtml = '<p style="font-size:13px; margin:6px 0 0 0; color:#555;">
-                Egzaminator: <strong>' . htmlspecialchars($examiner, ENT_QUOTES, 'UTF-8') . '</strong>
+                ' . $examinerLabel . ': <strong>' . htmlspecialchars($examiner, ENT_QUOTES, 'UTF-8') . '</strong>
             </p>';
         }
 
         $locationHtml = '';
         if ($location !== '') {
             $locationHtml = '<p style="font-size:13px; margin:4px 0 0 0; color:#555;">
-                Miejsce: <strong>' . htmlspecialchars($location, ENT_QUOTES, 'UTF-8') . '</strong>
+                ' . $locationLabel . ': <strong>' . htmlspecialchars($location, ENT_QUOTES, 'UTF-8') . '</strong>
             </p>';
         }
 
         $html = <<<HTML
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="{$htmlLang}">
 <head>
 <meta charset="UTF-8">
 <style>
@@ -192,25 +204,25 @@ class BeltCertificatePdf
 <div class="page">
     <div class="header">
         <div class="header-title">{$sportHtml}</div>
-        <div class="header-subtitle">Certyfikat Pasa</div>
+        <div class="header-subtitle">{$subtitle}</div>
     </div>
 
     <div class="belt-bar">{$beltLabel}</div>
 
     <div class="cert-body">
-        <p class="cert-intro">Niniejszym zaświadcza się, że</p>
+        <p class="cert-intro">{$intro}</p>
         <p class="cert-name">{$fullName}</p>
 HTML;
 
         if ($memberNo !== '') {
-            $html .= '<p class="cert-member-no">Nr członkowski: ' . $memberNo . '</p>';
+            $html .= '<p class="cert-member-no">' . $memberNoLabel . ': ' . $memberNo . '</p>';
         }
 
         $html .= <<<HTML
         <hr class="divider">
-        <p class="cert-awarded">uzyskał(-a) stopień</p>
+        <p class="cert-awarded">{$awardedRank}</p>
         <p style="font-size:20px; font-weight:bold; color:#333; margin:6px 0;">{$beltLabel}</p>
-        <p class="cert-awarded">w dniu</p>
+        <p class="cert-awarded">{$onDate}</p>
         <p class="cert-date">{$grantedDate}</p>
         <div class="cert-details">
             {$examinerHtml}
@@ -219,8 +231,8 @@ HTML;
     </div>
 
     <div class="footer">
-        <div class="footer-fed">{$fedHtml} — Certyfikat Pasa {$sportHtml}</div>
-        <div class="footer-generated">Wygenerowano: HTML;
+        <div class="footer-fed">{$footerFed}</div>
+        <div class="footer-generated">{$generatedLabel}: HTML;
 
         $html .= date('d.m.Y H:i');
 
@@ -232,14 +244,16 @@ HTML;
 </html>
 HTML;
 
-        $filename = 'certyfikat_pasa_' . preg_replace('/[^a-z0-9_]/i', '_', $fullName) . '.pdf';
+        $filename = __('pdf.belt_cert.filename') . '_' . preg_replace('/[^a-z0-9_]/i', '_', $fullName) . '.pdf';
         PdfHelper::renderToPdf($html, $filename, 'L');
     }
 
     /**
-     * Format a Y-m-d date string as Polish long-form date (e.g. "1 stycznia 2024").
+     * Format a Y-m-d date string according to the active locale.
+     * PL — long Polish form ("1 stycznia 2024").
+     * EN — long English form ("1 January 2024").
      */
-    private static function formatPolishDate(string $date): string
+    private static function formatLocalDate(string $date, string $locale): string
     {
         if ($date === '') {
             return '';
@@ -248,20 +262,17 @@ HTML;
         if ($ts === false) {
             return $date;
         }
-        $months = [
-            1  => 'stycznia',
-            2  => 'lutego',
-            3  => 'marca',
-            4  => 'kwietnia',
-            5  => 'maja',
-            6  => 'czerwca',
-            7  => 'lipca',
-            8  => 'sierpnia',
-            9  => 'września',
-            10 => 'października',
-            11 => 'listopada',
-            12 => 'grudnia',
+        $monthsPl = [
+            1  => 'stycznia', 2  => 'lutego',     3  => 'marca',     4  => 'kwietnia',
+            5  => 'maja',     6  => 'czerwca',    7  => 'lipca',     8  => 'sierpnia',
+            9  => 'września', 10 => 'października', 11 => 'listopada', 12 => 'grudnia',
         ];
+        $monthsEn = [
+            1  => 'January',   2  => 'February', 3  => 'March',     4  => 'April',
+            5  => 'May',       6  => 'June',     7  => 'July',      8  => 'August',
+            9  => 'September', 10 => 'October',  11 => 'November',  12 => 'December',
+        ];
+        $months = $locale === 'en' ? $monthsEn : $monthsPl;
         $day   = (int)date('j', $ts);
         $month = (int)date('n', $ts);
         $year  = (int)date('Y', $ts);
