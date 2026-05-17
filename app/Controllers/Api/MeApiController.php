@@ -132,4 +132,80 @@ class MeApiController extends BaseApiController
 
         $this->json(['status' => 'ok', 'photo_path' => $relPath]);
     }
+
+    /**
+     * POST /api/v1/me/delete — account deletion (RODO art. 17, Apple guideline 5.1.1(v)).
+     * Body: { password: string }
+     *
+     * Re-authenticates with the member's portal password, then soft-deletes:
+     * status -> 'wykreslony', strips PII from members (first_name/last_name placeholder,
+     * email/phone/pesel nulled, hashes nulled, photo_path nulled), revokes every
+     * member API token and unregisters every FCM device token. The audit trail
+     * (payments, results, attendance) is kept — only the member-identifying data goes.
+     */
+    public function delete(): void
+    {
+        $this->requireMember();
+
+        $input = json_decode(file_get_contents('php://input') ?: '', true) ?: [];
+        $password = (string)($input['password'] ?? '');
+        if ($password === '') {
+            $this->error('Wymagane potwierdzenie hasłem.', 400, 'password_required');
+        }
+
+        $db = Database::pdo();
+
+        $stmt = $db->prepare(
+            "SELECT m.id, m.portal_password, mi.portal_password AS identity_password
+             FROM members m
+             LEFT JOIN member_identities mi ON mi.id = m.identity_id
+             WHERE m.id = ? AND m.club_id = ? LIMIT 1"
+        );
+        $stmt->execute([$this->memberId, $this->clubId]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            $this->error('Nie znaleziono zawodnika.', 404, 'member_not_found');
+        }
+
+        $ok = (!empty($row['portal_password']) && password_verify($password, $row['portal_password']))
+            || (!empty($row['identity_password']) && password_verify($password, $row['identity_password']));
+        if (!$ok) {
+            $this->error('Nieprawidłowe hasło.', 401, 'invalid_password');
+        }
+
+        $db->beginTransaction();
+        try {
+            // Anonymize PII. Hash columns are nulled so future logins can't lookup by email/pesel.
+            $stmt = $db->prepare(
+                "UPDATE members
+                 SET status = 'wykreslony',
+                     first_name = '[usunięty]',
+                     last_name = '',
+                     email = NULL, email_hash = NULL,
+                     phone = NULL, phone_hash = NULL,
+                     pesel = NULL, pesel_hash = NULL,
+                     photo_path = NULL,
+                     portal_password = NULL,
+                     portal_last_login = NULL
+                 WHERE id = ? AND club_id = ?"
+            );
+            $stmt->execute([$this->memberId, $this->clubId]);
+
+            $db->prepare(
+                "UPDATE member_api_tokens SET revoked_at = NOW() WHERE member_id = ? AND revoked_at IS NULL"
+            )->execute([$this->memberId]);
+
+            $db->prepare(
+                "DELETE FROM device_tokens WHERE member_id = ?"
+            )->execute([$this->memberId]);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            $db->rollBack();
+            error_log('Account deletion failed for member ' . $this->memberId . ': ' . $e->getMessage());
+            $this->error('Nie udało się usunąć konta. Skontaktuj się z klubem.', 500, 'delete_failed');
+        }
+
+        $this->json(['status' => 'deleted']);
+    }
 }
