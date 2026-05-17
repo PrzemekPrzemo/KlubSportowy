@@ -113,6 +113,29 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
     $isSuperAdminNoClub = !empty($isSuperAdmin) && empty($currentClubId);
     ?>
 
+    <?php
+    // ── Sekcja BIURO (sekretariat) — widoczna dla ksiegowy oraz dla zarzad/admin
+    //    (jako szybki link do dashboardu biura).
+    //    Dla roli `ksiegowy` jest to główny punkt wejścia (priorytetowy widok).
+    if (!empty($currentClubId) && \App\Helpers\Auth::hasRole(['zarzad', 'ksiegowy', 'admin'])): ?>
+        <div class="nav-section" data-section="sekretariat">
+            <button type="button" class="section-toggle" aria-expanded="true" aria-controls="sec-sekretariat">
+                <span class="section-label" style="padding:0;">Biuro</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="section-items" id="sec-sekretariat">
+                <a href="<?= url('sekretariat') ?>"><i class="bi bi-building"></i> Dashboard biura</a>
+                <a href="<?= url('members') ?>"><i class="bi bi-people"></i> Członkowie</a>
+                <a href="<?= url('club/members/import') ?>"><i class="bi bi-upload"></i> Import członków</a>
+                <a href="<?= url('club/invoices') ?>"><i class="bi bi-receipt-cutoff"></i> Faktury</a>
+                <a href="<?= url('accounting') ?>"><i class="bi bi-cash-coin"></i> Płatności</a>
+                <a href="<?= url('fees') ?>"><i class="bi bi-exclamation-triangle"></i> Zaległości</a>
+                <a href="<?= url('messages') ?>"><i class="bi bi-envelope"></i> Korespondencja</a>
+                <a href="<?= url('documents') ?>"><i class="bi bi-file-earmark-pdf"></i> Dokumenty</a>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <?php if (!$isSuperAdminNoClub):
     // ── Pogrupowane sekcje klubu (Z.3) ────────────────────────────
     // Każda pod-sekcja jest collapsible — stan w localStorage 'cd_nav_collapsed'.

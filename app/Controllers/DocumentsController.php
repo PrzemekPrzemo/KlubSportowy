@@ -97,7 +97,8 @@ class DocumentsController extends BaseController
      */
     public function membershipCertificate(string $memberId): void
     {
-        $this->requireRole(['zarzad', 'trener', 'admin']);
+        // Sekretariat (ksiegowy) generuje zaświadczenia i umowy.
+        $this->requireRole(['zarzad', 'trener', 'ksiegowy', 'admin']);
 
         $member = $this->loadMember((int)$memberId);
         $clubId = $this->currentClub();
@@ -138,7 +139,8 @@ class DocumentsController extends BaseController
      */
     public function membershipContract(string $memberId): void
     {
-        $this->requireRole(['zarzad', 'trener', 'admin']);
+        // Sekretariat (ksiegowy) generuje zaświadczenia i umowy.
+        $this->requireRole(['zarzad', 'trener', 'ksiegowy', 'admin']);
 
         $member = $this->loadMember((int)$memberId);
         $clubId = $this->currentClub();
@@ -180,7 +182,8 @@ class DocumentsController extends BaseController
      */
     public function achievementCertificate(string $memberId): void
     {
-        $this->requireRole(['zarzad', 'trener', 'admin']);
+        // Sekretariat (ksiegowy) generuje zaświadczenia i umowy.
+        $this->requireRole(['zarzad', 'trener', 'ksiegowy', 'admin']);
 
         $member = $this->loadMember((int)$memberId);
         $clubId = $this->currentClub();

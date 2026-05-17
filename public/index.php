@@ -1013,6 +1013,16 @@ $router->get('/import',               [\App\Controllers\ImportController::class,
 $router->post('/import/upload',       [\App\Controllers\ImportController::class, 'upload']);
 $router->post('/import/execute',      [\App\Controllers\ImportController::class, 'execute']);
 
+// Sekretariat — dashboard biura (rola: zarzad / ksiegowy / admin)
+$router->get('/sekretariat',                          [\App\Controllers\SekretariatDashboardController::class, 'index']);
+
+// Dedykowany import członków dla sekretariatu (template + preview/execute z audit)
+$router->get( '/club/members/import',                 [\App\Controllers\MemberImportController::class, 'index']);
+$router->post('/club/members/import/preview',         [\App\Controllers\MemberImportController::class, 'preview']);
+$router->post('/club/members/import/execute',         [\App\Controllers\MemberImportController::class, 'execute']);
+$router->get( '/club/members/import/template.csv',    [\App\Controllers\MemberImportController::class, 'templateCsv']);
+$router->get( '/club/members/import/template.xlsx',   [\App\Controllers\MemberImportController::class, 'templateXlsx']);
+
 // Global AJAX search
 $router->get('/api/search', [\App\Controllers\SearchController::class, 'search']);
 
