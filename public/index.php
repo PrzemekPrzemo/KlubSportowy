@@ -631,6 +631,19 @@ $router->post('/club/users/:userId/revoke', [\App\Controllers\ClubManagementCont
 // Club export
 $router->get('/club/export', [\App\Controllers\ClubExportController::class, 'export']);
 
+// Pelne backupy klubu (eksport / import — GDPR portability, mobility)
+$router->get('/club/backup',                          [\App\Controllers\ClubBackupController::class, 'index']);
+$router->post('/club/backup/create',                  [\App\Controllers\ClubBackupController::class, 'create']);
+$router->get('/club/backup/:id/download',             [\App\Controllers\ClubBackupController::class, 'download']);
+$router->post('/club/backup/:id/delete',              [\App\Controllers\ClubBackupController::class, 'delete']);
+$router->get('/club/backup/restore',                  [\App\Controllers\ClubBackupController::class, 'restoreForm']);
+$router->post('/club/backup/restore/preview',         [\App\Controllers\ClubBackupController::class, 'restorePreview']);
+$router->post('/club/backup/restore/execute',         [\App\Controllers\ClubBackupController::class, 'restoreExecute']);
+
+// Super admin: wszystkie backupy across klubow
+$router->get('/admin/platform/backups',               [\App\Controllers\AdminPlatformBackupsController::class, 'index']);
+$router->post('/admin/platform/backups/force',        [\App\Controllers\AdminPlatformBackupsController::class, 'forceCreate']);
+
 // Sponsorzy klubu
 $router->get('/club/sponsors',                 [\App\Controllers\ClubSponsorsController::class, 'index']);
 $router->get('/club/sponsors/create',          [\App\Controllers\ClubSponsorsController::class, 'create']);
