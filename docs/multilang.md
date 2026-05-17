@@ -122,23 +122,83 @@ FROM email_event_catalog WHERE code = 'member_welcome';
 
 ## PDF — respect locale
 
-PDF generatory akceptują optional `?string $locale = null`. Wewnątrz
-opakowują render w `Translator::withLocale($locale, ...)`:
+Wszystkie PDF generatory akceptują optional `?string $locale = null`.
+Wewnątrz opakowują render w `Translator::withLocale($locale, ...)` i używają
+`__('pdf.*')` zamiast hardcoded stringów:
 
 ```php
 InvoicePdf::generate($data, $buyer['preferred_locale'] ?? null);
 BeltCertificatePdf::generate($belt, $member, $beltMap, $sport, $fed,
     $member['preferred_locale'] ?? null);
+MembershipCertificatePdf::generate($data, $member['preferred_locale'] ?? null);
+MembershipContractPdf::generate($data, $member['preferred_locale'] ?? null);
+TournamentProtocolPdf::generate($data, $organizerLocale ?? null);
+AchievementCertificatePdf::generate($data, $member['preferred_locale'] ?? null);
 ```
 
-Aktualne PDF (Invoice, BeltCertificate) mają jeszcze inline PL stringi —
-docelowo zamieniamy je na `__()` aby `withLocale` faktycznie zmieniał
-treść. Wrapper jest gotowy.
+Klucze: `pdf.invoice.*`, `pdf.belt_cert.*`, `pdf.member_cert.*`,
+`pdf.tournament_protocol.*`, `pdf.contract.*`, `pdf.achievement.*`,
+`pdf.common.*`.
+
+### Dodawanie nowego PDF generatora z locale support
+
+1. Sygnatura: `public static function generate(array $data, ?string $locale = null): string`
+2. Body: `if ($locale !== null) return Translator::withLocale($locale, fn() => self::doGenerate($data));`
+3. Wszystkie user-facing teksty przez `__('pdf.<doc>.<key>')`
+4. `<html lang="<?= Translator::getLocale() ?>">` w szablonie
+5. Dodaj klucze `pdf.<doc>.*` do `lang/pl/messages.php` + `lang/en/messages.php`
+   (`I18nKeyParityTest` egzekwuje parity)
+
+## SMS — multilang templates
+
+Tabela `sms_template_catalog` + `sms_template_translations` (migracja
+`099_sms_multilang.sql`). API `SmsService::sendFromTemplate`:
+
+```php
+SmsService::sendFromTemplate(
+    $clubId,
+    $member['phone'],
+    'payment_reminder',
+    $member['preferred_locale'] ?? 'pl',
+    ['amount' => 100, 'due_date' => '2025-02-01', 'url' => $payUrl]
+);
+```
+
+Cascade dla body: locale → 'pl' → `default_body`.
+
+### Dodawanie nowego SMS template
+
+```sql
+INSERT INTO sms_template_catalog (code, description, category, default_body)
+VALUES ('my_alert', 'Opis', 'category', 'Tresc PL z {placeholder}');
+
+INSERT INTO sms_template_translations (template_id, locale, body)
+SELECT id, 'en', 'EN body with {placeholder}'
+FROM sms_template_catalog WHERE code = 'my_alert';
+```
+
+## Controllers — flash messages
+
+Wzorzec: zamiast `Session::flash('error', 'Wystąpił błąd.')` używamy
+`Session::flash('error', __('flash.error'))`. Klucze `flash.*` (saved,
+deleted, created, updated, error, csrf_error, access_denied, not_found,
+select_club, subscription_expired) są już w `lang/{pl,en}/messages.php`.
+
+Pragmatyzm: nie wszystkie 800+ wywołań `Session::flash` w controllerach
+są aktualnie tłumaczone — priorytet dla user-facing controllerów członka
+(`MemberPortal*`, `MemberAuth*`, `MemberPayment*`). Pozostałe (admin,
+internal) zostają PL — ich audytoria to operatorzy klubu znający PL.
 
 ## Migracja DB
 
-`database/migrations/098_multilang_preferences.sql`:
-- `members.preferred_locale` CHAR(2) NULL
-- `clubs.default_locale` CHAR(2) NOT NULL DEFAULT 'pl'
-- `email_event_catalog_translations` (event_id, locale, subject, body)
-- Seed: 'pl' z istniejących `default_*`, 'en' dla 12 kluczowych eventów
+- `database/migrations/098_multilang_preferences.sql`:
+  - `members.preferred_locale` CHAR(2) NULL
+  - `clubs.default_locale` CHAR(2) NOT NULL DEFAULT 'pl'
+  - `email_event_catalog_translations` (event_id, locale, subject, body)
+  - Seed: 'pl' z istniejących `default_*`, 'en' dla 12 kluczowych eventów
+
+- `database/migrations/099_sms_multilang.sql`:
+  - `sms_template_catalog` (code, description, category, default_body)
+  - `sms_template_translations` (template_id, locale, body)
+  - Seed: 5 SMS templates (payment_reminder, training_cancelled,
+    event_reminder, mfa_code, emergency_alert) PL + EN

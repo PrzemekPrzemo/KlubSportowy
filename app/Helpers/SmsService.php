@@ -37,6 +37,67 @@ class SmsService
         return (new SmsQueueModel())->enqueue($clubId, $toPhone, $toName, $message, Auth::id());
     }
 
+    /**
+     * Renderuje treść SMS z szablonu (tabela sms_template_catalog + sms_template_translations)
+     * w preferowanym locale odbiorcy, zastępując placeholdery {key} wartościami z $vars.
+     *
+     * Cascade:
+     *   1) sms_template_translations.body dla zadanego locale
+     *   2) sms_template_translations.body dla 'pl' (fallback)
+     *   3) sms_template_catalog.default_body
+     *   4) null jeśli kod nie istnieje
+     *
+     * @param string $code   Kod szablonu (np. 'payment_reminder')
+     * @param string $locale 'pl'|'en'
+     * @param array<string,scalar|null> $vars Wartości do podstawienia ({key} → value)
+     * @return string|null   Wyrenderowana treść lub null gdy szablon nie znaleziony.
+     */
+    public static function renderTemplate(string $code, string $locale, array $vars = []): ?string
+    {
+        $locale = in_array($locale, ['pl', 'en'], true) ? $locale : 'pl';
+        try {
+            $pdo = \App\Helpers\Database::pdo();
+            $sql = 'SELECT c.default_body,
+                           (SELECT body FROM sms_template_translations
+                            WHERE template_id = c.id AND locale = ? LIMIT 1) AS body_loc,
+                           (SELECT body FROM sms_template_translations
+                            WHERE template_id = c.id AND locale = "pl" LIMIT 1) AS body_pl
+                    FROM sms_template_catalog c
+                    WHERE c.code = ? LIMIT 1';
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$locale, $code]);
+            $row = $stmt->fetch();
+        } catch (\Throwable) {
+            return null;
+        }
+        if (!$row) {
+            return null;
+        }
+        $body = (string)($row['body_loc'] ?? $row['body_pl'] ?? $row['default_body'] ?? '');
+        foreach ($vars as $k => $v) {
+            $body = str_replace('{' . $k . '}', (string)$v, $body);
+        }
+        return $body;
+    }
+
+    /**
+     * Wysyła SMS z szablonu w locale odbiorcy.
+     * Best-effort: jeśli szablonu nie ma w DB (brak migracji 099), zwraca false.
+     */
+    public static function sendFromTemplate(
+        int $clubId,
+        string $toPhone,
+        string $templateCode,
+        string $locale,
+        array $vars = []
+    ): bool {
+        $body = self::renderTemplate($templateCode, $locale, $vars);
+        if ($body === null || $body === '') {
+            return false;
+        }
+        return self::send($clubId, $toPhone, $body);
+    }
+
     public static function processQueue(int $batchSize = 30): int
     {
         $q = new SmsQueueModel();

@@ -18,6 +18,9 @@ use App\Helpers\Translator;
  *                lub uproszczone [name, qty, unit_price, total] — wykryje VAT-owe pola po kluczach
  *   - totals:    array (net, vat, gross)
  *   - club_header_html: string
+ *
+ * Wszystkie user-facing stringi przechodza przez __() / Translator::withLocale,
+ * dzieki czemu faktury dla EN-speaking klientow generuja sie po angielsku.
  */
 class InvoicePdf
 {
@@ -56,37 +59,42 @@ class InvoicePdf
         $notes      = $e($inv['notes'] ?? '');
 
         $statusLabels = [
-            'draft'     => ['Szkic',          '#6c757d'],
-            'issued'    => ['Do zapłaty',     '#fd7e14'],
-            'paid'      => ['Opłacona',       '#198754'],
-            'cancelled' => ['Anulowana',      '#dc3545'],
+            'draft'     => [__('pdf.invoice.status.draft'),     '#6c757d'],
+            'issued'    => [__('pdf.invoice.status.issued'),    '#fd7e14'],
+            'paid'      => [__('pdf.invoice.status.paid'),      '#198754'],
+            'cancelled' => [__('pdf.invoice.status.cancelled'), '#dc3545'],
         ];
-        [$statusLabel, $statusColor] = $statusLabels[$statusKey] ?? ['Do zapłaty', '#fd7e14'];
+        [$statusLabel, $statusColor] = $statusLabels[$statusKey] ?? [__('pdf.invoice.status.issued'), '#fd7e14'];
         $statusLabel = $e($statusLabel);
+
+        $nipLabel   = $e(__('pdf.invoice.label.nip'));
+        $regonLabel = $e(__('pdf.invoice.label.regon'));
 
         // Sprzedawca
         $sellerHtml  = '<strong>' . $e($seller['name'] ?? '') . '</strong><br>';
         $sellerHtml .= $e($seller['address'] ?? '') . '<br>';
         $sellerHtml .= $e($seller['city']    ?? '') . '<br>';
-        if (!empty($seller['nip']))   $sellerHtml .= 'NIP: '   . $e($seller['nip'])   . '<br>';
-        if (!empty($seller['regon'])) $sellerHtml .= 'REGON: ' . $e($seller['regon']) . '<br>';
+        if (!empty($seller['nip']))   $sellerHtml .= $nipLabel   . ': ' . $e($seller['nip'])   . '<br>';
+        if (!empty($seller['regon'])) $sellerHtml .= $regonLabel . ': ' . $e($seller['regon']) . '<br>';
 
         // Nabywca
         $buyerHtml  = '<strong>' . $e($buyer['name'] ?? '') . '</strong><br>';
         $buyerHtml .= $e($buyer['address'] ?? '') . '<br>';
         $buyerHtml .= $e($buyer['city']    ?? '') . '<br>';
-        if (!empty($buyer['nip'])) $buyerHtml .= 'NIP: ' . $e($buyer['nip']) . '<br>';
+        if (!empty($buyer['nip'])) $buyerHtml .= $nipLabel . ': ' . $e($buyer['nip']) . '<br>';
 
         // Pozycje
         $rowsHtml = '';
         $totalNet = 0.0; $totalVat = 0.0; $totalGross = 0.0;
+        $unitDefault   = __('pdf.invoice.table.unit_default');
+        $vatExemptText = __('pdf.invoice.table.vat_exempt');
 
         if (empty($items)) {
             // Awaryjna pojedyncza pozycja na podstawie totals
             $items = [[
-                'name'      => $inv['notes'] ?? 'Usługa wg umowy',
+                'name'      => $inv['notes'] ?? __('pdf.invoice.default_item_name'),
                 'qty'       => 1,
-                'unit'      => 'szt.',
+                'unit'      => $unitDefault,
                 'net_price' => (float)($tot['net'] ?? $inv['total'] ?? 0),
                 'vat_rate'  => 0,
                 'net_total' => (float)($tot['net'] ?? $inv['total'] ?? 0),
@@ -99,7 +107,7 @@ class InvoicePdf
             $lp++;
             $name      = $e($it['name'] ?? '');
             $qty       = (float)($it['qty'] ?? 1);
-            $unit      = $e($it['unit'] ?? 'szt.');
+            $unit      = $e($it['unit'] ?? $unitDefault);
             $netPrice  = (float)($it['net_price'] ?? $it['unit_price'] ?? 0);
             $vatRate   = (float)($it['vat_rate']  ?? 0);
             $netTotal  = (float)($it['net_total'] ?? ($qty * $netPrice));
@@ -116,7 +124,7 @@ class InvoicePdf
                 . '<td style="text-align:center;">' . self::fmtQty($qty) . '</td>'
                 . '<td style="text-align:center;">' . $unit . '</td>'
                 . '<td style="text-align:right;">' . self::fmtMoney($netPrice) . '</td>'
-                . '<td style="text-align:center;">' . ($vatRate > 0 ? $e((string)$vatRate) . '%' : 'zw.') . '</td>'
+                . '<td style="text-align:center;">' . ($vatRate > 0 ? $e((string)$vatRate) . '%' : $e($vatExemptText)) . '</td>'
                 . '<td style="text-align:right;">' . self::fmtMoney($netTotal) . '</td>'
                 . '<td style="text-align:right;">' . self::fmtMoney($gross) . '</td>'
                 . '</tr>';
@@ -134,11 +142,38 @@ class InvoicePdf
         $grossFmt = self::fmtMoney($totalGross);
         $grossWords = $e(self::moneyInWords($totalGross));
         $genTime    = $e(date('d.m.Y H:i'));
-        $notesHtml  = $notes !== '' ? '<div style="margin-top:14px;font-size:10px;color:#555;"><strong>Uwagi:</strong> ' . $notes . '</div>' : '';
+
+        // i18n labels
+        $titleLabel      = $e(__('pdf.invoice.title'));
+        $sellerLabel     = $e(__('pdf.invoice.label.seller'));
+        $buyerLabel      = $e(__('pdf.invoice.label.buyer'));
+        $issueDateLabel  = $e(__('pdf.invoice.label.issue_date'));
+        $saleDateLabel   = $e(__('pdf.invoice.label.sale_date'));
+        $dueDateLabel    = $e(__('pdf.invoice.label.due_date'));
+        $lpLabel         = $e(__('pdf.invoice.table.lp'));
+        $nameLabel       = $e(__('pdf.invoice.table.name'));
+        $qtyLabel        = $e(__('pdf.invoice.table.qty'));
+        $unitLabel       = $e(__('pdf.invoice.table.unit'));
+        $netPriceLabel   = $e(__('pdf.invoice.table.net_price'));
+        $vatLabel        = $e(__('pdf.invoice.table.vat'));
+        $netTotalLabel   = $e(__('pdf.invoice.table.net_total'));
+        $grossTotalLabel = $e(__('pdf.invoice.table.gross_total'));
+        $totalsNetLabel  = $e(__('pdf.invoice.totals.net'));
+        $totalsVatLabel  = $e(__('pdf.invoice.totals.vat'));
+        $totalsGrossLabel = $e(__('pdf.invoice.totals.gross'));
+        $inWordsLabel    = $e(__('pdf.invoice.label.in_words'));
+        $payMethodLabel  = $e(__('pdf.invoice.label.payment_method'));
+        $payDueLabel     = $e(__('pdf.invoice.label.payment_due'));
+        $notesLabel      = $e(__('pdf.invoice.label.notes'));
+        $generatedLabel  = $e(__('pdf.invoice.generated_at'));
+        $currency        = $e(__('pdf.common.currency_pln'));
+        $htmlLang        = $e(Translator::getLocale());
+
+        $notesHtml  = $notes !== '' ? '<div style="margin-top:14px;font-size:10px;color:#555;"><strong>' . $notesLabel . ':</strong> ' . $notes . '</div>' : '';
 
         return <<<HTML
 <!DOCTYPE html>
-<html lang="pl"><head><meta charset="UTF-8"><style>
+<html lang="{$htmlLang}"><head><meta charset="UTF-8"><style>
   body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; color: #222; }
   h1 { font-size: 18px; margin: 16px 0 0 0; }
   .status-badge { display:inline-block; padding:4px 10px; border-radius:3px; color:#fff; font-weight:bold; font-size:10px; background: {$statusColor}; }
@@ -162,7 +197,7 @@ class InvoicePdf
 
 <table class="top"><tr>
   <td>
-    <h1>FAKTURA {$number}</h1>
+    <h1>{$titleLabel} {$number}</h1>
   </td>
   <td style="text-align:right; vertical-align: top;">
     <span class="status-badge">{$statusLabel}</span>
@@ -171,53 +206,53 @@ class InvoicePdf
 
 <table class="parties"><tr>
   <td>
-    <div style="font-size:9px; color:#666; text-transform:uppercase; letter-spacing:1px;">Sprzedawca</div>
+    <div style="font-size:9px; color:#666; text-transform:uppercase; letter-spacing:1px;">{$sellerLabel}</div>
     {$sellerHtml}
   </td>
   <td>
-    <div style="font-size:9px; color:#666; text-transform:uppercase; letter-spacing:1px;">Nabywca</div>
+    <div style="font-size:9px; color:#666; text-transform:uppercase; letter-spacing:1px;">{$buyerLabel}</div>
     {$buyerHtml}
   </td>
 </tr></table>
 
 <table class="meta">
   <tr>
-    <td class="label">Data wystawienia:</td><td><strong>{$issueDate}</strong></td>
-    <td class="label">Data sprzedaży:</td><td><strong>{$saleDate}</strong></td>
-    <td class="label">Termin płatności:</td><td><strong>{$dueDate}</strong></td>
+    <td class="label">{$issueDateLabel}:</td><td><strong>{$issueDate}</strong></td>
+    <td class="label">{$saleDateLabel}:</td><td><strong>{$saleDate}</strong></td>
+    <td class="label">{$dueDateLabel}:</td><td><strong>{$dueDate}</strong></td>
   </tr>
 </table>
 
 <table class="items">
   <thead><tr>
-    <th>Lp.</th><th>Nazwa</th><th>Ilość</th><th>J.m.</th>
-    <th>Cena netto</th><th>VAT</th><th>Wartość netto</th><th>Wartość brutto</th>
+    <th>{$lpLabel}</th><th>{$nameLabel}</th><th>{$qtyLabel}</th><th>{$unitLabel}</th>
+    <th>{$netPriceLabel}</th><th>{$vatLabel}</th><th>{$netTotalLabel}</th><th>{$grossTotalLabel}</th>
   </tr></thead>
   <tbody>{$rowsHtml}</tbody>
 </table>
 
 <table class="totals">
-  <tr><td>Razem netto:</td><td style="text-align:right;">{$netFmt} PLN</td></tr>
-  <tr><td>VAT:</td><td style="text-align:right;">{$vatFmt} PLN</td></tr>
-  <tr class="gross"><td>DO ZAPŁATY (brutto):</td><td style="text-align:right;">{$grossFmt} PLN</td></tr>
+  <tr><td>{$totalsNetLabel}:</td><td style="text-align:right;">{$netFmt} {$currency}</td></tr>
+  <tr><td>{$totalsVatLabel}:</td><td style="text-align:right;">{$vatFmt} {$currency}</td></tr>
+  <tr class="gross"><td>{$totalsGrossLabel}:</td><td style="text-align:right;">{$grossFmt} {$currency}</td></tr>
 </table>
 
-<div class="words"><strong>Słownie:</strong> {$grossWords}</div>
+<div class="words"><strong>{$inWordsLabel}:</strong> {$grossWords}</div>
 
 <div class="pay-info">
-  Forma płatności: <strong>{$payMethod}</strong> &nbsp;·&nbsp;
-  Termin: <strong>{$dueDate}</strong>
+  {$payMethodLabel}: <strong>{$payMethod}</strong> &nbsp;·&nbsp;
+  {$payDueLabel}: <strong>{$dueDate}</strong>
 </div>
 {$notesHtml}
 
-<div class="footer">Wygenerowano: {$genTime}</div>
+<div class="footer">{$generatedLabel}: {$genTime}</div>
 </body></html>
 HTML;
     }
 
-    public static function download(array $data, ?string $filename = null): never
+    public static function download(array $data, ?string $filename = null, ?string $locale = null): never
     {
-        $html = self::generate($data);
+        $html = self::generate($data, $locale);
         $name = $filename ?? ('faktura-' . preg_replace(
             '/[^a-z0-9_\-]/i', '_', (string)($data['invoice']['number'] ?? 'FV')
         ) . '.pdf');
@@ -243,6 +278,6 @@ HTML;
     {
         $zl = (int)floor($v);
         $gr = (int)round(($v - $zl) * 100);
-        return $zl . ' zł ' . str_pad((string)$gr, 2, '0', STR_PAD_LEFT) . '/100';
+        return $zl . ' ' . __('pdf.common.currency_pln') . ' ' . str_pad((string)$gr, 2, '0', STR_PAD_LEFT) . '/100';
     }
 }
