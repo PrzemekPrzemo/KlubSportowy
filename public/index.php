@@ -1008,6 +1008,13 @@ $router->post('/club/trainer-schedule/leaves/:leaveId/delete',       [\App\Contr
 $router->post('/club/trainings/check-conflicts',                     [\App\Controllers\TrainerAvailabilityController::class, 'checkConflicts']);
 $router->get( '/trainer/schedule',                                   [\App\Controllers\MyScheduleController::class, 'index']);
 
+// Trener: panel obecnosci + dashboard + roster
+$router->get( '/trainer/dashboard',                                  [\App\Controllers\TrainerAttendanceController::class, 'dashboard']);
+$router->get( '/trainer/trainings/today',                            [\App\Controllers\TrainerAttendanceController::class, 'todayList']);
+$router->get( '/trainer/training/:id/attendance',                    [\App\Controllers\TrainerAttendanceController::class, 'grid']);
+$router->post('/trainer/training/:id/attendance/save',               [\App\Controllers\TrainerAttendanceController::class, 'save']);
+$router->get( '/trainer/members',                                    [\App\Controllers\TrainerAttendanceController::class, 'members']);
+
 // Import CSV
 $router->get('/import',               [\App\Controllers\ImportController::class, 'index']);
 $router->post('/import/upload',       [\App\Controllers\ImportController::class, 'upload']);

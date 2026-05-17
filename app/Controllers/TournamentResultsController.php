@@ -37,7 +37,7 @@ class TournamentResultsController extends BaseController
         parent::__construct();
         $this->requireLogin();
         $this->requireClubContext();
-        $this->requireRole(['zarzad', 'trener', 'admin', 'sedzia']);
+        $this->requireRole(['zarzad', 'trener', 'instruktor', 'admin', 'sedzia']);
     }
 
     /**

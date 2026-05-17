@@ -193,7 +193,10 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('trainer/commissions/my') ?>"><i class="bi bi-wallet2"></i> <?= __('nav.my_commissions') ?></a>
             <?php endif; ?>
             <?php if ($groupKey === 'schedule' && \App\Helpers\Auth::hasRole(['trener', 'instruktor'])): ?>
+                <a href="<?= url('trainer/dashboard') ?>"><i class="bi bi-speedometer2"></i> Panel trenera</a>
                 <a href="<?= url('trainer/schedule') ?>"><i class="bi bi-person-badge"></i> Moja dostepnosc</a>
+                <a href="<?= url('trainer/trainings/today') ?>"><i class="bi bi-calendar-day"></i> Moje treningi (dzis)</a>
+                <a href="<?= url('trainer/members') ?>"><i class="bi bi-people"></i> Moi zawodnicy</a>
             <?php endif; ?>
             <?php
             // Studio sports (yoga/fitness/pilates) — link tylko gdy klub ma aktywny sport
