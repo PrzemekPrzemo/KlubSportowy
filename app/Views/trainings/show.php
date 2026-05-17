@@ -55,26 +55,50 @@
             <?php if (empty($training['attendees'])): ?>
                 <div class="text-muted">Brak zapisanych zawodników.</div>
             <?php else: ?>
+                <?php
+                $activeAttendees   = [];
+                $waitlistAttendees = [];
+                $cancelledAttendees = [];
+                foreach ($training['attendees'] as $a) {
+                    $st = (string)($a['status'] ?? '');
+                    if ($st === 'waitlist') {
+                        $waitlistAttendees[] = $a;
+                    } elseif (in_array($st, ['cancelled','wypisany'], true)) {
+                        $cancelledAttendees[] = $a;
+                    } else {
+                        $activeAttendees[] = $a;
+                    }
+                }
+                $sourceBadge = static function (?string $src): string {
+                    return match ($src) {
+                        'member_self' => '<span class="badge bg-info" title="Self-signup z portalu">self</span>',
+                        'trainer'     => '<span class="badge bg-primary">trener</span>',
+                        'recurring'   => '<span class="badge bg-secondary">cykliczny</span>',
+                        default       => '<span class="badge bg-dark">admin</span>',
+                    };
+                };
+                ?>
                 <form method="POST" action="<?= url('trainings/' . (int)$training['id'] . '/attendance') ?>">
                     <?= csrf_field() ?>
                     <table class="table table-sm">
-                        <thead><tr><th>Zawodnik</th><th>Status</th><th></th></tr></thead>
+                        <thead><tr><th>Zawodnik</th><th>Źródło</th><th>Status</th><th></th></tr></thead>
                         <tbody>
-                        <?php foreach ($training['attendees'] as $a): ?>
+                        <?php foreach ($activeAttendees as $a): ?>
                             <tr>
                                 <td><?= View::e($a['last_name']) ?> <?= View::e($a['first_name']) ?></td>
+                                <td><?= $sourceBadge($a['signup_source'] ?? null) ?></td>
                                 <td>
                                     <select name="status[<?= (int)$a['id'] ?>]" class="form-select form-select-sm">
-                                        <?php foreach (['zapisany','obecny','nieobecny','spozniony','wypisany'] as $s): ?>
+                                        <?php foreach (['signed_up','attended','absent','spozniony','cancelled','zapisany','obecny','nieobecny','wypisany'] as $s): ?>
                                             <option value="<?= $s ?>" <?= $a['status']===$s?'selected':'' ?>><?= $s ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </td>
                                 <td class="text-end">
-                                    <a href="<?= url('trainings/' . (int)$training['id'] . '/attendee/' . (int)$a['id'] . '/remove') ?>"
-                                       onclick="event.preventDefault();if(confirm('Usunąć?'))this.nextElementSibling.submit();"
-                                       class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i></a>
-                                    <form method="POST" action="<?= url('trainings/' . (int)$training['id'] . '/attendee/' . (int)$a['id'] . '/remove') ?>" style="display:none"><?= csrf_field() ?></form>
+                                    <form method="POST" action="<?= url('trainings/' . (int)$training['id'] . '/attendee/' . (int)$a['id'] . '/remove') ?>" style="display:inline" onsubmit="return confirm('Usunąć?')">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i></button>
+                                    </form>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -82,6 +106,51 @@
                     </table>
                     <button class="btn btn-primary"><i class="bi bi-check2"></i> Zapisz obecność</button>
                 </form>
+
+                <?php if (!empty($waitlistAttendees)): ?>
+                    <hr>
+                    <h6 class="text-warning"><i class="bi bi-hourglass-split"></i> Lista rezerwowa (<?= count($waitlistAttendees) ?>)</h6>
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                        <?php foreach ($waitlistAttendees as $a): ?>
+                            <tr>
+                                <td><?= View::e($a['last_name']) ?> <?= View::e($a['first_name']) ?></td>
+                                <td><?= $sourceBadge($a['signup_source'] ?? null) ?></td>
+                                <td class="text-muted small">
+                                    <?php if (!empty($a['signed_up_at'])): ?>
+                                        zapis: <?= View::e((string)$a['signed_up_at']) ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+
+                <?php if (!empty($cancelledAttendees)): ?>
+                    <hr>
+                    <details>
+                        <summary class="text-muted small">Anulowane (<?= count($cancelledAttendees) ?>)</summary>
+                        <table class="table table-sm table-borderless mt-2">
+                            <tbody>
+                            <?php foreach ($cancelledAttendees as $a): ?>
+                                <tr>
+                                    <td><?= View::e($a['last_name']) ?> <?= View::e($a['first_name']) ?></td>
+                                    <td><?= $sourceBadge($a['signup_source'] ?? null) ?></td>
+                                    <td class="text-muted small">
+                                        <?php if (!empty($a['cancelled_at'])): ?>
+                                            anulowane: <?= View::e((string)$a['cancelled_at']) ?>
+                                        <?php endif; ?>
+                                        <?php if (!empty($a['cancellation_reason'])): ?>
+                                            — <?= View::e((string)$a['cancellation_reason']) ?>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </details>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>

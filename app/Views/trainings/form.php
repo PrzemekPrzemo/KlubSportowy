@@ -79,7 +79,28 @@ $selectedInstructorId = (int)($training['instructor_id'] ?? 0);
         </div>
         <div class="col-md-3">
             <label class="form-label"><?= __('form.max_participants') ?></label>
-            <input type="number" min="1" name="max_participants" value="<?= View::e($training['max_participants'] ?? '') ?>" class="form-control">
+            <input type="number" min="1" name="max_participants" value="<?= View::e($training['max_participants'] ?? '') ?>" class="form-control" placeholder="bez limitu">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Deadline zapisów (h przed startem)</label>
+            <input type="number" min="0" name="signup_deadline_hours"
+                   value="<?= View::e((string)($training['signup_deadline_hours'] ?? 2)) ?>" class="form-control">
+        </div>
+        <div class="col-md-6 d-flex align-items-end gap-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="signup_enabled" id="signupEnabled" value="1"
+                       <?= (int)($training['signup_enabled'] ?? 1) === 1 ? 'checked' : '' ?>>
+                <label class="form-check-label" for="signupEnabled">
+                    Zapisy członków włączone
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="waitlist_enabled" id="waitlistEnabled" value="1"
+                       <?= (int)($training['waitlist_enabled'] ?? 1) === 1 ? 'checked' : '' ?>>
+                <label class="form-check-label" for="waitlistEnabled">
+                    Lista rezerwowa aktywna
+                </label>
+            </div>
         </div>
         <div class="col-12">
             <label class="form-label"><?= __('form.description') ?></label>
