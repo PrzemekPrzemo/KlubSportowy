@@ -1721,6 +1721,64 @@ class MemberPortalController extends BaseController
                 $this->view->setLayout('portal');
                 $this->view->render('portal/sport_wrestling', $data);
                 return;
+            case 'esport':
+                // E-sport member portal — moje profile per gra + leaderboard klubu
+                // + najblizszy turniej w ktorym sie zglosilem. Wymaga ClubContext
+                // (EsportMemberProfileModel rozszerza ClubScopedModel).
+                $clubIdEsp = (int)(\App\Helpers\MemberAuth::clubId() ?? ($member['club_id'] ?? 0));
+                if ($clubIdEsp > 0) {
+                    \App\Helpers\ClubContext::set($clubIdEsp);
+                }
+                $gameModel    = new \App\Sports\Esport\Models\EsportGameModel();
+                $profileModel = new \App\Sports\Esport\Models\EsportMemberProfileModel();
+                $myProfiles   = $profileModel->listForMember($memberId);
+                $availableGames = $gameModel->listAvailableForClub();
+
+                // Wybor gry dla leaderboardu (?game= z query albo pierwsza moja gra albo pierwsza dostepna).
+                $selectedGameCode = isset($_GET['game']) ? preg_replace('/[^a-z0-9_]/', '', strtolower((string)$_GET['game'])) : null;
+                if (!$selectedGameCode) {
+                    $selectedGameCode = $myProfiles[0]['game_code'] ?? ($availableGames[0]['game_code'] ?? null);
+                }
+                $leaderboard = [];
+                $selectedGame = null;
+                if ($selectedGameCode) {
+                    $selectedGame = $gameModel->findByCode($selectedGameCode);
+                    if ($selectedGame !== null) {
+                        $leaderboard = $profileModel->leaderboard($selectedGameCode, 20);
+                    }
+                }
+
+                // Najblizszy turniej esportu w ktorym jestem zgloszony
+                $nextTournament = null;
+                try {
+                    $stmt = \App\Helpers\Database::pdo()->prepare(
+                        "SELECT t.id, t.name, t.date_start, t.format, t.sport_key, tp.status AS my_status
+                           FROM tournaments t
+                           JOIN tournament_participants tp ON tp.tournament_id = t.id
+                          WHERE tp.member_id = ?
+                            AND t.club_id   = ?
+                            AND t.sport_key = 'esport'
+                            AND t.date_start >= CURDATE()
+                          ORDER BY t.date_start ASC
+                          LIMIT 1"
+                    );
+                    $stmt->execute([$memberId, $clubIdEsp]);
+                    $nextTournament = $stmt->fetch() ?: null;
+                } catch (\Throwable) {}
+
+                $data = array_merge($data, [
+                    'title'             => 'E-sport — Mój profil',
+                    'profiles'          => $myProfiles,
+                    'games'             => $availableGames,
+                    'platforms'         => \App\Sports\Esport\Models\EsportGameModel::PLATFORMS,
+                    'selectedGameCode'  => $selectedGameCode,
+                    'selectedGame'      => $selectedGame,
+                    'leaderboard'       => $leaderboard,
+                    'nextTournament'    => $nextTournament,
+                ]);
+                $this->view->setLayout('portal');
+                $this->view->render('portal/sport_esport', $data);
+                return;
             default:
                 // Generic fallback dla sportow bez dedykowanego case-u —
                 // uzywa archetypu (z manifestu) i introspekcji INFORMATION_SCHEMA
