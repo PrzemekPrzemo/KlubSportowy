@@ -1112,6 +1112,7 @@ $router->post('/api/v1/auth/logout',   [\App\Controllers\Api\AuthApiController::
 $router->get('/api/v1/me',                  [\App\Controllers\Api\MeApiController::class, 'show']);
 $router->post('/api/v1/me',                 [\App\Controllers\Api\MeApiController::class, 'update']);
 $router->post('/api/v1/me/photo',           [\App\Controllers\Api\MeApiController::class, 'uploadPhoto']);
+$router->post('/api/v1/me/delete',          [\App\Controllers\Api\MeApiController::class, 'delete']);
 
 // API v1: club branding
 $router->get('/api/v1/club/branding',       [\App\Controllers\Api\ClubBrandingApiController::class, 'show']);
