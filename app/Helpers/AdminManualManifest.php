@@ -71,6 +71,7 @@ final class AdminManualManifest
                     'brackets'       => ['title' => 'Drabinki turniejowe', 'view' => 'help/manual/sport/brackets', 'reading_time' => '5 min', 'last_updated' => $lu],
                     'results'        => ['title' => 'Wpisywanie wyników i auto-recalc', 'view' => 'help/manual/sport/results', 'reading_time' => '5 min', 'last_updated' => $lu],
                     'protocol-pdf'   => ['title' => 'Protokół turniejowy PDF', 'view' => 'help/manual/sport/protocol-pdf', 'reading_time' => '4 min', 'last_updated' => $lu],
+                    'live-scoring'   => ['title' => 'Publiczne live scoring turnieju (QR + SSE)', 'view' => 'help/manual/sport/live-scoring', 'reading_time' => '4 min', 'last_updated' => $lu],
                     'ranking'        => ['title' => 'Cross-sport ranking członka', 'view' => 'help/manual/sport/ranking', 'reading_time' => '4 min', 'last_updated' => $lu],
                 ],
             ],

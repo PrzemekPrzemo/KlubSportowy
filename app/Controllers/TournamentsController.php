@@ -210,4 +210,75 @@ class TournamentsController extends BaseController
         Session::flash('success', 'Turniej usunięty.');
         $this->redirect('tournaments');
     }
+
+    /**
+     * POST /tournaments/:id/toggle-public-live
+     *
+     * Wlacza/wylacza publiczna strone live wynikow turnieju. Przy pierwszym
+     * wlaczeniu generuje globalnie unikalny slug. Opcjonalnie ustawia flage
+     * "pelne nazwiska" (default: inicjaly nazwiska tylko).
+     */
+    public function togglePublicLive(string $id): void
+    {
+        Csrf::verify();
+
+        $model      = new TournamentModel();
+        $tournament = $model->findById((int)$id);
+        if (!$tournament) {
+            Session::flash('error', 'Turniej nie istnieje.');
+            $this->redirect('tournaments');
+        }
+        // Sanity check — multi-tenant: turniej musi nalezec do biezacego klubu.
+        $clubId = \App\Helpers\ClubContext::current();
+        if ($clubId === null || (int)$tournament['club_id'] !== (int)$clubId) {
+            Session::flash('error', 'Brak dostepu do turnieju.');
+            $this->redirect('tournaments');
+        }
+
+        $enable    = (int)($_POST['enable'] ?? 0) === 1;
+        $fullNames = (int)($_POST['full_names'] ?? 0) === 1;
+
+        $slug = $tournament['public_live_slug'] ?? null;
+        if ($enable && empty($slug)) {
+            try {
+                $slug = $model->generatePublicLiveSlug((int)$id);
+            } catch (\Throwable $e) {
+                Session::flash('error', 'Nie udalo sie wygenerowac slug-a: ' . $e->getMessage());
+                $this->redirect('tournaments/' . (int)$id);
+            }
+        }
+
+        $stmt = $model->getDb()->prepare(
+            "UPDATE tournaments
+             SET public_live_enabled = ?, public_live_slug = ?, public_live_full_names = ?
+             WHERE id = ? AND club_id = ?"
+        );
+        $stmt->execute([
+            $enable ? 1 : 0,
+            $slug,
+            $fullNames ? 1 : 0,
+            (int)$id,
+            (int)$clubId,
+        ]);
+
+        // Audit — uzywamy tenant_access_log gdy jest dostepny.
+        try {
+            $log = new \App\Models\TenantAccessLogModel();
+            $log->logBypass(
+                'tournaments',
+                $enable ? 'enable_public_live' : 'disable_public_live',
+                __FILE__,
+                __LINE__,
+                self::class
+            );
+        } catch (\Throwable) {}
+
+        Session::flash(
+            'success',
+            $enable
+                ? 'Publiczna strona live wlaczona. Link: ' . url('live/' . $slug)
+                : 'Publiczna strona live wylaczona.'
+        );
+        $this->redirect('tournaments/' . (int)$id);
+    }
 }

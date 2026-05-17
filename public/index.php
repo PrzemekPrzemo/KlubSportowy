@@ -1210,6 +1210,7 @@ $router->post('/tournaments/:id/participant-remove', [\App\Controllers\Tournamen
 $router->post('/tournaments/:id/generate',           [\App\Controllers\TournamentsController::class, 'generateBracket']);
 $router->post('/tournaments/match/:matchId/result',  [\App\Controllers\TournamentsController::class, 'recordResult']);
 $router->post('/tournaments/:id/delete',             [\App\Controllers\TournamentsController::class, 'delete']);
+$router->post('/tournaments/:id/toggle-public-live', [\App\Controllers\TournamentsController::class, 'togglePublicLive']);
 
 // ── Drabinki turniejowe (single/double elim, round-robin) ──
 $router->get ('/tournaments/:id/bracket',           [\App\Controllers\TournamentBracketController::class, 'show']);
@@ -1256,6 +1257,14 @@ $router->get('/sitemap.xml', [\App\Controllers\PublicProfileController::class, '
 // Ustawienia profilu publicznego (portal zawodnika)
 $router->get('/portal/profile/privacy',  [\App\Controllers\MemberPortalController::class, 'publicProfileSettings']);
 $router->post('/portal/profile/privacy', [\App\Controllers\MemberPortalController::class, 'updatePublicProfile']);
+
+// ── Publiczne live scoring turniejow (opt-in, no-auth) ────
+// /live/:slug         — pelna strona live (HTML)
+// /live/:slug/stream  — SSE endpoint (30s session, polling 3s)
+// /live/:slug/qr      — redirect do generatora QR (qr-server.com)
+$router->get('/live/:slug',        [\App\Controllers\LivePublicController::class, 'tournament']);
+$router->get('/live/:slug/stream', [\App\Controllers\LivePublicController::class, 'stream']);
+$router->get('/live/:slug/qr',     [\App\Controllers\LivePublicController::class, 'qr']);
 
 // ============================================================
 // Dispatch
