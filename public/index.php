@@ -528,6 +528,19 @@ $router->post('/admin/platform/referrals/rewards/store',           [\App\Control
 $router->post('/admin/platform/referrals/rewards/:id/update',      [\App\Controllers\AdminReferralsController::class, 'updateReward']);
 $router->post('/admin/platform/referrals/rewards/:id/toggle',      [\App\Controllers\AdminReferralsController::class, 'toggleReward']);
 
+// Split payments — super admin (Stripe Connect + platform fee rules + revenue raport)
+$router->get( '/admin/platform/payments/accounts',                  [\App\Controllers\AdminPlatformPaymentsController::class, 'accounts']);
+$router->get( '/admin/platform/payments/fee-rules',                 [\App\Controllers\AdminPlatformPaymentsController::class, 'rules']);
+$router->post('/admin/platform/payments/fee-rules/store',           [\App\Controllers\AdminPlatformPaymentsController::class, 'storeRule']);
+$router->post('/admin/platform/payments/fee-rules/:id/update',      [\App\Controllers\AdminPlatformPaymentsController::class, 'updateRule']);
+$router->post('/admin/platform/payments/fee-rules/:id/delete',      [\App\Controllers\AdminPlatformPaymentsController::class, 'deleteRule']);
+$router->get( '/admin/platform/payments/charges',                   [\App\Controllers\AdminPlatformPaymentsController::class, 'charges']);
+
+// Split payments — klub (zarząd): Stripe Connect onboarding + status
+$router->get( '/club/platform-payment',         [\App\Controllers\ClubPlatformPaymentsController::class, 'index']);
+$router->post('/club/platform-payment/onboard', [\App\Controllers\ClubPlatformPaymentsController::class, 'onboard']);
+$router->get( '/club/platform-payment/return',  [\App\Controllers\ClubPlatformPaymentsController::class, 'returnFromOnboarding']);
+
 $router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
 $router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
 $router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatewayController::class, 'save']);

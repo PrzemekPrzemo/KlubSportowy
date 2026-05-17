@@ -326,6 +326,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <div class="section-items" id="sec-settings-billing">
                 <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.plan_billing') ?></a>
                 <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
+                <a href="<?= url('club/platform-payment') ?>"><i class="bi bi-bank2"></i> <?= __('nav.club_platform_payment') ?></a>
                 <a href="<?= url('club/referrals') ?>"><i class="bi bi-share"></i> <?= __('nav.referrals_discounts') ?></a>
                 <a href="<?= url('members/export') ?>"><i class="bi bi-file-earmark-spreadsheet"></i> <?= __('nav.members_export') ?></a>
                 <a href="<?= url('fees/bulk-assign') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.bulk_fees') ?></a>
@@ -382,6 +383,9 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('admin/invoices/jpk-fa') ?>"><i class="bi bi-filetype-xml"></i> <?= __('nav.jpk_fa') ?></a>
                 <a href="<?= url('admin/platform/referrals') ?>"><i class="bi bi-share"></i> <?= __('nav.affiliate_program') ?></a>
                 <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> <?= __('nav.ads') ?></a>
+                <a href="<?= url('admin/platform/payments/accounts') ?>"><i class="bi bi-bank2"></i> <?= __('nav.platform_payments') ?></a>
+                <a href="<?= url('admin/platform/payments/fee-rules') ?>"><i class="bi bi-percent"></i> <?= __('nav.platform_fee_rules') ?></a>
+                <a href="<?= url('admin/platform/payments/charges') ?>"><i class="bi bi-cash-stack"></i> <?= __('nav.platform_fee_revenue') ?></a>
             </div>
         </div>
         <div class="nav-section" data-section="platform-config">
