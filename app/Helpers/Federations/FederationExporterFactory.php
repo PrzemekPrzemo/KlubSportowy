@@ -18,6 +18,10 @@ use App\Models\ClubFederationCredentialModel;
  *   - PZTS   → PztsAdapter   (LOGIN — stat.pzts.pl, cookie session w osobnym tickecie)
  *   - PZW    → PzwAdapter    (SCRAPING wrotkarstwo + CSV)
  *   - PZJ    → PzjAdapter    (SCRAPING pzj.pl + CSV)
+ *   - PZTAEK   → PztaekAdapter   (SCRAPING pztaekwondo.pl + CSV) — taekwondo
+ *   - PZKARATE → PzkarateAdapter (SCRAPING pzkarate.pl/pzkt.pl + CSV) — karate
+ *   - PZKOL    → PzkolAdapter    (SCRAPING pzkol.pl ranking UCI + CSV) — kolarstwo
+ *   - PZSZACH  → PzszachAdapter  (SCRAPING cr-pzszach.pl + ELO + CSV) — szachy
  *   - inne   → GenericCsvExporter (fallback, manualny CSV)
  */
 class FederationExporterFactory
@@ -37,6 +41,10 @@ class FederationExporterFactory
         'PZTS'   => ['label' => 'Polski Związek Tenisa Stołowego',     'status' => FederationExporterInterface::STATUS_LOGIN],
         'PZW'    => ['label' => 'Polski Związek Wrotkarstwa',          'status' => FederationExporterInterface::STATUS_SCRAPING],
         'PZJ'    => ['label' => 'Polski Związek Judo',                 'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZTAEK'   => ['label' => 'Polski Związek Taekwondo Olimpijskiego', 'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZKARATE' => ['label' => 'Polski Związek Karate',                  'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZKOL'    => ['label' => 'Polski Związek Kolarski',                'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZSZACH'  => ['label' => 'Polski Związek Szachowy',                'status' => FederationExporterInterface::STATUS_SCRAPING],
     ];
 
     /**
@@ -56,6 +64,10 @@ class FederationExporterFactory
             'PZTS'   => new PztsAdapter($config),
             'PZW'    => new PzwAdapter($config),
             'PZJ'    => new PzjAdapter($config),
+            'PZTAEK'   => new PztaekAdapter($config),
+            'PZKARATE' => new PzkarateAdapter($config),
+            'PZKOL'    => new PzkolAdapter($config),
+            'PZSZACH'  => new PzszachAdapter($config),
             default  => new GenericCsvExporter($config, $code),
         };
     }
