@@ -48,6 +48,18 @@
         </div>
 
         <div class="card p-3 mt-3">
+            <h6><i class="bi bi-shield-fill-check"></i> Opiekunowie (RODO art. 8)</h6>
+            <p class="small text-muted mb-2">
+                Zarządzaj opiekunami prawnymi (rodzicami) tego zawodnika.
+                Wymagane dla osób &lt;16 lat.
+            </p>
+            <a href="<?= url('club/members/' . (int)$member['id'] . '/guardians') ?>"
+               class="btn btn-sm btn-outline-primary w-100">
+                <i class="bi bi-people"></i> Lista opiekunów
+            </a>
+        </div>
+
+        <div class="card p-3 mt-3">
             <h6><i class="bi bi-key"></i> Dostęp do portalu</h6>
             <?php if (!empty($member['portal_password'])): ?>
                 <div class="alert alert-success py-2 small mb-2">
