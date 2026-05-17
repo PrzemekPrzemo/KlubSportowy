@@ -52,6 +52,71 @@
     </div>
 </div>
 
+<!-- Publiczne live scoring (opt-in) -->
+<?php
+    $publicEnabled  = (int)($tournament['public_live_enabled'] ?? 0) === 1;
+    $publicSlug     = $tournament['public_live_slug'] ?? null;
+    $publicFullNames= (int)($tournament['public_live_full_names'] ?? 0) === 1;
+    $publicUrl      = $publicSlug ? url('live/' . $publicSlug) : null;
+?>
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-broadcast me-1"></i>Publiczne live scoring</strong>
+        <?php if ($publicEnabled): ?>
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Wlaczone</span>
+        <?php else: ?>
+            <span class="badge bg-secondary">Wylaczone</span>
+        <?php endif; ?>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            Po wlaczeniu publicznej strony LIVE link jest dostepny BEZ logowania —
+            rodzice, sponsorzy i widzowie moga sledzic wyniki w czasie rzeczywistym.
+            Mozesz wylaczyc w kazdej chwili.
+        </p>
+
+        <?php if ($publicEnabled && $publicUrl): ?>
+            <div class="alert alert-light border d-flex align-items-center gap-3">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=<?= rawurlencode($publicUrl) ?>"
+                     alt="QR" width="90" height="90" style="background:#fff;padding:4px;border-radius:4px;">
+                <div class="flex-grow-1">
+                    <div class="small text-muted mb-1">Publiczny link:</div>
+                    <code class="d-block text-break"><?= View::e($publicUrl) ?></code>
+                    <div class="mt-2 d-flex gap-2 flex-wrap">
+                        <a href="<?= View::e($publicUrl) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i> Podglad
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="navigator.clipboard.writeText('<?= View::e($publicUrl) ?>'); this.textContent='Skopiowano!';">
+                            <i class="bi bi-clipboard"></i> Kopiuj link
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="<?= url('tournaments/' . (int)$tournament['id'] . '/toggle-public-live') ?>" class="mt-2">
+            <?= csrf_field() ?>
+            <input type="hidden" name="enable" value="<?= $publicEnabled ? 0 : 1 ?>">
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="full_names" value="1"
+                       id="pubFullNames" <?= $publicFullNames ? 'checked' : '' ?>>
+                <label class="form-check-label small" for="pubFullNames">
+                    Pokazuj pelne nazwiska (zamiast inicjalu — np. "Jan Kowalski" zamiast "Jan K.")
+                </label>
+            </div>
+            <button type="submit" class="btn <?= $publicEnabled ? 'btn-outline-danger' : 'btn-primary' ?>"
+                    onclick="return confirm('<?= $publicEnabled ? "Wylaczyc publiczna strone LIVE?" : "Wlaczyc publiczna strone LIVE? Link bedzie publicznie dostepny." ?>')">
+                <?php if ($publicEnabled): ?>
+                    <i class="bi bi-x-circle"></i> Wylacz publiczne live
+                <?php else: ?>
+                    <i class="bi bi-broadcast"></i> Wlacz publiczne live
+                <?php endif; ?>
+            </button>
+        </form>
+    </div>
+</div>
+
 <?php if ($tournament['status'] === 'draft'): ?>
 <!-- Participants management (draft only) -->
 <div class="card mb-4">
