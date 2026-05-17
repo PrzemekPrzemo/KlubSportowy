@@ -397,6 +397,14 @@ $router->get('/pub',                 [\App\Controllers\PublicController::class, 
 $router->get('/pub/:slug/results',   [\App\Controllers\PublicController::class, 'clubResults']);
 $router->get('/pub/:slug',           [\App\Controllers\PublicController::class, 'clubPage']);
 
+// Publiczny katalog klubow (Club Discovery, migration 095) — BEZ auth.
+// Lead-gen: rodzic szuka klubu dla dziecka -> trafia tu z Google.
+// Kolejnosc: /discover/club/:slug PRZED /discover/:sport (zeby "/discover/club/..." nie matchowalo bySport)
+$router->get('/discover',                 [\App\Controllers\DiscoveryController::class, 'index']);
+$router->get('/api/discover/clubs.json',  [\App\Controllers\DiscoveryController::class, 'clubsJson']);
+$router->get('/discover/club/:slug',      [\App\Controllers\DiscoveryController::class, 'clubProfile']);
+$router->get('/discover/:sport',          [\App\Controllers\DiscoveryController::class, 'bySport']);
+
 // Onboarding wizard
 $router->get('/onboarding/step1',      [\App\Controllers\OnboardingController::class, 'step1']);
 $router->post('/onboarding/step1',     [\App\Controllers\OnboardingController::class, 'saveStep1']);
@@ -627,6 +635,9 @@ $router->get('/federation/verify/:licenseId',  [\App\Controllers\FederationContr
 // Zarządzanie klubem (ustawienia / branding / SMTP / użytkownicy)
 $router->get('/club/settings',            [\App\Controllers\ClubManagementController::class, 'settings']);
 $router->post('/club/settings/save',      [\App\Controllers\ClubManagementController::class, 'saveSettings']);
+// Publiczna prezentacja klubu (Club Discovery opt-in, migration 095) — wymaga zarzad.
+$router->get('/club/settings/discovery',  [\App\Controllers\ClubDiscoverySettingsController::class, 'show']);
+$router->post('/club/settings/discovery', [\App\Controllers\ClubDiscoverySettingsController::class, 'save']);
 $router->get('/club/customization',       [\App\Controllers\ClubManagementController::class, 'customization']);
 $router->post('/club/customization/save', [\App\Controllers\ClubManagementController::class, 'saveCustomization']);
 // Whitelabel — favicon / custom CSS / email header / komunikacja (osobne formularze)
