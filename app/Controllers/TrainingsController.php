@@ -243,6 +243,9 @@ class TrainingsController extends BaseController
             'club_sport_id'    => !empty($_POST['club_sport_id']) ? (int)$_POST['club_sport_id'] : null,
             'status'      => in_array($_POST['status'] ?? '', ['zaplanowany','w_trakcie','zakonczony','odwolany'], true)
                                ? $_POST['status'] : 'zaplanowany',
+            'signup_enabled'        => isset($_POST['signup_enabled']) ? 1 : 0,
+            'waitlist_enabled'      => isset($_POST['waitlist_enabled']) ? 1 : 0,
+            'signup_deadline_hours' => max(0, (int)($_POST['signup_deadline_hours'] ?? 2)),
         ];
         if ($data['name'] === '' || $data['start_time'] === '') {
             Session::flash('error', 'Nazwa i data rozpoczęcia są wymagane.');

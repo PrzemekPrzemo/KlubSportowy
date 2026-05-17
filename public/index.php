@@ -890,6 +890,10 @@ $router->get('/portal/gdpr/export/:id/download',      [\App\Controllers\MemberGd
 $router->get('/portal/announcements',    [\App\Controllers\MemberPortalController::class, 'announcements']);
 $router->get('/portal/schedule',         [\App\Controllers\MemberPortalController::class, 'schedule']);
 
+// Portal: self-signup członka na trening + auto-promote z waitlist
+$router->post('/portal/training/:id/signup', [\App\Controllers\MemberPortalController::class, 'signupTraining']);
+$router->post('/portal/training/:id/cancel', [\App\Controllers\MemberPortalController::class, 'cancelTraining']);
+
 // Portal: frekwencja, wyniki, rankingi
 $router->get('/portal/attendance',       [\App\Controllers\MemberPortalController::class, 'attendance']);
 $router->get('/portal/results',          [\App\Controllers\MemberPortalController::class, 'results']);
