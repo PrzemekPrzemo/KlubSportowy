@@ -20,6 +20,29 @@ class BeltCertificatePdf
         array $member,
         array $beltMap,
         string $sportName,
+        string $federation,
+        ?string $locale = null
+    ): void {
+        // Respektuj preferowany jezyk czlonka (jesli przekazany).
+        // Pozwala renderowac przyszle __()-zwracane teksty w certyfikacie.
+        if ($locale === null && isset($member['preferred_locale'])
+            && in_array($member['preferred_locale'], Translator::SUPPORTED, true)) {
+            $locale = (string)$member['preferred_locale'];
+        }
+        if ($locale !== null) {
+            Translator::withLocale($locale, fn() => self::doGenerate(
+                $belt, $member, $beltMap, $sportName, $federation
+            ));
+            return;
+        }
+        self::doGenerate($belt, $member, $beltMap, $sportName, $federation);
+    }
+
+    private static function doGenerate(
+        array $belt,
+        array $member,
+        array $beltMap,
+        string $sportName,
         string $federation
     ): void {
         $beltInfo   = $beltMap[$belt['belt_level']] ?? ['label' => $belt['belt_level'], 'color' => '#cccccc'];

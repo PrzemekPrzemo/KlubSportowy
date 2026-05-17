@@ -95,6 +95,10 @@ class OnboardingWizardController extends BaseController
         $email = trim($_POST['email'] ?? '');
         $nip   = trim($_POST['nip']   ?? '');
         $phone = trim($_POST['phone'] ?? '');
+        $locale = strtolower(trim((string)($_POST['default_locale'] ?? 'pl')));
+        if (!in_array($locale, \App\Helpers\Translator::SUPPORTED, true)) {
+            $locale = 'pl';
+        }
         $referralCode = ReferralCodeService::normalize((string)($_POST['referral_code'] ?? ''));
 
         $errors = [];
@@ -137,7 +141,7 @@ class OnboardingWizardController extends BaseController
         if ($errors) {
             Session::flash('error', implode(' ', $errors));
             $this->saveState([
-                'club' => compact('name','city','email','nip','phone'),
+                'club' => compact('name','city','email','nip','phone') + ['default_locale' => $locale],
                 'referral_code' => $referralCode,
             ]);
             $this->redirect('trial/start');
@@ -145,11 +149,12 @@ class OnboardingWizardController extends BaseController
 
         $this->saveState([
             'club' => [
-                'name'  => $name,
-                'city'  => $city,
-                'email' => $email,
-                'nip'   => $nip ?: null,
-                'phone' => $phone ?: null,
+                'name'           => $name,
+                'city'           => $city,
+                'email'          => $email,
+                'nip'            => $nip ?: null,
+                'phone'          => $phone ?: null,
+                'default_locale' => $locale,
             ],
             'referral_code' => $validatedRefCode,
         ]);
@@ -444,14 +449,26 @@ class OnboardingWizardController extends BaseController
         try {
             // 1) clubs
             $clubModel = new ClubModel();
-            $clubId    = $clubModel->insert([
+            $clubLocale = $state['club']['default_locale'] ?? 'pl';
+            if (!in_array($clubLocale, \App\Helpers\Translator::SUPPORTED, true)) {
+                $clubLocale = 'pl';
+            }
+            $clubData = [
                 'name'      => $state['club']['name'],
                 'city'      => $state['club']['city'],
                 'nip'       => $state['club']['nip']   ?? null,
                 'email'     => $state['club']['email'],
                 'phone'     => $state['club']['phone'] ?? null,
                 'is_active' => 1,
-            ]);
+            ];
+            // default_locale — best-effort (kolumna istnieje po migracji 098)
+            try {
+                $clubData['default_locale'] = $clubLocale;
+                $clubId = $clubModel->insert($clubData);
+            } catch (\Throwable) {
+                unset($clubData['default_locale']);
+                $clubId = $clubModel->insert($clubData);
+            }
 
             // 2) club_customization (ensure row + apply branding)
             $cust = new ClubCustomizationModel();

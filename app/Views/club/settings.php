@@ -38,6 +38,23 @@
             <label class="form-label">Adres</label>
             <textarea name="address" class="form-control" rows="2"><?= View::e($club['address'] ?? '') ?></textarea>
         </div>
+        <div class="col-12">
+            <label class="form-label"><?= __('club.settings.default_locale.title') ?></label>
+            <div class="form-text mb-2"><?= __('club.settings.default_locale.help') ?></div>
+            <?php $defLoc = $club['default_locale'] ?? 'pl'; ?>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="default_locale" id="club_locale_pl"
+                        value="pl" <?= $defLoc === 'pl' ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="club_locale_pl">Polski (PL)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="default_locale" id="club_locale_en"
+                        value="en" <?= $defLoc === 'en' ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="club_locale_en">English (EN)</label>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="mt-4">
         <button class="btn btn-primary"><i class="bi bi-check2"></i> Zapisz</button>

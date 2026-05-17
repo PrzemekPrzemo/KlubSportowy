@@ -179,13 +179,106 @@ HTML;
             ->enqueue($clubId, $toEmail, $toName, $subject, $body, $templateType, Auth::id());
     }
 
-    /** Kolejkuje wiadomość z szablonu, renderując placeholdery. */
-    public static function queueFromTemplate(int $clubId, string $templateType, string $toEmail, array $vars, ?string $toName = null): ?int
-    {
+    /**
+     * Kolejkuje wiadomość z szablonu, renderując placeholdery.
+     *
+     * @param string|null $locale Wymus konkretny locale (pl/en). Jesli null:
+     *                            cascade z $vars['recipient_member_id'] -> klub.default_locale -> 'pl'.
+     *                            Brak EN translation -> fallback do PL (avoid send-fail).
+     */
+    public static function queueFromTemplate(
+        int $clubId,
+        string $templateType,
+        string $toEmail,
+        array $vars,
+        ?string $toName = null,
+        ?string $locale = null
+    ): ?int {
         $tpl = (new EmailTemplateModel())->resolve($templateType, $clubId);
         if (!$tpl) return null;
-        $rendered = EmailTemplateModel::render($tpl, $vars);
+
+        // Resolve effective locale.
+        $effLocale = self::resolveLocaleForRecipient($locale, $vars, $clubId);
+
+        // Try locale-specific translation z email_event_catalog_translations.
+        $localized = self::fetchEventCatalogTranslation($templateType, $effLocale);
+        if ($localized === null && $effLocale !== \App\Helpers\Translator::FALLBACK) {
+            // Fallback do PL (locale='pl')
+            $localized = self::fetchEventCatalogTranslation($templateType, \App\Helpers\Translator::FALLBACK);
+        }
+
+        if ($localized !== null) {
+            $rendered = EmailTemplateModel::render(
+                ['subject' => $localized['subject'], 'body' => $localized['body']],
+                $vars
+            );
+        } else {
+            // Brak translation -> uzyj klub override / default z resolve().
+            $rendered = EmailTemplateModel::render($tpl, $vars);
+        }
         return self::queue($clubId, $toEmail, $rendered['subject'], $rendered['body'], $toName, $templateType);
+    }
+
+    /**
+     * Cascade resolve locale dla odbiorcy emaila:
+     *   1) explicit $locale parametr (jesli supported)
+     *   2) member.preferred_locale (jesli $vars['recipient_member_id'] set)
+     *   3) club.default_locale
+     *   4) hard fallback 'pl'
+     */
+    private static function resolveLocaleForRecipient(?string $locale, array $vars, int $clubId): string
+    {
+        $supported = \App\Helpers\Translator::SUPPORTED;
+
+        if (is_string($locale) && in_array($locale, $supported, true)) {
+            return $locale;
+        }
+
+        $memberId = $vars['recipient_member_id'] ?? null;
+        if ($memberId !== null && (int)$memberId > 0) {
+            try {
+                $stmt = Database::pdo()->prepare('SELECT preferred_locale FROM members WHERE id = ? LIMIT 1');
+                $stmt->execute([(int)$memberId]);
+                $loc = $stmt->fetchColumn();
+                if (is_string($loc) && in_array($loc, $supported, true)) {
+                    return $loc;
+                }
+            } catch (\Throwable) { /* best-effort */ }
+        }
+
+        try {
+            $stmt = Database::pdo()->prepare('SELECT default_locale FROM clubs WHERE id = ? LIMIT 1');
+            $stmt->execute([$clubId]);
+            $loc = $stmt->fetchColumn();
+            if (is_string($loc) && in_array($loc, $supported, true)) {
+                return $loc;
+            }
+        } catch (\Throwable) { /* best-effort */ }
+
+        return \App\Helpers\Translator::FALLBACK;
+    }
+
+    /**
+     * Pobiera lokalizowany subject+body z email_event_catalog_translations.
+     * Klucz: catalog.code = $templateType + locale.
+     */
+    private static function fetchEventCatalogTranslation(string $templateType, string $locale): ?array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT t.subject, t.body
+                   FROM email_event_catalog c
+                   JOIN email_event_catalog_translations t ON t.event_id = c.id
+                  WHERE c.code = ? AND t.locale = ?
+                  LIMIT 1'
+            );
+            $stmt->execute([$templateType, $locale]);
+            $row = $stmt->fetch();
+            if ($row && isset($row['subject'], $row['body'])) {
+                return ['subject' => (string)$row['subject'], 'body' => (string)$row['body']];
+            }
+        } catch (\Throwable) { /* tabela moze nie istniec — best-effort */ }
+        return null;
     }
 
     /**

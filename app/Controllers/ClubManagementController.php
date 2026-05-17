@@ -51,6 +51,12 @@ class ClubManagementController extends BaseController
             'address'    => trim($_POST['address'] ?? '') ?: null,
             'website'    => trim($_POST['website'] ?? '') ?: null,
         ];
+
+        // Default locale — whitelist 'pl' | 'en' (defense-in-depth).
+        $loc = strtolower(trim((string)($_POST['default_locale'] ?? '')));
+        if (in_array($loc, \App\Helpers\Translator::SUPPORTED, true)) {
+            $data['default_locale'] = $loc;
+        }
         if ($data['name'] === '') {
             Session::flash('error', 'Nazwa klubu jest wymagana.');
             $this->redirect('club/settings');

@@ -96,10 +96,25 @@ require ROOT_PATH . '/app/Helpers/Helpers.php';
 \App\Helpers\Session::checkTimeout();
 
 // ── i18n locale detection ────────────────────────────────
-if (isset($_GET['lang']) && in_array($_GET['lang'], ['pl', 'en'])) {
+// 1) Explicit ?lang=pl|en zawsze wygrywa (whitelist).
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['pl', 'en'], true)) {
     \App\Helpers\Session::set('locale', $_GET['lang']);
+    \App\Helpers\Translator::setLocale($_GET['lang']);
+} else {
+    // 2) Cascade: member.preferred_locale -> user.preferred_locale -> session -> club -> Accept-Language -> pl.
+    $portalMemberId = \App\Helpers\Session::get('portal_member_id');
+    $portalClubId   = \App\Helpers\Session::get('portal_club_id');
+    $adminUserId    = \App\Helpers\Session::get('user_id');
+    if ($portalMemberId !== null || $adminUserId !== null || $portalClubId !== null) {
+        \App\Helpers\Translator::setLocaleForUser(
+            $adminUserId !== null ? (int)$adminUserId : null,
+            $portalMemberId !== null ? (int)$portalMemberId : null,
+            $portalClubId !== null ? (int)$portalClubId : null
+        );
+    } else {
+        \App\Helpers\Translator::setLocale(\App\Helpers\Translator::getLocale());
+    }
 }
-\App\Helpers\Translator::setLocale(\App\Helpers\Translator::getLocale());
 
 // ── Multi-club: wykrywanie subdomeny ─────────────────────
 $baseDomain = '';
@@ -675,6 +690,7 @@ $router->get('/portal/dashboard/cross-sport', [\App\Controllers\MemberPortalCont
 $router->get('/member/dashboard/cross-sport', [\App\Controllers\MemberPortalController::class, 'crossSportDashboard']);
 $router->get('/portal/profile',          [\App\Controllers\MemberPortalController::class, 'profile']);
 $router->post('/portal/profile/update',  [\App\Controllers\MemberPortalController::class, 'updateProfile']);
+$router->post('/portal/profile/locale',  [\App\Controllers\MemberPortalController::class, 'updateLocale']);
 $router->post('/portal/password',        [\App\Controllers\MemberPortalController::class, 'changePassword']);
 
 // Portal: 2FA TOTP
