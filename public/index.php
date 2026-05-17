@@ -976,6 +976,16 @@ $router->get ('/club/reports-builder/:id/run',         [\App\Controllers\ClubRep
 $router->get ('/club/reports-builder/:id/export.csv',  [\App\Controllers\ClubReportBuilderController::class, 'exportCsv']);
 $router->get ('/club/reports-builder/:id/export.pdf',  [\App\Controllers\ClubReportBuilderController::class, 'exportPdf']);
 
+// Scheduled PDF dashboards do email (cron co godzine: cli/run_scheduled_reports.php)
+$router->get ('/club/scheduled-reports',                     [\App\Controllers\ClubScheduledReportsController::class, 'index']);
+$router->get ('/club/scheduled-reports/create',              [\App\Controllers\ClubScheduledReportsController::class, 'create']);
+$router->post('/club/scheduled-reports/store',               [\App\Controllers\ClubScheduledReportsController::class, 'store']);
+$router->get ('/club/scheduled-reports/:id/edit',            [\App\Controllers\ClubScheduledReportsController::class, 'edit']);
+$router->post('/club/scheduled-reports/:id/delete',          [\App\Controllers\ClubScheduledReportsController::class, 'delete']);
+$router->get ('/club/scheduled-reports/:id/preview',         [\App\Controllers\ClubScheduledReportsController::class, 'preview']);
+$router->get ('/club/scheduled-reports/:id/runs',            [\App\Controllers\ClubScheduledReportsController::class, 'runs']);
+$router->get ('/club/scheduled-reports/runs/:runId/download',[\App\Controllers\ClubScheduledReportsController::class, 'downloadRun']);
+
 // Klucze API (panel klubu)
 $router->get('/club/api-keys',              [\App\Controllers\ApiKeysController::class, 'index']);
 $router->post('/club/api-keys/generate',    [\App\Controllers\ApiKeysController::class, 'generate']);
