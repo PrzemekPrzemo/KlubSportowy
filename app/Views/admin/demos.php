@@ -14,13 +14,14 @@
 </div>
 
 <div class="card">
-    <table class="table table-hover mb-0">
+    <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
         <thead class="table-light">
             <tr>
                 <th>Klub</th>
                 <th>Konfiguracja</th>
-                <th>Link demo</th>
-                <th>Wygasa</th>
+                <th style="min-width:240px;">Link demo</th>
+                <th style="white-space:nowrap;">Wygasa</th>
                 <th>Utworzony przez</th>
                 <th>Akcje</th>
             </tr>
@@ -43,14 +44,34 @@
                         <strong><?= View::e($t['club_name']) ?></strong>
                         <div class="text-muted small"><?= format_datetime($t['created_at']) ?></div>
                     </td>
-                    <td>
+                    <td style="max-width:320px;">
                         <?php if ($cfg): ?>
-                            <div class="small">
-                                <?php if (!empty($cfg['sports'])): ?>
-                                    <span class="badge bg-primary me-1"><?= implode(', ', array_map([View::class, 'e'], $cfg['sports'])) ?></span>
+                            <?php
+                                $sportsArr  = $cfg['sports']  ?? [];
+                                $modulesArr = $cfg['modules'] ?? [];
+                                $sportsShown  = array_slice($sportsArr, 0, 5);
+                                $sportsRest   = max(0, count($sportsArr) - 5);
+                                $modulesShown = array_slice($modulesArr, 0, 4);
+                                $modulesRest  = max(0, count($modulesArr) - 4);
+                            ?>
+                            <div class="d-flex flex-wrap gap-1 small">
+                                <?php foreach ($sportsShown as $s): ?>
+                                    <span class="badge bg-primary"><?= View::e($s) ?></span>
+                                <?php endforeach; ?>
+                                <?php if ($sportsRest > 0): ?>
+                                    <span class="badge bg-primary-subtle text-primary-emphasis"
+                                          title="<?= View::e(implode(', ', array_slice($sportsArr, 5))) ?>">
+                                        +<?= $sportsRest ?> sport.
+                                    </span>
                                 <?php endif; ?>
-                                <?php if (!empty($cfg['modules'])): ?>
-                                    <span class="badge bg-secondary me-1"><?= implode(', ', array_map([View::class, 'e'], $cfg['modules'])) ?></span>
+                                <?php foreach ($modulesShown as $m): ?>
+                                    <span class="badge bg-secondary"><?= View::e($m) ?></span>
+                                <?php endforeach; ?>
+                                <?php if ($modulesRest > 0): ?>
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis"
+                                          title="<?= View::e(implode(', ', array_slice($modulesArr, 4))) ?>">
+                                        +<?= $modulesRest ?> mod.
+                                    </span>
                                 <?php endif; ?>
                                 <?php if (!empty($cfg['volume'])): ?>
                                     <span class="badge bg-info text-dark"><?= View::e($cfg['volume']) ?></span>
@@ -60,24 +81,24 @@
                             <span class="text-muted small">—</span>
                         <?php endif; ?>
                     </td>
-                    <td style="max-width:280px;">
+                    <td style="min-width:240px; max-width:280px;">
                         <div class="input-group input-group-sm">
                             <input type="text" class="form-control" value="<?= View::e($demoUrl) ?>"
                                    readonly id="link-<?= (int)$t['id'] ?>">
                             <button class="btn btn-outline-secondary" type="button"
                                     onclick="var el=document.getElementById('link-<?= (int)$t['id'] ?>');navigator.clipboard.writeText(el.value).then(()=>{this.textContent='✓';setTimeout(()=>this.textContent='Kopiuj',1500)})">Kopiuj</button>
+                            <a href="<?= View::e($demoUrl) ?>" class="btn btn-outline-primary" target="_blank" title="Otwórz">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
                         </div>
-                        <a href="<?= View::e($demoUrl) ?>" class="btn btn-sm btn-outline-primary mt-1" target="_blank">
-                            <i class="bi bi-box-arrow-up-right"></i> Otwórz
-                        </a>
                     </td>
-                    <td><?= format_datetime($t['expires_at']) ?></td>
+                    <td class="small" style="white-space:nowrap;"><?= format_datetime($t['expires_at']) ?></td>
                     <td class="small"><?= View::e($t['creator_name'] ?? '—') ?></td>
                     <td>
                         <form method="POST" action="<?= url('admin/demos/' . (int)$t['id'] . '/delete') ?>"
                               onsubmit="return confirm('Usunąć ten token demo?')">
                             <?= csrf_field() ?>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Usuń</button>
+                            <button class="btn btn-sm btn-outline-danger" title="Usuń"><i class="bi bi-trash"></i></button>
                         </form>
                     </td>
                 </tr>
@@ -85,6 +106,7 @@
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <!-- ── Modal: Nowe demo ───────────────────────────────────────────────── -->
