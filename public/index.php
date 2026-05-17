@@ -1212,6 +1212,8 @@ $router->post('/tournaments/:id/generate',           [\App\Controllers\Tournamen
 $router->post('/tournaments/match/:matchId/result',  [\App\Controllers\TournamentsController::class, 'recordResult']);
 $router->post('/tournaments/:id/delete',             [\App\Controllers\TournamentsController::class, 'delete']);
 $router->post('/tournaments/:id/toggle-public-live', [\App\Controllers\TournamentsController::class, 'togglePublicLive']);
+$router->post('/tournaments/:id/regenerate-protocol',    [\App\Controllers\TournamentsController::class, 'regenerateProtocol']);
+$router->post('/tournaments/:id/toggle-public-protocol', [\App\Controllers\TournamentsController::class, 'togglePublicProtocol']);
 
 // ── Drabinki turniejowe (single/double elim, round-robin) ──
 $router->get ('/tournaments/:id/bracket',           [\App\Controllers\TournamentBracketController::class, 'show']);
@@ -1266,6 +1268,14 @@ $router->post('/portal/profile/privacy', [\App\Controllers\MemberPortalControlle
 $router->get('/live/:slug',        [\App\Controllers\LivePublicController::class, 'tournament']);
 $router->get('/live/:slug/stream', [\App\Controllers\LivePublicController::class, 'stream']);
 $router->get('/live/:slug/qr',     [\App\Controllers\LivePublicController::class, 'qr']);
+
+// ── Publiczne PDF protokoly turniejowe (opt-in, no-auth) ──
+// /protocols/:slug          — landing page (branding + podium + download)
+// /protocols/:slug/download — sam plik PDF (application/pdf)
+// /protocols/:slug/qr       — redirect do QR code generatora
+$router->get('/protocols/:slug',          [\App\Controllers\TournamentProtocolPublicController::class, 'landing']);
+$router->get('/protocols/:slug/download', [\App\Controllers\TournamentProtocolPublicController::class, 'download']);
+$router->get('/protocols/:slug/qr',       [\App\Controllers\TournamentProtocolPublicController::class, 'qr']);
 
 // ============================================================
 // Dispatch

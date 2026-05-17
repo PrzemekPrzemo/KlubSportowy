@@ -180,9 +180,21 @@ class TournamentResultsController extends BaseController
         }
 
         // 3. Optional: mark tournament finished.
+        $justMarkedFinished = false;
         if (!empty($_POST['mark_finished'])) {
             $db->prepare("UPDATE tournaments SET status = 'finished' WHERE id = ?")
                ->execute([$tournamentId]);
+            $justMarkedFinished = true;
+        }
+
+        // 3a. Auto-publish PDF protokol (best-effort) gdy turniej zostal
+        // wlasnie zakonczony. Failure nie blokuje glownego zapisu wynikow.
+        if ($justMarkedFinished) {
+            try {
+                (new \App\Helpers\Tournaments\ProtocolPublisher())->publish($tournamentId);
+            } catch (\Throwable $e) {
+                error_log("Protocol publish failed for tournament {$tournamentId}: " . $e->getMessage());
+            }
         }
 
         // 4. Recalc ranking (synchronous for now — note threshold).
@@ -404,18 +416,63 @@ class TournamentResultsController extends BaseController
 
     /**
      * Wysyła powiadomienie do uczestników o zakończeniu turnieju.
+     * Jezeli protokol ma wlaczony public share, dodatkowo wysyla email
+     * z linkiem do PDF (template: tournament_finished_protocol).
      */
     private function maybeNotifyParticipants(array $tournament): void
     {
+        $clubId = (int)$tournament['club_id'];
+        $tournamentId = (int)$tournament['id'];
+
         try {
-            $clubId = (int)$tournament['club_id'];
-            if (!class_exists(NotificationDispatcher::class)) return;
-            NotificationDispatcher::notifyClubMembers($clubId, 'tournament_finished', [
-                'tournament_name' => $tournament['name'],
-                'tournament_id'   => (int)$tournament['id'],
-            ]);
+            if (class_exists(NotificationDispatcher::class)) {
+                NotificationDispatcher::notifyClubMembers($clubId, 'tournament_finished', [
+                    'tournament_name' => $tournament['name'],
+                    'tournament_id'   => $tournamentId,
+                ]);
+            }
         } catch (\Throwable) {
             // ignore
+        }
+
+        // Email z linkiem do PDF protokolu — tylko gdy public share jest wlaczony.
+        try {
+            $protocol = (new \App\Models\TournamentProtocolModel())->latestForTournament($tournamentId);
+            if (!$protocol || (int)($protocol['public_share_enabled'] ?? 0) !== 1) {
+                return;
+            }
+            $slug = $protocol['public_share_slug'] ?? null;
+            if (!$slug) return;
+
+            $shareUrl = function_exists('url') ? url('protocols/' . $slug) : '/protocols/' . $slug;
+
+            // Pobierz email uczestnikow.
+            $stmt = Database::pdo()->prepare(
+                "SELECT m.first_name, m.email
+                   FROM tournament_participants tp
+                   JOIN members m ON m.id = tp.member_id
+                  WHERE tp.tournament_id = ? AND m.email IS NOT NULL AND m.email <> ''"
+            );
+            $stmt->execute([$tournamentId]);
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $p) {
+                try {
+                    \App\Helpers\EmailService::queueFromTemplate(
+                        $clubId,
+                        'tournament_finished_protocol',
+                        (string)$p['email'],
+                        [
+                            'member.first_name' => (string)($p['first_name'] ?? ''),
+                            'tournament.name'   => (string)($tournament['name'] ?? ''),
+                            'tournament.date'   => (string)($tournament['date_start'] ?? ''),
+                            'share_url'         => $shareUrl,
+                        ]
+                    );
+                } catch (\Throwable) {
+                    // skip individual failure
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('tournament_finished_protocol notify failed: ' . $e->getMessage());
         }
     }
 }
