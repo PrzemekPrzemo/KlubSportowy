@@ -143,6 +143,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'dashboard'      => ['url' => 'dashboard',                  'icon' => 'bi-speedometer2',           'label' => __('nav.dashboard'),       'mod' => null],
         'members'        => ['url' => 'members',                    'icon' => 'bi-people',                 'label' => __('nav.members'),         'mod' => 'members'],
         'members_all'    => ['url' => 'members-all',                'icon' => 'bi-people-fill',            'label' => __('nav.members_all'),     'mod' => 'members'],
+        'guardians'      => ['url' => 'club/guardians',             'icon' => 'bi-shield-fill-check',      'label' => 'Opiekunowie',             'mod' => 'members'],
         'sports'         => ['url' => 'sports',                     'icon' => 'bi-trophy',                 'label' => __('nav.sports_sections'), 'mod' => 'sports'],
         'calendar'       => ['url' => 'calendar',                   'icon' => 'bi-calendar3',              'label' => __('nav.calendar'),        'mod' => 'calendar'],
         'import'         => ['url' => 'import',                     'icon' => 'bi-upload',                 'label' => __('nav.import_csv'),      'mod' => 'members'],
@@ -172,7 +173,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'gdpr'           => ['url' => 'gdpr',                       'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
     ];
     $clubGroups = [
-        'core'      => ['label' => __('nav.club'),                'items' => ['dashboard', 'members', 'members_all', 'sports', 'calendar', 'import']],
+        'core'      => ['label' => __('nav.club'),                'items' => ['dashboard', 'members', 'members_all', 'guardians', 'sports', 'calendar', 'import']],
         'schedule'  => ['label' => __('nav.group.actions'),       'items' => ['events', 'trainings', 'trainer_schedule', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
         'finance'   => ['label' => __('nav.group.finance'),       'items' => ['fees', 'fees_rates', 'ksef_invoices', 'commissions', 'subscription']],
         'health'    => ['label' => __('nav.group.health'),        'items' => ['medical', 'compliance', 'certifications', 'equipment']],

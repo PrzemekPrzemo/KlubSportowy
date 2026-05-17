@@ -723,6 +723,38 @@ $router->get('/portal/offline.html',  [\App\Controllers\PwaController::class, 'o
 $router->post('/portal/push/subscribe',   [\App\Controllers\PwaController::class, 'subscribe']);
 $router->post('/portal/push/unsubscribe', [\App\Controllers\PwaController::class, 'unsubscribe']);
 
+// ─────────────────────────────────────────────────────────
+// Portal opiekuna (rodzica) — RODO art. 8 (migracja 108)
+// ─────────────────────────────────────────────────────────
+// Public (no auth)
+$router->get('/guardian/login',                  [\App\Controllers\GuardianAuthController::class, 'showLogin']);
+$router->post('/guardian/login',                 [\App\Controllers\GuardianAuthController::class, 'login']);
+$router->get('/guardian/logout',                 [\App\Controllers\GuardianAuthController::class, 'logout']);
+$router->post('/guardian/logout',                [\App\Controllers\GuardianAuthController::class, 'logout']);
+$router->get('/guardian/activate/:token',        [\App\Controllers\GuardianAuthController::class, 'showActivate']);
+$router->post('/guardian/activate/:token',       [\App\Controllers\GuardianAuthController::class, 'activate']);
+$router->get('/guardian/forgot-password',        [\App\Controllers\GuardianAuthController::class, 'showForgotPassword']);
+$router->post('/guardian/forgot-password',       [\App\Controllers\GuardianAuthController::class, 'sendForgotPassword']);
+
+// Portal opiekuna (auth required via GuardianAuth)
+$router->get('/portal/guardian',                            [\App\Controllers\PortalGuardianController::class, 'dashboard']);
+$router->get('/portal/guardian/children',                   [\App\Controllers\PortalGuardianController::class, 'children']);
+$router->get('/portal/guardian/child/:memberId',            [\App\Controllers\PortalGuardianController::class, 'childProfile']);
+$router->get('/portal/guardian/child/:memberId/consents',   [\App\Controllers\PortalGuardianController::class, 'consents']);
+$router->post('/portal/guardian/child/:memberId/consents',  [\App\Controllers\PortalGuardianController::class, 'updateConsents']);
+$router->get('/portal/guardian/child/:memberId/payments',   [\App\Controllers\PortalGuardianController::class, 'childPayments']);
+$router->post('/portal/guardian/child/:memberId/pay',       [\App\Controllers\PortalGuardianController::class, 'payForChild']);
+$router->get('/portal/guardian/profile',                    [\App\Controllers\PortalGuardianController::class, 'profile']);
+$router->post('/portal/guardian/profile',                   [\App\Controllers\PortalGuardianController::class, 'updateProfile']);
+$router->post('/portal/guardian/password',                  [\App\Controllers\PortalGuardianController::class, 'changePassword']);
+$router->get('/portal/guardian/help',                       [\App\Controllers\PortalGuardianController::class, 'help']);
+
+// Admin klubu — zarzadzanie opiekunami (auth: zarzad/admin/ksiegowy)
+$router->get('/club/guardians',                              [\App\Controllers\ClubGuardiansController::class, 'index']);
+$router->get('/club/members/:memberId/guardians',            [\App\Controllers\ClubGuardiansController::class, 'forMember']);
+$router->post('/club/members/:memberId/guardians/invite',    [\App\Controllers\ClubGuardiansController::class, 'invite']);
+$router->post('/club/guardians/:id/remove',                  [\App\Controllers\ClubGuardiansController::class, 'remove']);
+
 // Portal zawodnika (self-service)
 $router->get('/portal/login',            [\App\Controllers\MemberPortalController::class, 'showLogin']);
 $router->post('/portal/login',           [\App\Controllers\MemberPortalController::class, 'login']);
