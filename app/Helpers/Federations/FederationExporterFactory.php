@@ -22,6 +22,10 @@ use App\Models\ClubFederationCredentialModel;
  *   - PZKARATE → PzkarateAdapter (SCRAPING pzkarate.pl/pzkt.pl + CSV) — karate
  *   - PZKOL    → PzkolAdapter    (SCRAPING pzkol.pl ranking UCI + CSV) — kolarstwo
  *   - PZSZACH  → PzszachAdapter  (SCRAPING cr-pzszach.pl + ELO + CSV) — szachy
+ *   - ZPRP   → ZprpAdapter   (SCRAPING zprp.pl + CSV) — piłka ręczna
+ *   - PZP    → PzpAdapter    (SCRAPING polswim.pl + livetiming.pl + CSV) — pływanie
+ *   - PZTEN  → PztenAdapter  (SCRAPING pzt.pl + TIE rankings + CSV) — tenis
+ *   - PZB    → PzbAdapter    (LOGIN — pzb.com.pl, login klubu wymagany) — boks
  *   - inne   → GenericCsvExporter (fallback, manualny CSV)
  */
 class FederationExporterFactory
@@ -45,6 +49,10 @@ class FederationExporterFactory
         'PZKARATE' => ['label' => 'Polski Związek Karate',                  'status' => FederationExporterInterface::STATUS_SCRAPING],
         'PZKOL'    => ['label' => 'Polski Związek Kolarski',                'status' => FederationExporterInterface::STATUS_SCRAPING],
         'PZSZACH'  => ['label' => 'Polski Związek Szachowy',                'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'ZPRP'   => ['label' => 'Związek Piłki Ręcznej w Polsce',      'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZP'    => ['label' => 'Polski Związek Pływacki',             'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZTEN'  => ['label' => 'Polski Związek Tenisowy',             'status' => FederationExporterInterface::STATUS_SCRAPING],
+        'PZB'    => ['label' => 'Polski Związek Bokserski',            'status' => FederationExporterInterface::STATUS_LOGIN],
     ];
 
     /**
@@ -68,6 +76,10 @@ class FederationExporterFactory
             'PZKARATE' => new PzkarateAdapter($config),
             'PZKOL'    => new PzkolAdapter($config),
             'PZSZACH'  => new PzszachAdapter($config),
+            'ZPRP'   => new ZprpAdapter($config),
+            'PZP'    => new PzpAdapter($config),
+            'PZTEN'  => new PztenAdapter($config),
+            'PZB'    => new PzbAdapter($config),
             default  => new GenericCsvExporter($config, $code),
         };
     }

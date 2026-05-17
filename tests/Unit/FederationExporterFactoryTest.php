@@ -18,6 +18,10 @@ use App\Helpers\Federations\PzszachAdapter;
 use App\Helpers\Federations\PztaekAdapter;
 use App\Helpers\Federations\PztsAdapter;
 use App\Helpers\Federations\PzwAdapter;
+use App\Helpers\Federations\PzbAdapter;
+use App\Helpers\Federations\PzpAdapter;
+use App\Helpers\Federations\PztenAdapter;
+use App\Helpers\Federations\ZprpAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -42,6 +46,10 @@ class FederationExporterFactoryTest extends TestCase
         $this->assertInstanceOf(PzkarateAdapter::class, FederationExporterFactory::forCode('PZKARATE', []));
         $this->assertInstanceOf(PzkolAdapter::class,    FederationExporterFactory::forCode('PZKOL', []));
         $this->assertInstanceOf(PzszachAdapter::class,  FederationExporterFactory::forCode('PZSZACH', []));
+        $this->assertInstanceOf(ZprpAdapter::class,    FederationExporterFactory::forCode('ZPRP', []));
+        $this->assertInstanceOf(PzpAdapter::class,     FederationExporterFactory::forCode('PZP', []));
+        $this->assertInstanceOf(PztenAdapter::class,   FederationExporterFactory::forCode('PZTEN', []));
+        $this->assertInstanceOf(PzbAdapter::class,     FederationExporterFactory::forCode('PZB', []));
     }
 
     public function testForCodeFallsBackToGenericForUnknown(): void
@@ -62,7 +70,7 @@ class FederationExporterFactoryTest extends TestCase
     public function testSupportedCodesContainsAllAdapters(): void
     {
         $codes = FederationExporterFactory::supportedCodes();
-        foreach (['PZPN','PZSS','PZKosz','PZLA','PZHL','PZPS','PZTS','PZW','PZJ','PZTAEK','PZKARATE','PZKOL','PZSZACH'] as $c) {
+        foreach (['PZPN','PZSS','PZKosz','PZLA','PZHL','PZPS','PZTS','PZW','PZJ','PZTAEK','PZKARATE','PZKOL','PZSZACH','ZPRP','PZP','PZTEN','PZB'] as $c) {
             $this->assertArrayHasKey($c, $codes, "Missing $c in supportedCodes");
             $this->assertNotEmpty($codes[$c]);
         }
@@ -120,5 +128,34 @@ class FederationExporterFactoryTest extends TestCase
         $this->assertSame('PZKARATE', FederationExporterFactory::forCode('PZKARATE', [])->federationCode());
         $this->assertSame('PZKOL',    FederationExporterFactory::forCode('PZKOL',    [])->federationCode());
         $this->assertSame('PZSZACH',  FederationExporterFactory::forCode('PZSZACH',  [])->federationCode());
+        $this->assertSame('ZPRP',   FederationExporterFactory::forCode('ZPRP',   [])->federationCode());
+        $this->assertSame('PZP',    FederationExporterFactory::forCode('PZP',    [])->federationCode());
+        $this->assertSame('PZTEN',  FederationExporterFactory::forCode('PZTEN',  [])->federationCode());
+        $this->assertSame('PZB',    FederationExporterFactory::forCode('PZB',    [])->federationCode());
+    }
+
+    public function testBatchAAdaptersMetadata(): void
+    {
+        $meta = FederationExporterFactory::supportedWithMetadata();
+
+        $this->assertSame('Związek Piłki Ręcznej w Polsce', $meta['ZPRP']['label']);
+        $this->assertSame(FederationExporterInterface::STATUS_SCRAPING, $meta['ZPRP']['status']);
+
+        $this->assertSame('Polski Związek Pływacki', $meta['PZP']['label']);
+        $this->assertSame(FederationExporterInterface::STATUS_SCRAPING, $meta['PZP']['status']);
+
+        $this->assertSame('Polski Związek Tenisowy', $meta['PZTEN']['label']);
+        $this->assertSame(FederationExporterInterface::STATUS_SCRAPING, $meta['PZTEN']['status']);
+
+        $this->assertSame('Polski Związek Bokserski', $meta['PZB']['label']);
+        $this->assertSame(FederationExporterInterface::STATUS_LOGIN, $meta['PZB']['status']);
+    }
+
+    public function testBatchAAdaptersAreNormalizedCaseInsensitive(): void
+    {
+        $this->assertInstanceOf(ZprpAdapter::class,  FederationExporterFactory::forCode('zprp', []));
+        $this->assertInstanceOf(PzpAdapter::class,   FederationExporterFactory::forCode('pzp', []));
+        $this->assertInstanceOf(PztenAdapter::class, FederationExporterFactory::forCode('pzten', []));
+        $this->assertInstanceOf(PzbAdapter::class,   FederationExporterFactory::forCode('pzb', []));
     }
 }
