@@ -1333,8 +1333,43 @@ class MemberPortalController extends BaseController
                 $data = array_merge($data, [
                     'title'    => 'Floorball — Mój profil',
                     'myTeam'   => $myTeam,
+                    'stats'    => $matchModel->statsForMember($memberId),
                     'myStats'  => $matchModel->statsForMember($memberId),
                     'upcoming' => $myTeam ? $matchModel->schedule((int)$myTeam['id'], 'zaplanowany') : [],
+                    'upcomingMatches' => $myTeam ? $matchModel->schedule((int)$myTeam['id'], 'zaplanowany') : [],
+                ]);
+                break;
+            case 'futsal':
+                $teamModel  = new \App\Sports\Futsal\Models\FutsalTeamModel();
+                $matchModel = new \App\Sports\Futsal\Models\FutsalMatchModel();
+                $myTeam     = $teamModel->playerTeam($memberId);
+                $data = array_merge($data, [
+                    'title'         => 'Futsal — Mój profil',
+                    'myTeam'        => $myTeam,
+                    'myStats'       => $matchModel->statsForMember($memberId),
+                    'recentMatches' => $myTeam ? array_slice($matchModel->listForClub((int)$myTeam['id']), 0, 10) : [],
+                ]);
+                break;
+            case 'water_polo':
+                $teamModel  = new \App\Sports\WaterPolo\Models\WaterPoloTeamModel();
+                $matchModel = new \App\Sports\WaterPolo\Models\WaterPoloMatchModel();
+                $myTeam     = $teamModel->playerTeam($memberId);
+                $data = array_merge($data, [
+                    'title'         => 'Piłka wodna — Mój profil',
+                    'myTeam'        => $myTeam,
+                    'myStats'       => $matchModel->statsForMember($memberId),
+                    'recentMatches' => $myTeam ? array_slice($matchModel->listForClub((int)$myTeam['id']), 0, 10) : [],
+                ]);
+                break;
+            case 'curling':
+                $teamModel  = new \App\Sports\Curling\Models\CurlingTeamModel();
+                $matchModel = new \App\Sports\Curling\Models\CurlingMatchModel();
+                $myTeam     = $teamModel->playerTeam($memberId);
+                $data = array_merge($data, [
+                    'title'         => 'Curling — Mój profil',
+                    'myTeam'        => $myTeam,
+                    'myStats'       => $matchModel->statsForMember($memberId),
+                    'recentMatches' => $myTeam ? array_slice($matchModel->listForClub((int)$myTeam['id']), 0, 10) : [],
                 ]);
                 break;
             case 'padel':
