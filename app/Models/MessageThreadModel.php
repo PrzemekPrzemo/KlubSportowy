@@ -195,6 +195,51 @@ class MessageThreadModel extends BaseModel
     }
 
     /**
+     * Wlacz E2E dla watku (per-thread opt-in). $fingerprint = 32 hex znaki
+     * (pierwsze 16B SHA-256 z {member_id|thread_id}), wyliczany client-side.
+     */
+    public function enableE2E(int $threadId, int $clubId, string $fingerprint): void
+    {
+        $fingerprint = preg_replace('/[^a-f0-9]/i', '', $fingerprint) ?? '';
+        if (strlen($fingerprint) !== 32) {
+            throw new \InvalidArgumentException('e2e_key_fingerprint must be 32 hex chars');
+        }
+        $stmt = $this->db->prepare("
+            UPDATE message_threads
+            SET e2e_enabled = 1, e2e_key_fingerprint = ?
+            WHERE id = ? AND club_id = ?
+        ");
+        $stmt->execute([strtolower($fingerprint), $threadId, $clubId]);
+    }
+
+    /**
+     * Wylacz E2E dla watku (nowe wiadomosci beda plaintext, ale stare zostana
+     * zaszyfrowane na zawsze — chyba ze ktos posiada klucz, by je odczytac).
+     */
+    public function disableE2E(int $threadId, int $clubId): void
+    {
+        $stmt = $this->db->prepare("
+            UPDATE message_threads
+            SET e2e_enabled = 0, e2e_key_fingerprint = NULL
+            WHERE id = ? AND club_id = ?
+        ");
+        $stmt->execute([$threadId, $clubId]);
+    }
+
+    /**
+     * Czy watek ma wlaczone E2E?
+     */
+    public function isE2EEnabled(int $threadId, int $clubId): bool
+    {
+        $stmt = $this->db->prepare("
+            SELECT e2e_enabled FROM message_threads
+            WHERE id = ? AND club_id = ? LIMIT 1
+        ");
+        $stmt->execute([$threadId, $clubId]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    /**
      * Sumaryczny unread_count po wszystkich watkach (do badge w navie).
      */
     public function totalUnreadForMember(int $memberId, int $clubId): int
