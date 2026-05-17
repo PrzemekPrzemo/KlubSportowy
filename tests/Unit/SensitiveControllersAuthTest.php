@@ -70,6 +70,7 @@ class SensitiveControllersAuthTest extends TestCase
      */
     private array $readOnlyExempt = [
         'DashboardController' => 'tylko MedicalExamModel::expiringSoon (liczniki/daty)',
+        'SekretariatDashboardController' => 'tylko liczniki MedicalExamModel::expiringSoon (30/14/7 dni) — bez ujawniania danych medycznych',
     ];
 
     public function testNewSensitiveTablesShouldBeAddedToList(): void

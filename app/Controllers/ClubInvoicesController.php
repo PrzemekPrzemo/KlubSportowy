@@ -42,7 +42,8 @@ class ClubInvoicesController extends BaseController
         parent::__construct();
         $this->requireLogin();
         $this->requireClubContext();
-        $this->requireRole(['zarzad', 'admin']);
+        // Sekretariat (ksiegowy) wystawia faktury wraz z zarządem.
+        $this->requireRole(['zarzad', 'ksiegowy', 'admin']);
         $this->invoices = new ClubInvoiceModel();
         $this->items    = new ClubInvoiceItemModel();
     }

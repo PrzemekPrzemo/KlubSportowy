@@ -94,4 +94,42 @@ include __DIR__ . '/../_layout_manual.php';
     Twoja sesja straciła pierwotny token.
 </div>
 
+<h2>Dedykowany ekran /sekretariat</h2>
+<p>
+    Pod adresem <code>/sekretariat</code> znajduje się <strong>dedykowany dashboard biura</strong>
+    przygotowany specjalnie dla roli <em>księgowy</em> oraz <em>zarząd</em>.
+    W przeciwieństwie do ogólnego <code>/dashboard</code> (skierowanego do
+    trenerów i zarządu) — pulpit biura grupuje wyłącznie zadania związane
+    z obsługą członków, fakturami i należnościami.
+</p>
+<ul>
+    <li><strong>Kafelki "do zrobienia"</strong>: nowi członkowie (z ostatnich 7 dni),
+        wpłaty bez faktury, zaległe składki, niezapłacone faktury,
+        drafty kampanii korespondencji.</li>
+    <li><strong>Top 10 zaległości — aging</strong>: lista największych dłużników
+        z podziałem na 0–30 / 31–60 / 61–90 / 90+ dni po terminie.</li>
+    <li><strong>Badania medyczne</strong>: tylko liczniki (30/14/7 dni do końca ważności)
+        — bez ujawniania szczegółów medycznych, do których księgowy nie ma dostępu.</li>
+    <li><strong>Quick actions</strong> w nagłówku: Dodaj członka, Import CSV,
+        Wystaw fakturę, Eksport CSV.</li>
+    <li><strong>Recent activity</strong>: ostatnie 20 wpisów z dziennika dostępu —
+        widzisz, że Twoja kolega właśnie zaimportowała plik, więc nie robisz tego samego.</li>
+</ul>
+
+<h2>Import członków z pliku CSV</h2>
+<p>
+    Wejdź w <strong>Biuro → Import członków</strong> (<code>/club/members/import</code>),
+    pobierz <strong>wzorzec CSV</strong> (przycisk w prawym górnym rogu), uzupełnij dane
+    i wgraj plik. System pokaże podgląd pierwszych 50 wierszy oraz zasugeruje
+    mapowanie kolumn. Po potwierdzeniu wykona import w transakcji, a wynik
+    (liczba dodanych / pominiętych / błędnych) trafi do dziennika audytu
+    (kto, kiedy, ile wierszy).
+</p>
+<p>
+    Limity: maks. <strong>5 MB</strong>, formaty <code>.csv</code> / <code>.txt</code>.
+    Numery <strong>PESEL</strong> są szyfrowane w bazie (jeśli klub ma włączoną
+    politykę szyfrowania kolumnowego). Duplikaty rozpoznawane są po numerze
+    członkowskim oraz adresie email.
+</p>
+
 <?php include __DIR__ . '/../_layout_manual_footer.php'; ?>
