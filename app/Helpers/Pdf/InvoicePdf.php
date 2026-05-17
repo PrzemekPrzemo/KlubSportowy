@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Helpers\Pdf;
 
 use App\Helpers\PdfHelper;
+use App\Helpers\Translator;
 
 /**
  * Faktura / rachunek — generator PDF (A4 portret).
@@ -20,7 +21,21 @@ use App\Helpers\PdfHelper;
  */
 class InvoicePdf
 {
-    public static function generate(array $data): string
+    /**
+     * @param array<string,mixed> $data
+     * @param string|null $locale 'pl'|'en' (null = current request locale).
+     *                            Wszystkie wywolania __() w generatorze beda
+     *                            uzywaly tego locale przez czas renderowania.
+     */
+    public static function generate(array $data, ?string $locale = null): string
+    {
+        if ($locale !== null) {
+            return Translator::withLocale($locale, fn() => self::doGenerate($data));
+        }
+        return self::doGenerate($data);
+    }
+
+    private static function doGenerate(array $data): string
     {
         $e = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 

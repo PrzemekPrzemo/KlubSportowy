@@ -682,4 +682,22 @@ return [
     'month.october'             => 'Październik',
     'month.november'            => 'Listopad',
     'month.december'            => 'Grudzień',
+
+    // ── i18n / locale UI ──────────────────────────────────────
+    'portal.profile.locale.title' => 'Język interfejsu',
+    'portal.profile.locale.help'  => 'Wybierz język portalu, e-maili i dokumentów PDF.',
+    'portal.profile.locale.save'  => 'Zapisz',
+    'club.settings.default_locale.title' => 'Język domyślny klubu',
+    'club.settings.default_locale.help'  => 'Domyślny język dla nowych członków oraz komunikacji do osób bez ustawionego języka.',
+
+    // ── Sidebar items hardcoded -> i18n ───────────────────────
+    'nav.trainer_schedule' => 'Plany trenerów',
+    'nav.achievements'     => 'Osiągnięcia',
+    'nav.ksef_invoices'    => 'Faktury sprzedaży',
+    'nav.reports_builder'  => 'Raporty własne',
+    'nav.scheduled_reports' => 'Raporty zaplanowane',
+
+    // ── Onboarding wizard locale picker ───────────────────────
+    'wizard.default_locale.title' => 'Domyślny język klubu',
+    'wizard.default_locale.help'  => 'Wybierz język, w którym członkowie będą domyślnie widzieć portal i otrzymywać e-maile.',
 ];

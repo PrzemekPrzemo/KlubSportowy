@@ -104,6 +104,35 @@
     </div>
 </div>
 
+<!-- Jezyk interfejsu — preferowany jezyk portalu/emaili/PDF -->
+<div class="card mt-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong><i class="bi bi-translate me-1"></i> <?= __('portal.profile.locale.title') ?></strong>
+                <small class="d-block text-muted"><?= __('portal.profile.locale.help') ?></small>
+            </div>
+        </div>
+        <?php $currentLocale = $member['preferred_locale'] ?? \App\Helpers\Translator::getLocale(); ?>
+        <form method="POST" action="<?= url('portal/profile/locale') ?>" class="d-flex align-items-center gap-3 flex-wrap">
+            <?= csrf_field() ?>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="preferred_locale" id="locale_pl" value="pl"
+                    <?= $currentLocale === 'pl' ? 'checked' : '' ?>>
+                <label class="form-check-label" for="locale_pl">Polski</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="preferred_locale" id="locale_en" value="en"
+                    <?= $currentLocale === 'en' ? 'checked' : '' ?>>
+                <label class="form-check-label" for="locale_en">English</label>
+            </div>
+            <button type="submit" class="btn btn-outline-primary btn-sm ms-auto">
+                <i class="bi bi-check2"></i> <?= __('portal.profile.locale.save') ?>
+            </button>
+        </form>
+    </div>
+</div>
+
 <!-- Profil publiczny — opt-in widget dla rankingow -->
 <div class="card mt-3">
     <div class="card-body d-flex justify-content-between align-items-center">

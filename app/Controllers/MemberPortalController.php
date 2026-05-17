@@ -275,6 +275,42 @@ class MemberPortalController extends BaseController
     }
 
     /**
+     * POST /portal/profile/locale — zapisuje preferowany jezyk czlonka (PL/EN).
+     *
+     * Whitelist locale: tylko 'pl' lub 'en'. CSRF wymagany.
+     */
+    public function updateLocale(): void
+    {
+        MemberAuth::requireLogin();
+        Csrf::verify();
+
+        $locale = strtolower(trim((string)($_POST['preferred_locale'] ?? '')));
+        if (!in_array($locale, \App\Helpers\Translator::SUPPORTED, true)) {
+            Session::flash('error', 'Nieprawidlowy jezyk.');
+            $this->redirect('portal/profile');
+        }
+
+        $id = (int)MemberAuth::id();
+        try {
+            (new MemberModel())->withoutScope()->update($id, ['preferred_locale' => $locale]);
+        } catch (\Throwable $e) {
+            // Best-effort: jesli kolumna nie istnieje (migracja 098 not run), nie blokuj.
+            Session::flash('error', 'Nie udalo sie zapisac preferencji jezyka.');
+            $this->redirect('portal/profile');
+        }
+
+        // Wymus locale na biezacy request + zapisz w sesji, zeby flash zobaczyl uzytkownik
+        // w nowym jezyku.
+        \App\Helpers\Session::set('locale', $locale);
+        \App\Helpers\Translator::setLocale($locale);
+
+        Session::flash('success', $locale === 'en'
+            ? 'Language preference saved.'
+            : 'Preferencje jezyka zapisane.');
+        $this->redirect('portal/profile');
+    }
+
+    /**
      * GET /portal/profile/privacy — ustawienia publicznego profilu (opt-in).
      */
     public function publicProfileSettings(): void

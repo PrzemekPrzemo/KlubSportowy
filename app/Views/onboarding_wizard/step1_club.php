@@ -63,6 +63,26 @@ use App\Helpers\View;
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label"><?= __('wizard.default_locale.title') ?></label>
+                                <div class="form-text mb-2"><?= __('wizard.default_locale.help') ?></div>
+                                <?php $defLoc = $data['default_locale'] ?? 'pl'; ?>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="default_locale"
+                                            id="wiz_locale_pl" value="pl"
+                                            <?= $defLoc === 'pl' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="wiz_locale_pl">Polski (PL)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="default_locale"
+                                            id="wiz_locale_en" value="en"
+                                            <?= $defLoc === 'en' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="wiz_locale_en">English (EN)</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label">
                                     Kod polecajacy <small class="text-muted">(opcjonalnie)</small>
                                 </label>

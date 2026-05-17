@@ -682,4 +682,22 @@ return [
     'month.october'             => 'October',
     'month.november'            => 'November',
     'month.december'            => 'December',
+
+    // ── i18n / locale UI ──────────────────────────────────────
+    'portal.profile.locale.title' => 'Interface language',
+    'portal.profile.locale.help'  => 'Choose the language of the portal, emails and PDF documents.',
+    'portal.profile.locale.save'  => 'Save',
+    'club.settings.default_locale.title' => 'Club default language',
+    'club.settings.default_locale.help'  => 'Default language for new members and communication with people who have no language set.',
+
+    // ── Sidebar items previously hardcoded -> i18n ────────────
+    'nav.trainer_schedule' => 'Trainer schedules',
+    'nav.achievements'     => 'Achievements',
+    'nav.ksef_invoices'    => 'Sales invoices',
+    'nav.reports_builder'  => 'Custom reports',
+    'nav.scheduled_reports' => 'Scheduled reports',
+
+    // ── Onboarding wizard locale picker ───────────────────────
+    'wizard.default_locale.title' => 'Club default language',
+    'wizard.default_locale.help'  => 'Pick the language that members will see in the portal and receive emails in by default.',
 ];
