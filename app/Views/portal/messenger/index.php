@@ -10,6 +10,7 @@ use App\Helpers\View;
 /** @var ?array $activeOther */
 /** @var array $candidates */
 /** @var int $currentMemberId */
+/** @var bool $e2eSetup */
 
 $csrf = Csrf::token();
 
@@ -65,6 +66,9 @@ $threadTitle = function(array $t, ?array $other = null): string {
 <div class="msgr-wrap" id="msgrApp"
      data-current-member-id="<?= (int)$currentMemberId ?>"
      data-active-thread-id="<?= (int)($activeThreadId ?? 0) ?>"
+     data-active-thread-e2e="<?= (int)(!empty($activeThread['e2e_enabled']) ? 1 : 0) ?>"
+     data-active-thread-fp="<?= View::e((string)($activeThread['e2e_key_fingerprint'] ?? '')) ?>"
+     data-e2e-setup="<?= !empty($e2eSetup) ? '1' : '0' ?>"
      data-base-url="<?= View::e(url('portal/messenger')) ?>">
     <aside class="msgr-sidebar">
         <div class="msgr-sidebar-head">
@@ -119,23 +123,58 @@ $threadTitle = function(array $t, ?array $other = null): string {
                 <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width:38px;height:38px;font-size:1rem;">
                     <i class="bi bi-person"></i>
                 </div>
-                <div>
-                    <div class="name"><?= View::e($headerName) ?></div>
+                <div style="flex:1;">
+                    <div class="name">
+                        <?= View::e($headerName) ?>
+                        <?php if (!empty($activeThread['e2e_enabled'])): ?>
+                            <span class="badge bg-success ms-1" title="Szyfrowanie end-to-end aktywne"><i class="bi bi-lock-fill"></i> E2E</span>
+                        <?php endif; ?>
+                    </div>
                     <div class="status"><?= View::e($headerSub) ?> &middot; <span id="msgrConnStatus">laczenie...</span></div>
+                </div>
+                <div class="ms-auto">
+                    <?php if (!empty($activeThread['e2e_enabled'])): ?>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="msgrE2EToggleOff" title="Wylacz E2E dla tej rozmowy">
+                            <i class="bi bi-unlock"></i>
+                        </button>
+                    <?php else: ?>
+                        <button type="button" class="btn btn-sm btn-outline-success" id="msgrE2EToggleOn" title="Wlacz szyfrowanie E2E dla tej rozmowy">
+                            <i class="bi bi-lock"></i>
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="msgr-msglist" id="msgrList">
                 <?php foreach ($activeMessages as $m):
                     $isMine = ((int)$m['sender_member_id'] === (int)$currentMemberId);
                     $cls = $isMine ? 'mine' : 'theirs';
+                    $isEnc = !empty($m['is_encrypted']);
+                    $metaJson = !empty($m['ciphertext_meta']) ? (string)$m['ciphertext_meta'] : '';
                 ?>
-                    <div class="msgr-msg <?= $cls ?>" data-mid="<?= (int)$m['id'] ?>">
+                    <div class="msgr-msg <?= $cls ?>"
+                         data-mid="<?= (int)$m['id'] ?>"
+                         data-encrypted="<?= $isEnc ? '1' : '0' ?>"
+                         <?php if ($isEnc): ?>data-ciphertext="<?= View::e((string)$m['body']) ?>"
+                         data-cipher-meta='<?= View::e($metaJson) ?>'<?php endif; ?>>
                         <?php if (!$isMine): ?>
-                            <div class="msgr-meta"><?= View::e(trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? ''))) ?> &middot; <?= View::e(date('H:i', strtotime((string)$m['created_at']))) ?></div>
+                            <div class="msgr-meta">
+                                <?= View::e(trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? ''))) ?>
+                                &middot; <?= View::e(date('H:i', strtotime((string)$m['created_at']))) ?>
+                                <?php if ($isEnc): ?><i class="bi bi-lock-fill text-success" title="Zaszyfrowana E2E"></i><?php endif; ?>
+                            </div>
                         <?php else: ?>
-                            <div class="msgr-meta text-end"><?= View::e(date('H:i', strtotime((string)$m['created_at']))) ?></div>
+                            <div class="msgr-meta text-end">
+                                <?php if ($isEnc): ?><i class="bi bi-lock-fill text-success" title="Zaszyfrowana E2E"></i> <?php endif; ?>
+                                <?= View::e(date('H:i', strtotime((string)$m['created_at']))) ?>
+                            </div>
                         <?php endif; ?>
-                        <?= nl2br(View::e((string)$m['body'])) ?>
+                        <div class="msgr-msg-body">
+                            <?php if ($isEnc): ?>
+                                <em class="text-muted">[zaszyfrowana wiadomosc — wpisz passphrase aby odczytac]</em>
+                            <?php else: ?>
+                                <?= nl2br(View::e((string)$m['body'])) ?>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -183,19 +222,202 @@ $threadTitle = function(array $t, ?array $other = null): string {
     </div>
 </div>
 
+<!-- Modal: E2E setup (passphrase init) -->
+<div class="modal fade" id="e2eSetupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-shield-lock"></i> Ustaw passphrase E2E</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning small mb-3">
+                    <strong>Uwaga:</strong> jezeli zapomnisz passphrase, <strong>nie odzyskasz tresci wiadomosci</strong>.
+                    Serwer ani admin klubu nie maja dostepu do twojego klucza.
+                </div>
+                <label class="form-label">Passphrase (min. 8 znakow):</label>
+                <input type="password" id="e2ePassphraseInput" class="form-control" minlength="8" autocomplete="new-password">
+                <label class="form-label mt-2">Powtorz passphrase:</label>
+                <input type="password" id="e2ePassphraseConfirm" class="form-control" minlength="8" autocomplete="new-password">
+                <label class="form-label mt-2">Fraza odzyskiwania (opcjonalnie, zostanie zaszyfrowana):</label>
+                <input type="text" id="e2eRecoveryInput" class="form-control" placeholder="np. 12-slowny mnemonic z papieru">
+                <div class="text-danger small mt-2" id="e2eSetupErr" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary" id="e2eSetupSubmit">Zapisz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: E2E unlock (re-enter passphrase per session) -->
+<div class="modal fade" id="e2eUnlockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-unlock"></i> Wpisz passphrase E2E</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted">Twoja passphrase nie jest przechowywana — wpisz ja, aby odszyfrowac wiadomosci.</p>
+                <label class="form-label">Passphrase:</label>
+                <input type="password" id="e2eUnlockInput" class="form-control" minlength="8" autocomplete="current-password">
+                <div class="text-danger small mt-2" id="e2eUnlockErr" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary" id="e2eUnlockSubmit">Odblokuj</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="<?= View::e(url('js/messenger-e2e.js')) ?>"></script>
 <script>
 (function(){
     var app = document.getElementById('msgrApp');
     if (!app) return;
-    var threadId = parseInt(app.getAttribute('data-active-thread-id') || '0', 10);
-    if (!threadId) return;
-
     var currentMemberId = parseInt(app.getAttribute('data-current-member-id') || '0', 10);
     var baseUrl = app.getAttribute('data-base-url') || '/portal/messenger';
+    var csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var e2eAlreadySetup = app.getAttribute('data-e2e-setup') === '1';
+
+    // ── E2E controller (shared across the page) ──
+    var e2e = (typeof MessengerE2E === 'function') ? new MessengerE2E(currentMemberId) : null;
+
+    function showError(elId, msg) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        el.textContent = msg;
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    // E2E Setup modal handler.
+    var setupBtn = document.getElementById('e2eSetupSubmit');
+    if (setupBtn && e2e) {
+        setupBtn.addEventListener('click', function(){
+            var pass = (document.getElementById('e2ePassphraseInput').value || '');
+            var conf = (document.getElementById('e2ePassphraseConfirm').value || '');
+            var rec  = (document.getElementById('e2eRecoveryInput').value || '');
+            if (pass.length < 8) { showError('e2eSetupErr', 'Passphrase min. 8 znakow.'); return; }
+            if (pass !== conf) { showError('e2eSetupErr', 'Passphrase nie zgadza sie.'); return; }
+            showError('e2eSetupErr', '');
+            e2e.unlock(pass).then(function(clientHash){
+                var fd = new FormData();
+                fd.append('_csrf', csrf);
+                fd.append('passphrase_client_hash', clientHash);
+                if (rec) fd.append('recovery_phrase', rec);
+                return fetch(baseUrl + '/e2e/setup', { method:'POST', body: fd, credentials:'same-origin' })
+                    .then(function(r){ return r.json(); });
+            }).then(function(j){
+                if (j && j.ok) {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('e2eSetupModal'));
+                    if (modal) modal.hide();
+                    e2eAlreadySetup = true;
+                    location.reload();
+                } else {
+                    showError('e2eSetupErr', 'Blad serwera: ' + (j && j.error || 'unknown'));
+                }
+            }).catch(function(err){
+                showError('e2eSetupErr', 'Blad: ' + (err && err.message || err));
+            });
+        });
+    }
+
+    // E2E Unlock modal handler.
+    var unlockBtn = document.getElementById('e2eUnlockSubmit');
+    if (unlockBtn && e2e) {
+        unlockBtn.addEventListener('click', function(){
+            var pass = (document.getElementById('e2eUnlockInput').value || '');
+            if (pass.length < 8) { showError('e2eUnlockErr', 'Passphrase min. 8 znakow.'); return; }
+            showError('e2eUnlockErr', '');
+            e2e.unlock(pass).then(function(){
+                var modal = bootstrap.Modal.getInstance(document.getElementById('e2eUnlockModal'));
+                if (modal) modal.hide();
+                decryptVisibleMessages();
+            }).catch(function(err){
+                showError('e2eUnlockErr', 'Blad: ' + (err && err.message || err));
+            });
+        });
+    }
+
+    var threadId = parseInt(app.getAttribute('data-active-thread-id') || '0', 10);
+    if (!threadId) return;
+    var threadE2EEnabled = app.getAttribute('data-active-thread-e2e') === '1';
     var list = document.getElementById('msgrList');
     var form = document.getElementById('msgrSendForm');
     var status = document.getElementById('msgrConnStatus');
-    var csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // Toggle E2E for current thread.
+    var btnE2EOn  = document.getElementById('msgrE2EToggleOn');
+    var btnE2EOff = document.getElementById('msgrE2EToggleOff');
+    if (btnE2EOn) {
+        btnE2EOn.addEventListener('click', function(){
+            if (!e2eAlreadySetup) {
+                var m = new bootstrap.Modal(document.getElementById('e2eSetupModal'));
+                m.show();
+                return;
+            }
+            if (!e2e || !e2e.isUnlocked()) {
+                var m2 = new bootstrap.Modal(document.getElementById('e2eUnlockModal'));
+                m2.show();
+                alert('Najpierw odblokuj E2E swoja passphrase, potem ponow probe.');
+                return;
+            }
+            e2e.fingerprintForThread(threadId).then(function(fp){
+                var fd = new FormData();
+                fd.append('_csrf', csrf);
+                fd.append('key_fingerprint', fp);
+                return fetch(baseUrl + '/' + threadId + '/e2e/enable', { method:'POST', body: fd, credentials:'same-origin' })
+                    .then(function(r){ return r.json(); });
+            }).then(function(j){
+                if (j && j.ok) { location.reload(); } else { alert('Blad: ' + (j && j.error || 'unknown')); }
+            }).catch(function(err){ alert('Blad: ' + err.message); });
+        });
+    }
+    if (btnE2EOff) {
+        btnE2EOff.addEventListener('click', function(){
+            if (!confirm('Wylaczyc E2E? Nowe wiadomosci beda zwykle, ale poprzednie pozostana zaszyfrowane.')) return;
+            var fd = new FormData();
+            fd.append('_csrf', csrf);
+            fetch(baseUrl + '/' + threadId + '/e2e/disable', { method:'POST', body: fd, credentials:'same-origin' })
+                .then(function(r){ return r.json(); })
+                .then(function(j){ if (j && j.ok) location.reload(); else alert('Blad'); });
+        });
+    }
+
+    function decryptVisibleMessages() {
+        if (!list || !e2e || !e2e.isUnlocked()) return;
+        var nodes = list.querySelectorAll('.msgr-msg[data-encrypted="1"]');
+        nodes.forEach(function(n){
+            var ct = n.getAttribute('data-ciphertext') || '';
+            var metaRaw = n.getAttribute('data-cipher-meta') || '';
+            if (!ct || !metaRaw) return;
+            try {
+                var meta = JSON.parse(metaRaw);
+                e2e.decrypt(threadId, ct, meta).then(function(plaintext){
+                    var body = n.querySelector('.msgr-msg-body');
+                    if (body) body.textContent = plaintext;
+                }).catch(function(err){
+                    var body = n.querySelector('.msgr-msg-body');
+                    if (body) body.innerHTML = '<em class="text-danger">[blad deszyfrowania: ' + (err.message||'') + ']</em>';
+                });
+            } catch (e) {}
+        });
+    }
+
+    // Auto-prompt unlock if any message is encrypted and we are not unlocked yet.
+    function maybePromptUnlock() {
+        if (!e2e || e2e.isUnlocked()) return;
+        if (!e2eAlreadySetup) return;
+        var hasEnc = list && list.querySelector('.msgr-msg[data-encrypted="1"]');
+        if (!hasEnc && !threadE2EEnabled) return;
+        try {
+            var m = new bootstrap.Modal(document.getElementById('e2eUnlockModal'));
+            m.show();
+        } catch (e) {}
+    }
 
     function scrollBottom() {
         if (!list) return;
@@ -223,9 +445,15 @@ $threadTitle = function(array $t, ?array $other = null): string {
         var existing = list.querySelector('.msgr-msg[data-mid="' + (m.id|0) + '"]');
         if (existing) return; // dedup
         var isMine = (parseInt(m.sender_member_id, 10) === currentMemberId);
+        var isEnc = !!(m.is_encrypted && m.is_encrypted !== '0');
         var div = document.createElement('div');
         div.className = 'msgr-msg ' + (isMine ? 'mine' : 'theirs');
         div.setAttribute('data-mid', String(m.id|0));
+        div.setAttribute('data-encrypted', isEnc ? '1' : '0');
+        if (isEnc && m.ciphertext_meta) {
+            div.setAttribute('data-ciphertext', String(m.body || ''));
+            div.setAttribute('data-cipher-meta', JSON.stringify(m.ciphertext_meta));
+        }
         var meta = document.createElement('div');
         meta.className = 'msgr-meta' + (isMine ? ' text-end' : '');
         var time = '';
@@ -233,9 +461,24 @@ $threadTitle = function(array $t, ?array $other = null): string {
             var d = new Date(String(m.created_at).replace(' ', 'T'));
             time = isNaN(d.getTime()) ? '' : ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
         } catch (e) {}
-        meta.textContent = isMine ? time : ((m.sender_name || '') + ' · ' + time);
+        var lockIcon = isEnc ? ' 🔒' : '';
+        meta.textContent = isMine ? (lockIcon + ' ' + time) : ((m.sender_name || '') + ' · ' + time + lockIcon);
         var body = document.createElement('div');
-        body.innerHTML = escapeHtml(String(m.body || '')).replace(/\n/g, '<br>');
+        body.className = 'msgr-msg-body';
+        if (isEnc) {
+            if (e2e && e2e.isUnlocked()) {
+                e2e.decrypt(threadId, String(m.body||''), m.ciphertext_meta || {}).then(function(pt){
+                    body.textContent = pt;
+                }).catch(function(err){
+                    body.innerHTML = '<em class="text-danger">[blad deszyfrowania]</em>';
+                });
+                body.textContent = '...';
+            } else {
+                body.innerHTML = '<em class="text-muted">[zaszyfrowana wiadomosc]</em>';
+            }
+        } else {
+            body.innerHTML = escapeHtml(String(m.body || '')).replace(/\n/g, '<br>');
+        }
         div.appendChild(meta);
         div.appendChild(body);
         list.appendChild(div);
@@ -306,30 +549,56 @@ $threadTitle = function(array $t, ?array $other = null): string {
             ev.preventDefault();
             var body = (textarea.value || '').trim();
             if (!body) return;
-            var fd = new FormData(form);
-            textarea.value = '';
-            textarea.focus();
-            // Optimistic placeholder (negative id, replaced on response).
-            var tmpId = -Date.now();
-            renderMessage({
-                id: tmpId,
-                sender_member_id: currentMemberId,
-                sender_name: 'Ty',
-                body: body,
-                created_at: new Date().toISOString().replace('T',' ').substring(0,19)
-            });
-            fetch(baseUrl + '/send', { method:'POST', body: fd, credentials:'same-origin' })
-                .then(function(r){ return r.json(); })
-                .then(function(j){
-                    if (j && j.ok && j.message) {
-                        var ph = list.querySelector('.msgr-msg[data-mid="' + tmpId + '"]');
-                        if (ph) ph.setAttribute('data-mid', String(j.message.id|0));
-                    } else {
-                        status.textContent = 'blad wysylki';
-                    }
-                }).catch(function(){
-                    status.textContent = 'offline';
+
+            // Helper: actual POST.
+            function postPayload(fd, plaintextForRender, isEnc, meta) {
+                textarea.value = '';
+                textarea.focus();
+                var tmpId = -Date.now();
+                var renderObj = {
+                    id: tmpId,
+                    sender_member_id: currentMemberId,
+                    sender_name: 'Ty',
+                    body: plaintextForRender,
+                    is_encrypted: 0,
+                    created_at: new Date().toISOString().replace('T',' ').substring(0,19)
+                };
+                renderMessage(renderObj);
+                fetch(baseUrl + '/send', { method:'POST', body: fd, credentials:'same-origin' })
+                    .then(function(r){ return r.json(); })
+                    .then(function(j){
+                        if (j && j.ok && j.message) {
+                            var ph = list.querySelector('.msgr-msg[data-mid="' + tmpId + '"]');
+                            if (ph) ph.setAttribute('data-mid', String(j.message.id|0));
+                        } else {
+                            status.textContent = 'blad wysylki: ' + (j && j.error || '');
+                        }
+                    }).catch(function(){
+                        status.textContent = 'offline';
+                    });
+            }
+
+            if (threadE2EEnabled) {
+                if (!e2e || !e2e.isUnlocked()) {
+                    var m = new bootstrap.Modal(document.getElementById('e2eUnlockModal'));
+                    m.show();
+                    return;
+                }
+                e2e.encrypt(threadId, body).then(function(payload){
+                    var fd = new FormData();
+                    fd.append('_csrf', csrf);
+                    fd.append('thread_id', String(threadId));
+                    fd.append('body', payload.ciphertext);
+                    fd.append('is_encrypted', '1');
+                    fd.append('ciphertext_meta', JSON.stringify(payload.meta));
+                    postPayload(fd, body, true, payload.meta);
+                }).catch(function(err){
+                    alert('Szyfrowanie nieudane: ' + (err.message || err));
                 });
+            } else {
+                var fd = new FormData(form);
+                postPayload(fd, body, false, null);
+            }
         });
         // Enter wysyla, Shift+Enter nowa linia.
         textarea.addEventListener('keydown', function(ev){
@@ -339,5 +608,8 @@ $threadTitle = function(array $t, ?array $other = null): string {
             }
         });
     }
+
+    // Po zaladowaniu — sprobuj zdeszyfrowac i ewentualnie poprosic o passphrase.
+    setTimeout(maybePromptUnlock, 600);
 })();
 </script>

@@ -61,6 +61,44 @@ class PdfHelper
     }
 
     /**
+     * Render HTML to PDF i zwroc binarna zawartosc (bez wysylki do przegladarki).
+     * Uzywane gdy musimy zapisac PDF do pliku (np. scheduled reports + email attachment).
+     *
+     * Gdy Mpdf jest niedostepny — zwraca null (caller decyduje co zrobic).
+     */
+    public static function renderToString(string $html, string $title = 'document', string $orientation = 'P'): ?string
+    {
+        if (!class_exists(\Mpdf\Mpdf::class)) {
+            return null;
+        }
+        $tempDir = ROOT_PATH . '/storage/tmp';
+        if (!is_dir($tempDir)) {
+            @mkdir($tempDir, 0775, true);
+        }
+        if (!is_writable($tempDir)) {
+            $tempDir = sys_get_temp_dir() . '/mpdf_' . md5(ROOT_PATH);
+            if (!is_dir($tempDir)) {
+                @mkdir($tempDir, 0775, true);
+            }
+        }
+        $mpdf = new \Mpdf\Mpdf([
+            'mode'          => 'utf-8',
+            'format'        => 'A4',
+            'orientation'   => $orientation,
+            'margin_left'   => 15,
+            'margin_right'  => 15,
+            'margin_top'    => 16,
+            'margin_bottom' => 16,
+            'margin_header' => 9,
+            'margin_footer' => 9,
+            'tempDir'       => $tempDir,
+        ]);
+        $mpdf->SetTitle($title);
+        $mpdf->WriteHTML($html);
+        return $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);
+    }
+
+    /**
      * Return HTML header block with club logo and name for PDF templates.
      *
      * Y.1 — używa 3-warstwowego brandingu:

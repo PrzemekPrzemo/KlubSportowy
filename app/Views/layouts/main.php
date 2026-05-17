@@ -143,6 +143,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'analytics'      => ['url' => 'analytics',                  'icon' => 'bi-graph-up',               'label' => __('nav.analytics'),       'mod' => null],
         'reports'        => ['url' => 'reports',                    'icon' => 'bi-file-earmark-bar-graph', 'label' => __('nav.reports'),         'mod' => 'reports'],
         'reports_builder'=> ['url' => 'club/reports-builder',       'icon' => 'bi-tools',                  'label' => __('nav.reports_builder'), 'mod' => 'reports'],
+        'scheduled_reports' => ['url' => 'club/scheduled-reports',  'icon' => 'bi-envelope-paper',         'label' => __('nav.scheduled_reports'), 'mod' => 'reports'],
         'documents'      => ['url' => 'documents',                  'icon' => 'bi-file-earmark-pdf',       'label' => __('nav.documents'),       'mod' => null],
         'gallery'        => ['url' => 'gallery',                    'icon' => 'bi-images',                 'label' => __('nav.gallery'),         'mod' => null],
         'gdpr'           => ['url' => 'gdpr',                       'icon' => 'bi-shield-check',           'label' => __('nav.gdpr'),            'mod' => 'club'],
@@ -152,7 +153,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
         'schedule'  => ['label' => __('nav.group.actions'),       'items' => ['events', 'trainings', 'trainer_schedule', 'bookings', 'resources', 'announcements', 'messages', 'achievements']],
         'finance'   => ['label' => __('nav.group.finance'),       'items' => ['fees', 'fees_rates', 'ksef_invoices', 'commissions', 'subscription']],
         'health'    => ['label' => __('nav.group.health'),        'items' => ['medical', 'compliance', 'certifications', 'equipment']],
-        'reports'   => ['label' => __('nav.group.reports'),       'items' => ['analytics', 'reports', 'reports_builder', 'documents', 'gallery', 'gdpr']],
+        'reports'   => ['label' => __('nav.group.reports'),       'items' => ['analytics', 'reports', 'reports_builder', 'scheduled_reports', 'documents', 'gallery', 'gdpr']],
     ];
     $allowed = $navModules ?? null;
     $canSensitive = \App\Helpers\Auth::canAccessSensitiveData();
@@ -326,6 +327,7 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <div class="section-items" id="sec-settings-billing">
                 <a href="<?= url('billing/plans') ?>"><i class="bi bi-credit-card-2-front"></i> <?= __('nav.plan_billing') ?></a>
                 <a href="<?= url('billing/invoices') ?>"><i class="bi bi-receipt"></i> <?= __('nav.invoices') ?></a>
+                <a href="<?= url('club/platform-payment') ?>"><i class="bi bi-bank2"></i> <?= __('nav.club_platform_payment') ?></a>
                 <a href="<?= url('club/referrals') ?>"><i class="bi bi-share"></i> <?= __('nav.referrals_discounts') ?></a>
                 <a href="<?= url('members/export') ?>"><i class="bi bi-file-earmark-spreadsheet"></i> <?= __('nav.members_export') ?></a>
                 <a href="<?= url('fees/bulk-assign') ?>"><i class="bi bi-people-fill"></i> <?= __('nav.bulk_fees') ?></a>
@@ -382,6 +384,9 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
                 <a href="<?= url('admin/invoices/jpk-fa') ?>"><i class="bi bi-filetype-xml"></i> <?= __('nav.jpk_fa') ?></a>
                 <a href="<?= url('admin/platform/referrals') ?>"><i class="bi bi-share"></i> <?= __('nav.affiliate_program') ?></a>
                 <a href="<?= url('admin/ads') ?>"><i class="bi bi-badge-ad"></i> <?= __('nav.ads') ?></a>
+                <a href="<?= url('admin/platform/payments/accounts') ?>"><i class="bi bi-bank2"></i> <?= __('nav.platform_payments') ?></a>
+                <a href="<?= url('admin/platform/payments/fee-rules') ?>"><i class="bi bi-percent"></i> <?= __('nav.platform_fee_rules') ?></a>
+                <a href="<?= url('admin/platform/payments/charges') ?>"><i class="bi bi-cash-stack"></i> <?= __('nav.platform_fee_revenue') ?></a>
             </div>
         </div>
         <div class="nav-section" data-section="platform-config">

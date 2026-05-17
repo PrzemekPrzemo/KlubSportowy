@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Csrf;
 use App\Helpers\Database;
+use App\Helpers\Encryption;
 use App\Helpers\MemberAuth;
 use App\Helpers\PushService;
 use App\Helpers\RateLimiter;
@@ -11,6 +12,7 @@ use App\Helpers\Session;
 use App\Models\ChatMessageModel;
 use App\Models\MemberModel;
 use App\Models\MessageThreadModel;
+use App\Models\MessengerMemberKeyModel;
 
 /**
  * Real-time komunikator klubowy w Portalu Zawodnika.
@@ -23,6 +25,10 @@ use App\Models\MessageThreadModel;
  *   POST /portal/messenger/:id/mark-read    — ustaw last_read_message_id
  *   GET  /portal/messenger/:id/stream       — SSE (text/event-stream, 30s)
  *   GET  /portal/messenger/:id/poll?since=  — long-poll fallback (JSON)
+ *   POST /portal/messenger/e2e/setup        — zapisz passphrase_hash (E2E init)
+ *   POST /portal/messenger/e2e/disable      — wylacz E2E dla membera (czysc klucz)
+ *   POST /portal/messenger/:id/e2e/enable   — wlacz E2E dla watku
+ *   POST /portal/messenger/:id/e2e/disable  — wylacz E2E dla watku
  *
  * Multi-tenant: kazda operacja sprawdza ze member nalezy do watku
  * (MessageThreadModel::isParticipant) i ze watek nalezy do MemberAuth::clubId().
@@ -30,6 +36,12 @@ use App\Models\MessageThreadModel;
  * SSE caveat: wymaga konfiguracji serwera (proxy_buffering off w nginx,
  * AcceptPathInfo + brak gzip dla SSE w Apache). Naglowek X-Accel-Buffering:no
  * jest emitowany aby wymusic to po stronie nginx jezeli mozliwe.
+ *
+ * E2E (opt-in): tresc wiadomosci jest szyfrowana klient-side (Web Crypto API,
+ * AES-256-GCM, klucz wywodzony z passphrase przez PBKDF2+HKDF). Server NIGDY
+ * nie widzi plaintextu, przechowuje tylko ciphertext + iv + key_fingerprint.
+ * Admin klubu rowniez nie ma wgladu — to wymog modelu (feature, nie bug).
+ * Patrz: docs/messenger-e2e.md.
  */
 class PortalMessengerController extends BaseController
 {
@@ -95,6 +107,10 @@ class PortalMessengerController extends BaseController
         // Lista czlonkow klubu do modal "nowa rozmowa" (bez siebie).
         $candidates = (new MemberModel())->withoutScope()->listForClubExcept($clubId, $memberId);
 
+        // E2E status dla membera (czy ma juz ustawiona passphrase).
+        $keyRow = (new MessengerMemberKeyModel())->findForMember($memberId);
+        $e2eSetup = !empty($keyRow);
+
         $this->view->setLayout('portal');
         $this->view->render('portal/messenger/index', [
             'title'              => 'Wiadomosci',
@@ -106,12 +122,22 @@ class PortalMessengerController extends BaseController
             'activeOther'        => $activeOther,
             'candidates'         => $candidates,
             'currentMemberId'    => $memberId,
+            'e2eSetup'           => $e2eSetup,
             'appName'            => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
     }
 
     /**
      * POST /portal/messenger/send — wyslij wiadomosc (AJAX). Zwraca JSON.
+     *
+     * Pola POST:
+     *   thread_id        (int)
+     *   body             (string)  — plaintext lub base64(ciphertext) jezeli E2E
+     *   is_encrypted     (0|1)
+     *   ciphertext_meta  (string JSON) — wymagane gdy is_encrypted=1
+     *
+     * Jezeli watek ma e2e_enabled=1 i klient probuje wyslac plaintext (lub vice versa),
+     * server odrzuca z 'e2e_mismatch' aby uniknac przypadkowego ujawnienia tresci.
      */
     public function send(): void
     {
@@ -129,13 +155,13 @@ class PortalMessengerController extends BaseController
         }
         RateLimiter::hit($ip, 'messenger_send', 60, 1);
 
-        $threadId = (int)($_POST['thread_id'] ?? 0);
-        $body     = trim((string)($_POST['body'] ?? ''));
+        $threadId    = (int)($_POST['thread_id'] ?? 0);
+        $body        = (string)($_POST['body'] ?? '');
+        $isEncrypted = !empty($_POST['is_encrypted']) && $_POST['is_encrypted'] !== '0';
+        $metaJson    = (string)($_POST['ciphertext_meta'] ?? '');
+
         if ($threadId === 0 || $body === '') {
             $this->json(['ok' => false, 'error' => 'invalid_input'], 400);
-        }
-        if (mb_strlen($body) > 4000) {
-            $this->json(['ok' => false, 'error' => 'body_too_long'], 400);
         }
 
         $threadModel = new MessageThreadModel();
@@ -143,8 +169,48 @@ class PortalMessengerController extends BaseController
             $this->json(['ok' => false, 'error' => 'forbidden'], 403);
         }
 
+        $threadE2E = $threadModel->isE2EEnabled($threadId, $clubId);
+        if ($threadE2E && !$isEncrypted) {
+            $this->json(['ok' => false, 'error' => 'e2e_required'], 400);
+        }
+        if (!$threadE2E && $isEncrypted) {
+            $this->json(['ok' => false, 'error' => 'e2e_not_enabled'], 400);
+        }
+
         $chat = new ChatMessageModel();
-        $messageId = $chat->send($threadId, $memberId, $clubId, $body);
+        $bodyPreview = '';
+        if ($isEncrypted) {
+            if (strlen($body) > ChatMessageModel::MAX_CIPHERTEXT_BYTES) {
+                $this->json(['ok' => false, 'error' => 'ciphertext_too_long'], 400);
+            }
+            // Walidacja base64 (zluzlona: tylko sanity).
+            if (!preg_match('#^[A-Za-z0-9+/=]+$#', trim($body))) {
+                $this->json(['ok' => false, 'error' => 'ciphertext_invalid'], 400);
+            }
+            $meta = $metaJson !== '' ? json_decode($metaJson, true) : null;
+            if (!is_array($meta) || empty($meta['iv']) || empty($meta['alg']) || empty($meta['key_fingerprint'])) {
+                $this->json(['ok' => false, 'error' => 'meta_invalid'], 400);
+            }
+            // Sanity: iv = base64 12 bajtow (16 znakow base64), alg whitelisted.
+            $allowedAlgs = ['AES-GCM-256'];
+            if (!in_array($meta['alg'], $allowedAlgs, true)) {
+                $this->json(['ok' => false, 'error' => 'alg_unsupported'], 400);
+            }
+            // Klient i tak nigdy nie ma uzywac dziwnych alg — to defense-in-depth.
+            $messageId = $chat->sendEncrypted($threadId, $memberId, $clubId, trim($body), [
+                'iv'              => (string)$meta['iv'],
+                'alg'             => (string)$meta['alg'],
+                'key_fingerprint' => (string)$meta['key_fingerprint'],
+            ]);
+            $bodyPreview = '[zaszyfrowana wiadomosc]';
+        } else {
+            $body = trim($body);
+            if (mb_strlen($body) > 4000) {
+                $this->json(['ok' => false, 'error' => 'body_too_long'], 400);
+            }
+            $messageId = $chat->send($threadId, $memberId, $clubId, $body);
+            $bodyPreview = mb_substr($body, 0, 140);
+        }
         $threadModel->touchLastMessage($threadId);
         // Sender zawsze "przeczytal" wlasna wiadomosc.
         $threadModel->markRead($threadId, $memberId, $messageId);
@@ -155,31 +221,37 @@ class PortalMessengerController extends BaseController
         if ($senderName === '') {
             $senderName = 'Czlonek klubu';
         }
-        $bodyPreview = mb_substr($body, 0, 140);
         $otherIds = $threadModel->otherParticipantIds($threadId, $memberId);
         foreach ($otherIds as $rid) {
             try {
                 PushService::sendToMember($rid, $senderName, $bodyPreview, [
-                    'type'      => 'chat_message',
-                    'thread_id' => (string)$threadId,
-                    'message_id'=> (string)$messageId,
+                    'type'         => 'chat_message',
+                    'thread_id'    => (string)$threadId,
+                    'message_id'   => (string)$messageId,
+                    'is_encrypted' => $isEncrypted ? '1' : '0',
                 ]);
             } catch (\Throwable $e) {
                 error_log('Messenger push failed: ' . $e->getMessage());
             }
         }
 
-        $this->json([
-            'ok' => true,
-            'message' => [
-                'id'               => $messageId,
-                'thread_id'        => $threadId,
-                'sender_member_id' => $memberId,
-                'sender_name'      => $senderName,
-                'body'             => $body,
-                'created_at'       => date('Y-m-d H:i:s'),
-            ],
-        ]);
+        $payload = [
+            'id'               => $messageId,
+            'thread_id'        => $threadId,
+            'sender_member_id' => $memberId,
+            'sender_name'      => $senderName,
+            'body'             => $body,
+            'is_encrypted'     => $isEncrypted ? 1 : 0,
+            'created_at'       => date('Y-m-d H:i:s'),
+        ];
+        if ($isEncrypted) {
+            $payload['ciphertext_meta'] = [
+                'iv'              => (string)$meta['iv'],
+                'alg'             => (string)$meta['alg'],
+                'key_fingerprint' => (string)$meta['key_fingerprint'],
+            ];
+        }
+        $this->json(['ok' => true, 'message' => $payload]);
     }
 
     /**
@@ -288,8 +360,12 @@ class PortalMessengerController extends BaseController
                         'sender_member_id' => (int)$row['sender_member_id'],
                         'sender_name'      => trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')),
                         'body'             => (string)$row['body'],
+                        'is_encrypted'     => (int)($row['is_encrypted'] ?? 0),
                         'created_at'       => (string)$row['created_at'],
                     ];
+                    if (!empty($row['ciphertext_meta'])) {
+                        $payload['ciphertext_meta'] = json_decode((string)$row['ciphertext_meta'], true);
+                    }
                     echo "id: " . (int)$row['id'] . "\n";
                     echo "event: message\n";
                     echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
@@ -333,15 +409,133 @@ class PortalMessengerController extends BaseController
         $rows = (new ChatMessageModel())->forThread($threadId, $since, 50);
         $out  = [];
         foreach ($rows as $row) {
-            $out[] = [
+            $payload = [
                 'id'               => (int)$row['id'],
                 'thread_id'        => (int)$row['thread_id'],
                 'sender_member_id' => (int)$row['sender_member_id'],
                 'sender_name'      => trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')),
                 'body'             => (string)$row['body'],
+                'is_encrypted'     => (int)($row['is_encrypted'] ?? 0),
                 'created_at'       => (string)$row['created_at'],
             ];
+            if (!empty($row['ciphertext_meta'])) {
+                $payload['ciphertext_meta'] = json_decode((string)$row['ciphertext_meta'], true);
+            }
+            $out[] = $payload;
         }
         $this->json(['ok' => true, 'messages' => $out]);
+    }
+
+    /**
+     * POST /portal/messenger/e2e/setup — zapisz passphrase_hash + opcjonalna recovery phrase.
+     *
+     * Server otrzymuje JUZ-zhashowana wartosc (klient liczy PBKDF2 i wysyla wynikowy hex).
+     * Nigdy nie widzi raw passphrase, ale i tak hashujemy server-side (password_hash Argon2id)
+     * aby zapobiec replay-jak-passphrase. Rate-limit chroni przed brute force.
+     */
+    public function setupE2E(): void
+    {
+        Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        if ($memberId === 0) {
+            $this->json(['ok' => false, 'error' => 'unauth'], 401);
+        }
+
+        // 3 proby na godzine na membera — chroni przed zmianami passphrase atakiem.
+        $rlKey = 'm' . $memberId;
+        if (!RateLimiter::check($rlKey, 'messenger_e2e_setup', 3, 60)) {
+            $this->json(['ok' => false, 'error' => 'rate_limit'], 429);
+        }
+        RateLimiter::hit($rlKey, 'messenger_e2e_setup', 3, 60);
+
+        $clientHash = trim((string)($_POST['passphrase_client_hash'] ?? ''));
+        $recovery   = (string)($_POST['recovery_phrase'] ?? '');
+
+        // Klient liczy PBKDF2 z passphrase i odsyla jako hex (64 znaki). Walidacja basic.
+        if (!preg_match('#^[a-f0-9]{32,128}$#i', $clientHash)) {
+            $this->json(['ok' => false, 'error' => 'invalid_hash'], 400);
+        }
+
+        $serverHash = password_hash($clientHash, PASSWORD_ARGON2ID);
+        if ($serverHash === false) {
+            $this->json(['ok' => false, 'error' => 'hash_failed'], 500);
+        }
+
+        $clubId = (int)MemberAuth::clubId();
+        $recoveryEncrypted = null;
+        if ($recovery !== '') {
+            // Walidacja: oczekujemy 8-256 znakow (UI moze generowac mnemonic).
+            if (mb_strlen($recovery) < 8 || mb_strlen($recovery) > 256) {
+                $this->json(['ok' => false, 'error' => 'invalid_recovery'], 400);
+            }
+            try {
+                $recoveryEncrypted = Encryption::encryptForClub($recovery, $clubId);
+            } catch (\Throwable $e) {
+                // Encryption nie skonfigurowana — przejdz dalej bez recovery.
+                $recoveryEncrypted = null;
+            }
+        }
+
+        (new MessengerMemberKeyModel())->upsert($memberId, $serverHash, $recoveryEncrypted);
+        $this->json(['ok' => true]);
+    }
+
+    /**
+     * POST /portal/messenger/e2e/disable — usun klucz membera (wszystkie dalsze wiadomosci
+     * w jego watkach e2e_enabled beda nieczytelne przez tego membera).
+     */
+    public function disableE2E(): void
+    {
+        Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        if ($memberId === 0) {
+            $this->json(['ok' => false, 'error' => 'unauth'], 401);
+        }
+        (new MessengerMemberKeyModel())->disable($memberId);
+        $this->json(['ok' => true]);
+    }
+
+    /**
+     * POST /portal/messenger/:id/e2e/enable — wlacz E2E w watku. Klient liczy
+     * fingerprint kanoniczny (sha256(sorted member_ids|thread_id)) i przesyla.
+     */
+    public function enableE2EForThread(string $id): void
+    {
+        Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+        $threadId = (int)$id;
+
+        $threadModel = new MessageThreadModel();
+        if (!$threadModel->isParticipant($threadId, $memberId, $clubId)) {
+            $this->json(['ok' => false, 'error' => 'forbidden'], 403);
+        }
+
+        $fingerprint = (string)($_POST['key_fingerprint'] ?? '');
+        try {
+            $threadModel->enableE2E($threadId, $clubId, $fingerprint);
+        } catch (\InvalidArgumentException $e) {
+            $this->json(['ok' => false, 'error' => 'invalid_fingerprint'], 400);
+        }
+        $this->json(['ok' => true]);
+    }
+
+    /**
+     * POST /portal/messenger/:id/e2e/disable — wylacz E2E w watku. Stare zaszyfrowane
+     * wiadomosci zostaja w bazie i pozostaja czytelne tylko dla osob z poprawna passphrase.
+     */
+    public function disableE2EForThread(string $id): void
+    {
+        Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+        $threadId = (int)$id;
+
+        $threadModel = new MessageThreadModel();
+        if (!$threadModel->isParticipant($threadId, $memberId, $clubId)) {
+            $this->json(['ok' => false, 'error' => 'forbidden'], 403);
+        }
+        $threadModel->disableE2E($threadId, $clubId);
+        $this->json(['ok' => true]);
     }
 }

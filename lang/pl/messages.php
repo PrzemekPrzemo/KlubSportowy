@@ -481,6 +481,10 @@ return [
     'nav.live_updates'          => 'Live updates',
     'nav.cross_sport_stats'     => 'Statystyki cross-sport',
     'nav.payment_gateways'      => 'Bramki płatności',
+    'nav.platform_payments'     => 'Split payments — konta klubów',
+    'nav.platform_fee_rules'    => 'Reguły platform fee',
+    'nav.platform_fee_revenue'  => 'Platform fees — revenue',
+    'nav.club_platform_payment' => 'Konto rozliczeń ClubDesk',
     'nav.inpost_shipping'       => 'Wysyłka InPost',
     'nav.shipments'             => 'Przesyłki',
     'nav.sport_federations'     => 'Federacje sportowe',
@@ -691,6 +695,7 @@ return [
     'nav.achievements'     => 'Osiągnięcia',
     'nav.ksef_invoices'    => 'Faktury sprzedaży',
     'nav.reports_builder'  => 'Raporty własne',
+    'nav.scheduled_reports' => 'Raporty zaplanowane',
 
     // ── Onboarding wizard locale picker ───────────────────────
     'wizard.default_locale.title' => 'Domyślny język klubu',

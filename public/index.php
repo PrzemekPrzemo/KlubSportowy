@@ -412,6 +412,14 @@ $router->get('/pub',                 [\App\Controllers\PublicController::class, 
 $router->get('/pub/:slug/results',   [\App\Controllers\PublicController::class, 'clubResults']);
 $router->get('/pub/:slug',           [\App\Controllers\PublicController::class, 'clubPage']);
 
+// Publiczny katalog klubow (Club Discovery, migration 095) — BEZ auth.
+// Lead-gen: rodzic szuka klubu dla dziecka -> trafia tu z Google.
+// Kolejnosc: /discover/club/:slug PRZED /discover/:sport (zeby "/discover/club/..." nie matchowalo bySport)
+$router->get('/discover',                 [\App\Controllers\DiscoveryController::class, 'index']);
+$router->get('/api/discover/clubs.json',  [\App\Controllers\DiscoveryController::class, 'clubsJson']);
+$router->get('/discover/club/:slug',      [\App\Controllers\DiscoveryController::class, 'clubProfile']);
+$router->get('/discover/:sport',          [\App\Controllers\DiscoveryController::class, 'bySport']);
+
 // Onboarding wizard
 $router->get('/onboarding/step1',      [\App\Controllers\OnboardingController::class, 'step1']);
 $router->post('/onboarding/step1',     [\App\Controllers\OnboardingController::class, 'saveStep1']);
@@ -543,6 +551,19 @@ $router->post('/admin/platform/referrals/rewards/store',           [\App\Control
 $router->post('/admin/platform/referrals/rewards/:id/update',      [\App\Controllers\AdminReferralsController::class, 'updateReward']);
 $router->post('/admin/platform/referrals/rewards/:id/toggle',      [\App\Controllers\AdminReferralsController::class, 'toggleReward']);
 
+// Split payments — super admin (Stripe Connect + platform fee rules + revenue raport)
+$router->get( '/admin/platform/payments/accounts',                  [\App\Controllers\AdminPlatformPaymentsController::class, 'accounts']);
+$router->get( '/admin/platform/payments/fee-rules',                 [\App\Controllers\AdminPlatformPaymentsController::class, 'rules']);
+$router->post('/admin/platform/payments/fee-rules/store',           [\App\Controllers\AdminPlatformPaymentsController::class, 'storeRule']);
+$router->post('/admin/platform/payments/fee-rules/:id/update',      [\App\Controllers\AdminPlatformPaymentsController::class, 'updateRule']);
+$router->post('/admin/platform/payments/fee-rules/:id/delete',      [\App\Controllers\AdminPlatformPaymentsController::class, 'deleteRule']);
+$router->get( '/admin/platform/payments/charges',                   [\App\Controllers\AdminPlatformPaymentsController::class, 'charges']);
+
+// Split payments — klub (zarząd): Stripe Connect onboarding + status
+$router->get( '/club/platform-payment',         [\App\Controllers\ClubPlatformPaymentsController::class, 'index']);
+$router->post('/club/platform-payment/onboard', [\App\Controllers\ClubPlatformPaymentsController::class, 'onboard']);
+$router->get( '/club/platform-payment/return',  [\App\Controllers\ClubPlatformPaymentsController::class, 'returnFromOnboarding']);
+
 $router->get('/club/gateways',                       [\App\Controllers\ClubGatewayController::class, 'index']);
 $router->get('/club/gateways/:provider/edit',        [\App\Controllers\ClubGatewayController::class, 'edit']);
 $router->post('/club/gateways/:provider/save',       [\App\Controllers\ClubGatewayController::class, 'save']);
@@ -629,6 +650,9 @@ $router->get('/federation/verify/:licenseId',  [\App\Controllers\FederationContr
 // Zarządzanie klubem (ustawienia / branding / SMTP / użytkownicy)
 $router->get('/club/settings',            [\App\Controllers\ClubManagementController::class, 'settings']);
 $router->post('/club/settings/save',      [\App\Controllers\ClubManagementController::class, 'saveSettings']);
+// Publiczna prezentacja klubu (Club Discovery opt-in, migration 095) — wymaga zarzad.
+$router->get('/club/settings/discovery',  [\App\Controllers\ClubDiscoverySettingsController::class, 'show']);
+$router->post('/club/settings/discovery', [\App\Controllers\ClubDiscoverySettingsController::class, 'save']);
 $router->get('/club/customization',       [\App\Controllers\ClubManagementController::class, 'customization']);
 $router->post('/club/customization/save', [\App\Controllers\ClubManagementController::class, 'saveCustomization']);
 // Whitelabel — favicon / custom CSS / email header / komunikacja (osobne formularze)
@@ -645,6 +669,19 @@ $router->post('/club/users/:userId/revoke', [\App\Controllers\ClubManagementCont
 
 // Club export
 $router->get('/club/export', [\App\Controllers\ClubExportController::class, 'export']);
+
+// Pelne backupy klubu (eksport / import — GDPR portability, mobility)
+$router->get('/club/backup',                          [\App\Controllers\ClubBackupController::class, 'index']);
+$router->post('/club/backup/create',                  [\App\Controllers\ClubBackupController::class, 'create']);
+$router->get('/club/backup/:id/download',             [\App\Controllers\ClubBackupController::class, 'download']);
+$router->post('/club/backup/:id/delete',              [\App\Controllers\ClubBackupController::class, 'delete']);
+$router->get('/club/backup/restore',                  [\App\Controllers\ClubBackupController::class, 'restoreForm']);
+$router->post('/club/backup/restore/preview',         [\App\Controllers\ClubBackupController::class, 'restorePreview']);
+$router->post('/club/backup/restore/execute',         [\App\Controllers\ClubBackupController::class, 'restoreExecute']);
+
+// Super admin: wszystkie backupy across klubow
+$router->get('/admin/platform/backups',               [\App\Controllers\AdminPlatformBackupsController::class, 'index']);
+$router->post('/admin/platform/backups/force',        [\App\Controllers\AdminPlatformBackupsController::class, 'forceCreate']);
 
 // Sponsorzy klubu
 $router->get('/club/sponsors',                 [\App\Controllers\ClubSponsorsController::class, 'index']);
@@ -992,6 +1029,16 @@ $router->get ('/club/reports-builder/:id/run',         [\App\Controllers\ClubRep
 $router->get ('/club/reports-builder/:id/export.csv',  [\App\Controllers\ClubReportBuilderController::class, 'exportCsv']);
 $router->get ('/club/reports-builder/:id/export.pdf',  [\App\Controllers\ClubReportBuilderController::class, 'exportPdf']);
 
+// Scheduled PDF dashboards do email (cron co godzine: cli/run_scheduled_reports.php)
+$router->get ('/club/scheduled-reports',                     [\App\Controllers\ClubScheduledReportsController::class, 'index']);
+$router->get ('/club/scheduled-reports/create',              [\App\Controllers\ClubScheduledReportsController::class, 'create']);
+$router->post('/club/scheduled-reports/store',               [\App\Controllers\ClubScheduledReportsController::class, 'store']);
+$router->get ('/club/scheduled-reports/:id/edit',            [\App\Controllers\ClubScheduledReportsController::class, 'edit']);
+$router->post('/club/scheduled-reports/:id/delete',          [\App\Controllers\ClubScheduledReportsController::class, 'delete']);
+$router->get ('/club/scheduled-reports/:id/preview',         [\App\Controllers\ClubScheduledReportsController::class, 'preview']);
+$router->get ('/club/scheduled-reports/:id/runs',            [\App\Controllers\ClubScheduledReportsController::class, 'runs']);
+$router->get ('/club/scheduled-reports/runs/:runId/download',[\App\Controllers\ClubScheduledReportsController::class, 'downloadRun']);
+
 // Klucze API (panel klubu)
 $router->get('/club/api-keys',              [\App\Controllers\ApiKeysController::class, 'index']);
 $router->post('/club/api-keys/generate',    [\App\Controllers\ApiKeysController::class, 'generate']);
@@ -1047,9 +1094,13 @@ $router->post('/portal/bookings/:id/cancel',     [\App\Controllers\PortalBooking
 $router->get('/portal/messenger',                       [\App\Controllers\PortalMessengerController::class, 'index']);
 $router->post('/portal/messenger/send',                 [\App\Controllers\PortalMessengerController::class, 'send']);
 $router->post('/portal/messenger/new-direct',           [\App\Controllers\PortalMessengerController::class, 'newDirect']);
+$router->post('/portal/messenger/e2e/setup',            [\App\Controllers\PortalMessengerController::class, 'setupE2E']);
+$router->post('/portal/messenger/e2e/disable',          [\App\Controllers\PortalMessengerController::class, 'disableE2E']);
 $router->get('/portal/messenger/:id/stream',            [\App\Controllers\PortalMessengerController::class, 'stream']);
 $router->get('/portal/messenger/:id/poll',              [\App\Controllers\PortalMessengerController::class, 'poll']);
 $router->post('/portal/messenger/:id/mark-read',        [\App\Controllers\PortalMessengerController::class, 'markRead']);
+$router->post('/portal/messenger/:id/e2e/enable',       [\App\Controllers\PortalMessengerController::class, 'enableE2EForThread']);
+$router->post('/portal/messenger/:id/e2e/disable',      [\App\Controllers\PortalMessengerController::class, 'disableE2EForThread']);
 $router->get('/portal/messenger/:id',                   [\App\Controllers\PortalMessengerController::class, 'thread']);
 
 // ── REST API v1 ─────────────
@@ -1228,6 +1279,8 @@ $router->post('/tournaments/:id/generate',           [\App\Controllers\Tournamen
 $router->post('/tournaments/match/:matchId/result',  [\App\Controllers\TournamentsController::class, 'recordResult']);
 $router->post('/tournaments/:id/delete',             [\App\Controllers\TournamentsController::class, 'delete']);
 $router->post('/tournaments/:id/toggle-public-live', [\App\Controllers\TournamentsController::class, 'togglePublicLive']);
+$router->post('/tournaments/:id/regenerate-protocol',    [\App\Controllers\TournamentsController::class, 'regenerateProtocol']);
+$router->post('/tournaments/:id/toggle-public-protocol', [\App\Controllers\TournamentsController::class, 'togglePublicProtocol']);
 
 // ── Drabinki turniejowe (single/double elim, round-robin) ──
 $router->get ('/tournaments/:id/bracket',           [\App\Controllers\TournamentBracketController::class, 'show']);
@@ -1282,6 +1335,14 @@ $router->post('/portal/profile/privacy', [\App\Controllers\MemberPortalControlle
 $router->get('/live/:slug',        [\App\Controllers\LivePublicController::class, 'tournament']);
 $router->get('/live/:slug/stream', [\App\Controllers\LivePublicController::class, 'stream']);
 $router->get('/live/:slug/qr',     [\App\Controllers\LivePublicController::class, 'qr']);
+
+// ── Publiczne PDF protokoly turniejowe (opt-in, no-auth) ──
+// /protocols/:slug          — landing page (branding + podium + download)
+// /protocols/:slug/download — sam plik PDF (application/pdf)
+// /protocols/:slug/qr       — redirect do QR code generatora
+$router->get('/protocols/:slug',          [\App\Controllers\TournamentProtocolPublicController::class, 'landing']);
+$router->get('/protocols/:slug/download', [\App\Controllers\TournamentProtocolPublicController::class, 'download']);
+$router->get('/protocols/:slug/qr',       [\App\Controllers\TournamentProtocolPublicController::class, 'qr']);
 
 // ============================================================
 // Dispatch

@@ -8,10 +8,20 @@ namespace App\Models;
  * Operacje INSERT/SELECT zawsze parametryzuja club_id (multi-tenant guard).
  * Wywolujacy MUSI uprzednio zweryfikowac, ze sender jest participant
  * watku (MessageThreadModel::isParticipant).
+ *
+ * E2E: gdy wiadomosc jest zaszyfrowana, body przechowuje ciphertext (base64),
+ * is_encrypted=1, ciphertext_meta zawiera JSON {iv, alg, key_fingerprint}.
+ * Server NIE moze odczytac tresci.
  */
 class ChatMessageModel extends BaseModel
 {
     protected string $table = 'chat_messages';
+
+    /**
+     * Maksymalny rozmiar ciphertext (base64) jakiegokolwiek E2E body — chroni
+     * przed nadmiernym storage i abuse.
+     */
+    public const MAX_CIPHERTEXT_BYTES = 8192;
 
     /**
      * Wiadomosci w watku, opcjonalnie tylko po $afterId (do SSE/long-poll delta).
@@ -24,6 +34,7 @@ class ChatMessageModel extends BaseModel
         $limit = max(1, min(200, $limit));
         $sql = "
             SELECT cm.id, cm.thread_id, cm.sender_member_id, cm.body,
+                   cm.is_encrypted, cm.encryption_version, cm.ciphertext_meta,
                    cm.attachment_path, cm.created_at,
                    m.first_name, m.last_name, m.photo_path
             FROM chat_messages cm
@@ -50,6 +61,7 @@ class ChatMessageModel extends BaseModel
         $sql = "
             SELECT * FROM (
                 SELECT cm.id, cm.thread_id, cm.sender_member_id, cm.body,
+                       cm.is_encrypted, cm.encryption_version, cm.ciphertext_meta,
                        cm.attachment_path, cm.created_at,
                        m.first_name, m.last_name, m.photo_path
                 FROM chat_messages cm
@@ -66,7 +78,7 @@ class ChatMessageModel extends BaseModel
     }
 
     /**
-     * Wstaw nowa wiadomosc. Zwraca id rekordu.
+     * Wstaw nowa wiadomosc plaintext. Zwraca id rekordu.
      */
     public function send(int $threadId, int $senderMemberId, int $clubId, string $body, ?string $attachmentPath = null): int
     {
@@ -76,6 +88,32 @@ class ChatMessageModel extends BaseModel
             VALUES (?, ?, ?, ?, ?, NOW())
         ");
         $stmt->execute([$threadId, $senderMemberId, $clubId, $body, $attachmentPath]);
+        return (int)$this->db->lastInsertId();
+    }
+
+    /**
+     * Wstaw zaszyfrowana E2E wiadomosc. body = base64(ciphertext), meta = JSON
+     * z minimum {iv: base64, alg: "AES-GCM-256", key_fingerprint: hex32}.
+     * Server NIE waliduje tresci poza rozmiarem.
+     */
+    public function sendEncrypted(
+        int $threadId,
+        int $senderMemberId,
+        int $clubId,
+        string $ciphertextB64,
+        array $meta,
+        string $version = 'AES-GCM-256-v1'
+    ): int {
+        $metaJson = json_encode($meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ($metaJson === false) {
+            throw new \InvalidArgumentException('Invalid ciphertext meta JSON');
+        }
+        $stmt = $this->db->prepare("
+            INSERT INTO chat_messages
+                (thread_id, sender_member_id, club_id, body, is_encrypted, encryption_version, ciphertext_meta, created_at)
+            VALUES (?, ?, ?, ?, 1, ?, ?, NOW())
+        ");
+        $stmt->execute([$threadId, $senderMemberId, $clubId, $ciphertextB64, $version, $metaJson]);
         return (int)$this->db->lastInsertId();
     }
 

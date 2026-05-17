@@ -61,6 +61,86 @@ class EmailService
     }
 
     /**
+     * Wysylka emaila z zalacznikiem (np. scheduled report PDF).
+     *
+     * @param array{content:string,filename:string,mime?:string} $attachment
+     */
+    public static function sendWithAttachment(int $clubId, string $toEmail, string $subject, string $body, array $attachment, ?string $toName = null): bool
+    {
+        if (!isset($attachment['content'], $attachment['filename'])) {
+            return false;
+        }
+        $mime = $attachment['mime'] ?? 'application/octet-stream';
+
+        $config = self::resolveSmtpConfig($clubId);
+        $branding = ClubBranding::forClub($clubId);
+        $brandFromName = $branding->emailFromNameOrDefault('');
+        $from = $config['from_email'] ?: ('noreply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+        $fromName = $brandFromName !== '' ? $brandFromName : ($config['from_name'] ?: 'KlubSportowy');
+        $config['from_name'] = $fromName;
+
+        $isAlreadyHtml = str_starts_with(trim($body), '<') || str_contains($body, '<html');
+        $htmlBody = $isAlreadyHtml ? $body : self::brandedHtml($clubId, $body);
+        $htmlBody = self::injectSponsorsFooter($clubId, $htmlBody);
+
+        // SMTP path (PHPMailer obsluguje attachments natywnie)
+        if ($config['enabled'] && class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+            $mailerClass = 'PHPMailer\\PHPMailer\\PHPMailer';
+            $mail = new $mailerClass(true);
+            try {
+                $mail->isSMTP();
+                $mail->Host       = $config['host'];
+                $mail->SMTPAuth   = true;
+                $mail->Username   = $config['user'];
+                $mail->Password   = $config['pass'];
+                $mail->SMTPSecure = $config['secure'];
+                $mail->Port       = $config['port'];
+                $mail->CharSet    = 'UTF-8';
+                $mail->setFrom($from, $fromName);
+                $mail->addAddress($toEmail, $toName ?? '');
+                $mail->Subject = $subject;
+                $mail->isHTML(true);
+                $mail->Body    = $htmlBody;
+                $mail->AltBody = trim(strip_tags($body));
+                $mail->addStringAttachment(
+                    (string)$attachment['content'],
+                    (string)$attachment['filename'],
+                    'base64',
+                    $mime
+                );
+                $mail->send();
+                return true;
+            } catch (\Throwable $e) {
+                error_log('PHPMailer attachment error: ' . $e->getMessage());
+                return false;
+            }
+        }
+
+        // Fallback: rece-budowany multipart/mixed (mail())
+        $boundary = '=_clubdesk_' . bin2hex(random_bytes(8));
+        $subjectEncoded = self::encodeHeader($subject);
+
+        $headers  = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n";
+        $headers .= "From: " . self::encodeHeader($fromName) . " <{$from}>\r\n";
+        $headers .= "Reply-To: {$from}\r\n";
+        $headers .= "X-Mailer: ClubDesk\r\n";
+
+        $message  = "--{$boundary}\r\n";
+        $message .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $message .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+        $message .= $htmlBody . "\r\n";
+        $message .= "--{$boundary}\r\n";
+        $message .= "Content-Type: {$mime}; name=\"{$attachment['filename']}\"\r\n";
+        $message .= "Content-Transfer-Encoding: base64\r\n";
+        $message .= "Content-Disposition: attachment; filename=\"{$attachment['filename']}\"\r\n\r\n";
+        $message .= chunk_split(base64_encode((string)$attachment['content'])) . "\r\n";
+        $message .= "--{$boundary}--\r\n";
+
+        return @mail($toEmail, $subjectEncoded, $message, $headers);
+    }
+
+    /**
      * Y.3 — Buduje branded HTML email shell z 3 warstwami logo
      * (system + klub) + primary color + nagłówek + footer.
      *
