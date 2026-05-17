@@ -238,6 +238,20 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                 </a>
             <?php endforeach; ?>
             <?php
+            // ── Migracja 105 — sport-specific link "Moje wyniki/PB" (timing/strength).
+            $timingKeys   = ['swimming','cycling','rowing','triathlon','biathlon','alpineski',
+                             'xcski','skijump','snowboard','rollerskating','kayaking'];
+            $strengthKeys = ['powerlifting','strongman','weightlifting'];
+            $primaryTiming   = null;
+            $primaryStrength = null;
+            if (!empty($activeSports)) {
+                foreach ($timingKeys as $tk) {
+                    if (in_array($tk, $activeSports, true)) { $primaryTiming = $tk; break; }
+                }
+                foreach ($strengthKeys as $stk) {
+                    if (in_array($stk, $activeSports, true)) { $primaryStrength = $stk; break; }
+                }
+            }
             // Studio sports — link "Zajecia / Karnety" widoczny gdy klub ma yoga/fitness/pilates
             $studioActive = false;
             try {
@@ -253,8 +267,20 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                     $studioActive = ((int)$stmtStudio->fetchColumn()) > 0;
                 }
             } catch (\Throwable) {}
-            if ($studioActive):
             ?>
+            <?php if ($primaryTiming): ?>
+                <a href="<?= url('portal/sport/' . $primaryTiming . '/my_results') ?>"
+                   class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/my_results') !== false ? 'active' : '' ?>">
+                    <i class="bi bi-stopwatch me-1"></i>Moje wyniki
+                </a>
+            <?php endif; ?>
+            <?php if ($primaryStrength): ?>
+                <a href="<?= url('portal/sport/' . $primaryStrength . '/my_pbs') ?>"
+                   class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/my_pbs') !== false ? 'active' : '' ?>">
+                    <i class="bi bi-shield-shaded me-1"></i>Moje PB
+                </a>
+            <?php endif; ?>
+            <?php if ($studioActive): ?>
                 <a href="<?= url('portal/studio') ?>" class="<?= $isActive('/studio') ?>">
                     <i class="bi bi-flower1 me-1"></i>Zajecia / Karnety
                 </a>

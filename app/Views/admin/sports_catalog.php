@@ -27,7 +27,7 @@
                                 <i class="bi bi-exclamation-triangle me-1"></i>Deprecated
                             </span>
                         <?php endif; ?>
-                        <?php
+<?php
                         // Status FULL/PARTIAL/STUB z manifestu (status) lub
                         // z klasy module (klasycznie dla FULL).
                         $status = $m['status'] ?? null;

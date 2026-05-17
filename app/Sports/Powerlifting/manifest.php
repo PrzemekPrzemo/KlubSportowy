@@ -2,9 +2,11 @@
 return [
     'key'        => 'powerlifting',
     'name'       => 'Trójbój siłowy',
-    'federation' => 'PZTSS',
+    'federation' => 'PZPow',
+    'status'     => 'full',
+    'module'     => \App\Sports\Powerlifting\PowerliftingModule::class,
     'archetype'  => \App\Sports\Powerlifting\PowerliftingArchetype::class,
-    'features'   => ['results', 'records', 'weight_categories', 'demo-ready'],
+    'features'   => ['results', 'records', 'weight_categories', 'attempts', 'wilks', 'live_scoreboard', 'demo-ready'],
     'routes' => [
         ['GET',  '/powerlifting/results',            [\App\Sports\Powerlifting\Controllers\ResultsController::class, 'index']],
         ['POST', '/powerlifting/results/store',       [\App\Sports\Powerlifting\Controllers\ResultsController::class, 'store']],
@@ -14,8 +16,9 @@ return [
         ['POST', '/powerlifting/records/:id/delete',  [\App\Sports\Powerlifting\Controllers\RecordsController::class, 'delete']],
     ],
     'nav' => [
-        ['label' => 'Wyniki zawodów',  'icon' => 'bi-trophy',   'url' => 'powerlifting/results'],
-        ['label' => 'Rekordy klubu',   'icon' => 'bi-star',     'url' => 'powerlifting/records'],
+        ['label' => 'Wyniki zawodów', 'icon' => 'bi-trophy',        'url' => 'powerlifting/results'],
+        ['label' => 'Rekordy klubu',  'icon' => 'bi-star',          'url' => 'powerlifting/records'],
+        ['label' => 'Podejścia',      'icon' => 'bi-shield-shaded', 'url' => 'club/sport/powerlifting/attempts'],
     ],
     'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',
