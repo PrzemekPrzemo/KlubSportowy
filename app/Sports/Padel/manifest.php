@@ -4,7 +4,9 @@ return [
     'name'       => 'Padel',
     'federation' => 'PZPadel',
     'archetype'  => \App\Sports\Padel\PadelArchetype::class,
-    'features'   => ['pairs', 'courts', 'matches', 'reservations', 'rankings', 'demo-ready'],
+    'module'     => \App\Sports\Padel\PadelModule::class,
+    'status'     => 'full',
+    'features'   => ['pairs', 'courts', 'matches', 'reservations', 'rankings', 'pair_tracking', 'pair_ranking', 'doubles_scoring', 'demo-ready'],
     'routes' => [
         ['GET',  '/padel/pairs',                    [\App\Sports\Padel\Controllers\PairsController::class,        'index']],
         ['POST', '/padel/pairs/store',              [\App\Sports\Padel\Controllers\PairsController::class,        'store']],
@@ -15,8 +17,10 @@ return [
         ['POST', '/padel/reservations/:id/cancel',  [\App\Sports\Padel\Controllers\ReservationsController::class, 'cancel']],
     ],
     'nav' => [
-        ['label' => 'Pary / Ranking', 'icon' => 'bi-people',      'url' => 'padel/pairs'],
-        ['label' => 'Rezerwacje',     'icon' => 'bi-calendar3',   'url' => 'padel/reservations'],
+        ['label' => 'Pary / Ranking', 'icon' => 'bi-people',       'url' => 'padel/pairs'],
+        ['label' => 'Rezerwacje',     'icon' => 'bi-calendar3',    'url' => 'padel/reservations'],
+        ['label' => 'Pary klubu',     'icon' => 'bi-people-fill',  'url' => 'club/sport/padel/pairs'],
+        ['label' => 'Mój profil',     'icon' => 'bi-person-vcard', 'url' => 'portal/sport/padel/my_record'],
     ],
     'views_path' => __DIR__ . '/views',
     'migrations' => __DIR__ . '/migrations',

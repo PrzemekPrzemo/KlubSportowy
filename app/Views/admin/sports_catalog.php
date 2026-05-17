@@ -27,6 +27,20 @@
                                 <i class="bi bi-exclamation-triangle me-1"></i>Deprecated
                             </span>
                         <?php endif; ?>
+                        <?php
+                        // Status FULL/PARTIAL/STUB z manifestu (status) lub
+                        // z klasy module (klasycznie dla FULL).
+                        $status = $m['status'] ?? null;
+                        if ($status === null && !empty($m['module']) && class_exists($m['module'])) {
+                            try { $status = (new $m['module']())->status(); } catch (\Throwable) { $status = null; }
+                        }
+                        if ($status === 'full'): ?>
+                            <span class="badge bg-success ms-1">FULL</span>
+                        <?php elseif ($status === 'partial'): ?>
+                            <span class="badge bg-secondary ms-1">PARTIAL</span>
+                        <?php elseif ($status === 'stub'): ?>
+                            <span class="badge bg-light text-muted border ms-1">STUB</span>
+                        <?php endif; ?>
                     </div>
                 </td>
                 <td class="small">
