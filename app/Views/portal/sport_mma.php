@@ -34,6 +34,13 @@ use App\Sports\Mma\Models\MmaFighterModel;
     <div class="col-md-3 col-6"><div class="card shadow-sm text-center bg-dark text-white"><div class="card-body"><div class="small opacity-75">Rekord</div><h2 class="mb-0 font-monospace"><?= (int)($record['W'] ?? 0) ?>-<?= (int)($record['L'] ?? 0) ?>-<?= (int)($record['D'] ?? 0) ?></h2></div></div></div>
 </div>
 
+<?php
+// Pelna kartoteka MMA (po promocji PARTIAL -> FULL)
+echo View::partial('portal/sport/mma/my_record', [
+    'mmaCard' => $mmaCard ?? null,
+]);
+?>
+
 <?php if (!empty($winMethods)): ?>
 <div class="card shadow-sm mb-4">
     <div class="card-header"><i class="bi bi-lightning-fill me-1"></i> Sposoby wygranych</div>

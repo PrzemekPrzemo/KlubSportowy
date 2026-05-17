@@ -1454,14 +1454,16 @@ class MemberPortalController extends BaseController
                 ]);
                 break;
             case 'mma':
-                $fModel = new \App\Sports\Mma\Models\MmaFighterModel();
-                $rModel = new \App\Sports\Mma\Models\MmaResultModel();
+                $fModel    = new \App\Sports\Mma\Models\MmaFighterModel();
+                $rModel    = new \App\Sports\Mma\Models\MmaResultModel();
+                $cardModel = new \App\Sports\Mma\Models\MmaRecordModel();
                 $data = array_merge($data, [
                     'title'      => 'MMA — Mój profil',
                     'fighter'    => $fModel->forMember($memberId),
                     'record'     => $rModel->recordForMember($memberId),
                     'winMethods' => $rModel->winMethods($memberId),
                     'myResults'  => $rModel->listForClub($memberId),
+                    'mmaCard'    => $cardModel->forMember($memberId),
                 ]);
                 break;
             case 'kayaking':
@@ -1541,12 +1543,14 @@ class MemberPortalController extends BaseController
                 ]);
                 break;
             case 'fencing':
-                $fModel = new \App\Sports\Fencing\Models\FencingFencerModel();
-                $rModel = new \App\Sports\Fencing\Models\FencingResultModel();
+                $fModel    = new \App\Sports\Fencing\Models\FencingFencerModel();
+                $rModel    = new \App\Sports\Fencing\Models\FencingResultModel();
+                $memModel  = new \App\Sports\Fencing\Models\FencingMemberModel();
                 $data = array_merge($data, [
-                    'title'     => 'Szermierka — Mój profil',
-                    'myProfile' => $fModel->forMember($memberId),
-                    'myResults' => array_filter($rModel->listForClub(), fn($r) => (int)$r['member_id'] === $memberId),
+                    'title'      => 'Szermierka — Mój profil',
+                    'myProfile'  => $fModel->forMember($memberId),
+                    'myResults'  => array_filter($rModel->listForClub(), fn($r) => (int)$r['member_id'] === $memberId),
+                    'multiArmed' => $memModel->forMember($memberId),
                 ]);
                 break;
             case 'icehockey':
@@ -1584,12 +1588,17 @@ class MemberPortalController extends BaseController
             case 'boxing':
                 $resModel = new \App\Sports\Boxing\Models\BoxingResultModel();
                 $medModel = new \App\Sports\Boxing\Models\BoxingMedicalModel();
+                $cardModel  = new \App\Sports\Boxing\Models\BoxingRecordModel();
+                $weightHist = new \App\Sports\Boxing\Models\BoxingWeightHistoryModel();
                 $all      = $resModel->listForClub($memberId);
                 $data = array_merge($data, [
-                    'title'   => 'Boks — Mój profil',
-                    'record'  => $resModel->recordForMember($memberId),
-                    'recent'  => array_slice($all, 0, 10),
-                    'medical' => $medModel->currentForMember($memberId),
+                    'title'         => 'Boks — Mój profil',
+                    'record'        => $resModel->recordForMember($memberId),
+                    'recent'        => array_slice($all, 0, 10),
+                    'medical'       => $medModel->currentForMember($memberId),
+                    'boxingCard'    => $cardModel->forMember($memberId),
+                    'licenseLevels' => \App\Sports\Boxing\Models\BoxingRecordModel::$LICENSE_LEVELS,
+                    'weightHistory' => array_slice($weightHist->listForMember($memberId), 0, 10),
                 ]);
                 break;
             case 'tennis':
@@ -1607,6 +1616,20 @@ class MemberPortalController extends BaseController
                     'rankingEntry'  => $entry,
                 ]);
                 break;
+            case 'wrestling':
+                $rModel    = new \App\Sports\Wrestling\Models\WrestlingResultModel();
+                $profModel = new \App\Sports\Wrestling\Models\WrestlingMemberModel();
+                $bdModel   = new \App\Sports\Wrestling\Models\WrestlingMatchBreakdownModel();
+                $data = array_merge($data, [
+                    'title'       => 'Zapasy — Mój profil',
+                    'profile'     => $profModel->forMember($memberId),
+                    'stats'       => $bdModel->statsForMember($memberId),
+                    'myResults'   => $rModel->listForClub($memberId),
+                    'styles'      => \App\Sports\Wrestling\Models\WrestlingResultModel::$STYLES,
+                ]);
+                $this->view->setLayout('portal');
+                $this->view->render('portal/sport_wrestling', $data);
+                return;
             default:
                 // Generic fallback dla sportow bez dedykowanego case-u —
                 // uzywa archetypu (z manifestu) i introspekcji INFORMATION_SCHEMA
