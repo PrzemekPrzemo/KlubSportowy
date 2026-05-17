@@ -1107,20 +1107,39 @@ class MemberPortalController extends BaseController
             // composite index trainings(club_sport_id, start_time) added
             // in migration 030_perf_indexes.sql. Wrapping with DATE()
             // would have forced a full scan.
+            // LEFT JOIN training_attendees aby od razu wiedziec czy member
+            // jest zapisany / na waitlist / cancelled. Subqueries dla countow
+            // (signed_up_count) zeby UI mogl pokazac "X/Y miejsc".
             $stmt2  = $db->prepare(
-                "SELECT t.*, s.name AS sport_name, s.color, u.full_name AS instructor_name
+                "SELECT t.*, s.name AS sport_name, s.color, u.full_name AS instructor_name,
+                        ta.status AS my_status, ta.signup_source AS my_source,
+                        (SELECT COUNT(*) FROM training_attendees ta2
+                          WHERE ta2.training_id = t.id
+                            AND ta2.status IN ('signed_up','zapisany','obecny','attended')) AS signed_count,
+                        (SELECT COUNT(*) FROM training_attendees ta3
+                          WHERE ta3.training_id = t.id
+                            AND ta3.status = 'waitlist') AS waitlist_count
                  FROM trainings t
                  JOIN club_sports cs ON cs.id = t.club_sport_id
                  JOIN sports s ON s.id = cs.sport_id
                  LEFT JOIN users u ON u.id = t.instructor_id
+                 LEFT JOIN training_attendees ta
+                        ON ta.training_id = t.id AND ta.member_id = ?
                  WHERE t.club_sport_id IN ({$in})
                    AND t.start_time >= ?
                    AND t.start_time <  ?
                    AND t.status != 'odwolany'
                  ORDER BY t.start_time"
             );
-            $stmt2->execute([$fromStr, $toStr]);
+            $stmt2->execute([$memberId, $fromStr, $toStr]);
             $trainings = $stmt2->fetchAll();
+
+            // Wzbogac kazdy trening o flagi UI (before_deadline) — wyliczenie w PHP
+            // zeby unikac duplikacji logiki SQL.
+            foreach ($trainings as &$t) {
+                $t['before_deadline'] = \App\Helpers\TrainingSignupService::isBeforeDeadline($t);
+            }
+            unset($t);
         }
 
         $week = max(0, (int)($_GET['week'] ?? 0));
@@ -1133,6 +1152,43 @@ class MemberPortalController extends BaseController
             'week'         => $week,
             'appName'      => (require ROOT_PATH . '/config/app.php')['app_name'] ?? 'KlubSportowy',
         ]);
+    }
+
+    /**
+     * POST /portal/training/:id/signup
+     * Member-self signup z atomicznym counter checkiem (FOR UPDATE) i waitlist.
+     */
+    public function signupTraining(string $id): void
+    {
+        MemberAuth::requireLogin();
+        Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+        $tid      = (int)$id;
+
+        $res = \App\Helpers\TrainingSignupService::signup($tid, $memberId, $clubId, 'member_self');
+        Session::flash($res['ok'] ? 'success' : 'error', $res['message']);
+        $week = isset($_POST['week']) ? '?week=' . (int)$_POST['week'] : '';
+        $this->redirect('portal/schedule' . $week);
+    }
+
+    /**
+     * POST /portal/training/:id/cancel
+     * Wypisanie z treningu + auto-promote pierwszego z waitlist.
+     */
+    public function cancelTraining(string $id): void
+    {
+        MemberAuth::requireLogin();
+        Csrf::verify();
+        $memberId = (int)MemberAuth::id();
+        $clubId   = (int)MemberAuth::clubId();
+        $tid      = (int)$id;
+        $reason   = isset($_POST['reason']) ? trim((string)$_POST['reason']) : null;
+
+        $res = \App\Helpers\TrainingSignupService::cancel($tid, $memberId, $clubId, $reason ?: null);
+        Session::flash($res['ok'] ? 'success' : 'error', $res['message']);
+        $week = isset($_POST['week']) ? '?week=' . (int)$_POST['week'] : '';
+        $this->redirect('portal/schedule' . $week);
     }
 
     public function attendance(): void
