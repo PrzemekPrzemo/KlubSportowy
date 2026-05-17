@@ -239,8 +239,6 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
             <?php endforeach; ?>
             <?php
             // ── Migracja 105 — sport-specific link "Moje wyniki/PB" (timing/strength).
-            // Pokazujemy jeden najbardziej trafny link dla pierwszego aktywnego
-            // sportu zawodnika z grupy timing/strength.
             $timingKeys   = ['swimming','cycling','rowing','triathlon','biathlon','alpineski',
                              'xcski','skijump','snowboard','rollerskating','kayaking'];
             $strengthKeys = ['powerlifting','strongman','weightlifting'];
@@ -254,8 +252,23 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                     if (in_array($stk, $activeSports, true)) { $primaryStrength = $stk; break; }
                 }
             }
-            if ($primaryTiming):
+            // Studio sports — link "Zajecia / Karnety" widoczny gdy klub ma yoga/fitness/pilates
+            $studioActive = false;
+            try {
+                $portalClubIdStudio = \App\Helpers\MemberAuth::clubId();
+                if ($portalClubIdStudio !== null) {
+                    $stmtStudio = \App\Helpers\Database::pdo()->prepare(
+                        "SELECT COUNT(*) FROM club_sports cs
+                         JOIN sports s ON s.id = cs.sport_id
+                         WHERE cs.club_id = ? AND cs.is_active = 1
+                           AND s.`key` IN ('yoga','fitness','pilates')"
+                    );
+                    $stmtStudio->execute([$portalClubIdStudio]);
+                    $studioActive = ((int)$stmtStudio->fetchColumn()) > 0;
+                }
+            } catch (\Throwable) {}
             ?>
+            <?php if ($primaryTiming): ?>
                 <a href="<?= url('portal/sport/' . $primaryTiming . '/my_results') ?>"
                    class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/my_results') !== false ? 'active' : '' ?>">
                     <i class="bi bi-stopwatch me-1"></i>Moje wyniki
@@ -265,6 +278,11 @@ $isActive = fn(string $seg): string => str_contains($currentPath ?? '', $seg) ? 
                 <a href="<?= url('portal/sport/' . $primaryStrength . '/my_pbs') ?>"
                    class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/my_pbs') !== false ? 'active' : '' ?>">
                     <i class="bi bi-shield-shaded me-1"></i>Moje PB
+                </a>
+            <?php endif; ?>
+            <?php if ($studioActive): ?>
+                <a href="<?= url('portal/studio') ?>" class="<?= $isActive('/studio') ?>">
+                    <i class="bi bi-flower1 me-1"></i>Zajecia / Karnety
                 </a>
             <?php endif; ?>
             <span class="text-white-50">|</span>

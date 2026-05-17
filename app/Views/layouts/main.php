@@ -195,6 +195,21 @@ $navbarBg = $branding['navbar_bg']     ?? '#232232';
             <?php if ($groupKey === 'schedule' && \App\Helpers\Auth::hasRole(['trener', 'instruktor'])): ?>
                 <a href="<?= url('trainer/schedule') ?>"><i class="bi bi-person-badge"></i> Moja dostepnosc</a>
             <?php endif; ?>
+            <?php
+            // Studio sports (yoga/fitness/pilates) — link tylko gdy klub ma aktywny sport
+            if ($groupKey === 'schedule' && !empty($activeSportKeys)) {
+                $studioMap = [
+                    'yoga'    => ['Joga',    'bi-flower1'],
+                    'fitness' => ['Fitness', 'bi-activity'],
+                    'pilates' => ['Pilates', 'bi-heart-pulse'],
+                ];
+                foreach ($studioMap as $sk => [$label, $icon]) {
+                    if (!in_array($sk, $activeSportKeys, true)) continue;
+                    echo '<a href="' . url('club/studio/' . $sk . '/schedules') . '">'
+                       . '<i class="bi ' . View::e($icon) . '"></i> Klasy ' . View::e($label) . '</a>';
+                }
+            }
+            ?>
             </div>
         </div>
     <?php endforeach; ?>

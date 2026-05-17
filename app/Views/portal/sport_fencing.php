@@ -47,6 +47,13 @@ use App\Sports\Fencing\Models\FencingFencerModel;
     <div class="alert alert-info">Brak profilu szermierza. Skontaktuj się z klubem.</div>
 <?php endif; ?>
 
+<?php
+// Pelny profil multi-weapon (po promocji PARTIAL -> FULL)
+echo View::partial('portal/sport/fencing/my_profile', [
+    'multiArmed' => $multiArmed ?? null,
+]);
+?>
+
 <div class="card shadow-sm">
     <div class="card-header"><i class="bi bi-trophy me-1"></i> Moje wyniki zawodów</div>
     <div class="card-body p-0">

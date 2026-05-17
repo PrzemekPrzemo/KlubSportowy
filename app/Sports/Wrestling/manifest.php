@@ -4,7 +4,17 @@ return [
     'name'       => 'Zapasy',
     'federation' => 'PZZ',
     'archetype'  => \App\Sports\Wrestling\WrestlingArchetype::class,
-    'features'   => ['results', 'weight_categories', 'styles', 'demo-ready'],
+    'module'     => \App\Sports\Wrestling\WrestlingModule::class,
+    'status'     => 'full',
+    'features'   => [
+        'results',
+        'weight_categories',
+        'styles',
+        'technical_breakdown',
+        'member_profile',
+        'rank_points',
+        'demo-ready',
+    ],
     'routes' => [
         ['GET',  '/wrestling/results',            [\App\Sports\Wrestling\Controllers\ResultsController::class, 'index']],
         ['POST', '/wrestling/results/store',       [\App\Sports\Wrestling\Controllers\ResultsController::class, 'store']],
@@ -12,6 +22,11 @@ return [
         ['GET',  '/wrestling/results/:id/edit',    [\App\Sports\Wrestling\Controllers\ResultsController::class, 'edit']],
         ['POST', '/wrestling/results/:id/update',  [\App\Sports\Wrestling\Controllers\ResultsController::class, 'update']],
         ['POST', '/wrestling/results/:id/delete',  [\App\Sports\Wrestling\Controllers\ResultsController::class, 'delete']],
+        // Kartoteka + technical breakdown (PARTIAL -> FULL)
+        ['GET',  '/wrestling/profile/:id',                [\App\Sports\Wrestling\Controllers\SportWrestlingController::class, 'memberRecord']],
+        ['POST', '/wrestling/profile/:id/update',         [\App\Sports\Wrestling\Controllers\SportWrestlingController::class, 'updateRecord']],
+        ['GET',  '/wrestling/breakdown/:id',              [\App\Sports\Wrestling\Controllers\SportWrestlingController::class, 'breakdownForm']],
+        ['POST', '/wrestling/breakdown/:id/store',        [\App\Sports\Wrestling\Controllers\SportWrestlingController::class, 'storeBreakdown']],
     ],
     'nav' => [
         ['label' => 'Wyniki zawodów', 'icon' => 'bi-people-fill', 'url' => 'wrestling/results'],
